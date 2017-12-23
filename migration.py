@@ -34,32 +34,13 @@ class MigrationInference:
         self.P0 = None#Initial condition for dif eq
         self.P1 = None#Values of solution at the end of the interval
         self.JAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
-    
-    def PrintMatrix(self):
-        for i in range(self.Msize):
-            for j in range(self.Msize):
-                el = format(self.MM.item(i,j), '.10g')
-                print( el, end = "\t" )
-            print("")
-            
-    def PrintMatrixRow(self, rn):
-        st = self.MapIndToState(rn)
-        print (self.PrintState(st) )
-        for i in range(self.Msize):
-            el = format(self.MM.item(rn, i), '.10g')
-            print( el, end = "\t" )
-        print("")
-        for i in range(self.Msize):
-            if self.MM.item(rn, i) != 0:
-                st = self.MapIndToState(i)
-                print (self.PrintState(st) )
         
     def CorrectLambdas(self):
         p0 = [[1,0,0],[0,1,0]]
         if not self.correct:
             for t in range(self.numT):
                  self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
-            return
+            return True
         for t in range(self.splitT):
 #            print(self.lh[t])
 #            print(self.times[t])
@@ -156,7 +137,7 @@ l = [1,1/0.4]
 lambdas = []
 for la in l:
     lambdas.append([la,la])
-print(lambdas)
+#print(lambdas)
 #times = [2*0.125]
 #times = []
 #lambdas = [[1,3],[0.1,0.5],[2,4],[1,0.5],[10,10]]
@@ -165,10 +146,17 @@ print(lambdas)
 #mu = [0.00001,0.00001]
 #splitT = 3
 
-times = [2*0.125]
-splitT = 3
+#times = [2*0.125]
+lambdas = [[1.0, 2.5], [1.4285714285714286, 1.4285714285714286]]
+mu = [0.01*10000, 0.003*10000]
+times = [0.25]
+splitT = 1
 
 theta = 0.000001
+lambdas = [[1.0, 1.0], [2.5, 2.5]]
+mu = [0.01, 0.003]
+times = [0.25]
+splitT = 0
 print(lambdas)
 print(times)
 print(mu)

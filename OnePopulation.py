@@ -20,7 +20,6 @@ class OnePopulation:
     def __init__(self, l1):
         self.la = l1
         self.Msize = 8
-        self.Test()
         
     def PrintError(self, func, text):
         func = func + "():"

@@ -173,6 +173,25 @@ class TwoPopulations:
         MM = mat(MM)
         return(MM)
     
+    def PrintMatrix(self):
+        for i in range(self.Msize):
+            for j in range(self.Msize):
+                el = format(self.MM.item(i,j), '.10g')
+                print( el, end = "\t" )
+            print("")
+            
+    def PrintMatrixRow(self, rn):
+        st = self.MapIndToState(rn)
+        print (self.PrintState(st) )
+        for i in range(self.Msize):
+            el = format(self.MM.item(rn, i), '.10g')
+            print( el, end = "\t" )
+        print("")
+        for i in range(self.Msize):
+            if self.MM.item(rn, i) != 0:
+                st = self.MapIndToState(i)
+                print (self.PrintState(st) )
+    
     def UpdateMatrixCol(self, ind, MM):
         state = self.MapIndToState(ind)
         total = 0.0
@@ -181,11 +200,11 @@ class TwoPopulations:
             state1 = list(state)
             self.UpdateLineagePop(state1, i, (state[i].pop+1)%2)
             ind2 = self.MapStateToInd(state1)
-            MM[ind][ind2] += self.mu[ state[i].pop ]
+            MM[ind2][ind] += self.mu[ state[i].pop ]
             total += self.mu[ state[i].pop ]
             #Coalescence
             for j in range(i+1, len(state)):
-                if j == i or state[j].pop != state[i].pop:
+                if state[j].pop != state[i].pop:
                     continue
                 state1 = list(state)
                 for k in sorted([i,j], reverse=True):
@@ -204,6 +223,17 @@ class TwoPopulations:
             st = self.MapIndToState(i)
             if self.MapStateToInd(st) != i:
                 map_test_passed = False
+            if 0:
+                jaf = self.StateToJAF(i)
+ #               j = '' + `int(jaf[0])` + `int(jaf[1])` + `int(jaf[2])` + `int(jaf[3])`
+                print(self.PrintState(st), jaf)
+            if 0:
+                st = self.MapIndToState(3)
+                self.mu = [1, 0]
+                self.la = [0, 0]
+                self.MM = self.SetMatrix()
+                self.PrintMatrix()
+                sys.exit(0)
         if map_test_passed:
             print("Map test passed succesfully, map is identity.")
         else:
