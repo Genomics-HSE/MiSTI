@@ -2,6 +2,7 @@
 
 import sys
 import collections
+import numpy
 from scipy import (linalg,optimize)
 from numpy import (dot,identity,mat)
 import math
@@ -19,6 +20,7 @@ class MigrationInference:
         self.splitT = splitT
         self.mu = mu
         
+        
         #PSMC parameters
         self.lh = lambdas#pairs of PSMC lambda_0 and lambda_1
         self.times = times
@@ -34,6 +36,7 @@ class MigrationInference:
         self.P0 = None#Initial condition for dif eq
         self.P1 = None#Values of solution at the end of the interval
         self.JAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
+        print("MigrationInference class initialized.")
         
     def CorrectLambdas(self):
         p0 = [[1,0,0],[0,1,0]]
@@ -59,7 +62,7 @@ class MigrationInference:
             
     def JAFSpectrum(self):
         model = TwoPopulations(self.lc[0][0], self.lc[0][1], self.mu[0], self.mu[1])
-        self.P0 = [0.0 for i in range(model.Msize)]
+        self.P0 = [0.0 for i in range( model.MSize() )]
         self.P0[2] = 1.0
         for interval in range(self.numT):
             print("Interval", interval)
@@ -70,12 +73,14 @@ class MigrationInference:
             if interval == self.splitT:
                 self.CollapsePops()
             self.M = model.SetMatrix()
+            self.P0 = model.SetInitialConditions(self.P0)
 #            print(self.M)
             self.SolveDifEq(interval)
-            for i in range(model.Msize):
+            for i in range( model.MSize() ):
                 jaf = model.StateToJAF(i)
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
-            self.P0 = self.P1
+            self.P0 = model.UpdateInitialConditions(self.P1)
+            #self.P0 = self.P1
     
     def CollapsePops(self):
         Pc = [0 for i in range(8)]
@@ -90,7 +95,7 @@ class MigrationInference:
         self.P0 = Pc
     
     def SolveDifEq(self, interval):
-        print(self.P0)
+        sizeM = self.M.shape[0]
         if interval < self.numT - 1:
             T = self.times[interval]
             MET = linalg.expm( dot(self.M,T) )
@@ -98,7 +103,6 @@ class MigrationInference:
         else:
             self.P1 = [0 for i in range( len(self.P0) )]
         MI = linalg.inv(self.M)
-        sizeM = self.M.shape[0]
         self.integralP = [x - y for x, y in zip(self.P1, self.P0)]
         self.integralP = dot(MI,self.integralP)
     
@@ -107,7 +111,8 @@ class MigrationInference:
         res = self.CorrectLambdas()
         if not res:
             return -10**(100)
-        print(self.lc)
+        if 1:
+            print("ObjectiveFunction(): corrected values of lambdas are", self.lc)
         self.JAFSpectrum()
         norm = sum(self.JAFS)
         print("----------",self.JAFS[0]/norm,self.JAFS[1]/norm,sep="\t\t")
@@ -121,6 +126,7 @@ class MigrationInference:
         return log(1)
     
     def Solve(self):
+        print("Start solving the problem.")
         self.cl = CorrectLambda()
         self.ObjectiveFunction([self.mu[0], self.mu[1]])
         #print(self.ObjectiveFunction([self.mu[0], self.mu[1]]))
@@ -149,19 +155,22 @@ for la in l:
 #times = [2*0.125]
 lambdas = [[1.0, 2.5], [1.4285714285714286, 1.4285714285714286]]
 mu = [0.01*10000, 0.003*10000]
+mu = [0,0]
 times = [0.25]
 splitT = 1
 
-theta = 0.000001
+'''theta = 0.000001
 lambdas = [[1.0, 1.0], [2.5, 2.5]]
 mu = [0.01, 0.003]
 times = [0.25]
-splitT = 0
-print(lambdas)
-print(times)
-print(mu)
-print(splitT)
-print(theta)
+splitT = 0'''
+print("Input parameters:")
+print("\t", lambdas, sep = "")
+print("\t", times, sep = "")
+print("\t", mu, sep = "")
+print("\t", splitT, sep = "")
+print("\t", theta, sep = "")
+print("End of input.")
 Migration = MigrationInference(lambdas, times, mu, splitT, theta, False)
 Migration.Test()
 

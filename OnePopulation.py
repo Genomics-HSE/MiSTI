@@ -20,7 +20,10 @@ class OnePopulation:
     def __init__(self, l1):
         self.la = l1
         self.Msize = 8
-        
+    
+    def MSize(self):
+        return( self.Msize )
+    
     def PrintError(self, func, text):
         func = func + "():"
         print("TwoPopulations class error in function", func, text)
@@ -116,7 +119,13 @@ class OnePopulation:
         for val in state:
             st = st + "(" + str(val.d0) + "," + str(val.d1) + ") "
         return st
-        
+    
+    def SetInitialConditions( self , P0 ):
+        return( P0 )
+    
+    def UpdateInitialConditions( self , P0):
+        return( P0 )
+    
     def SetMatrix(self):
         MM = [[0 for col in range(self.Msize)] for row in range(self.Msize)]#transition matrix
         for i in range(self.Msize):

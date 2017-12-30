@@ -2,6 +2,7 @@
 
 import sys
 import collections
+import numpy
 from scipy import (linalg,optimize)
 from numpy import (dot,identity,mat)
 import math
@@ -17,10 +18,26 @@ class lineage:
 
 class TwoPopulations:
     def __init__(self, l1, l2, m1, m2):
+        if m1 < 0 or m2 < 0:
+            self.PrintError("TwoPopulations", "migration rates cannot be negative")
+        if l1 < 0 or l2 < 0:
+            self.PrintError("TwoPopulations", "coalescent rates cannot be negative")
         self.mu = [m1, m2]
         self.la = [l1, l2]
+        self.P0 = []
+        self.stationary = []
         self.Msize = 44
-        
+        if m1 + m2 == 0:
+            for i in range(self.Msize):
+                st = self.MapIndToState(i)
+                if len(st) == 2 and st[0].pop != st[1].pop:
+                    self.stationary.append(i)
+            print("Stationary states:", self.stationary)
+        self.Test()
+    
+    def MSize(self):
+        return self.Msize - len(self.stationary)
+    
     def PrintError(self, func, text):
         func = func + "():"
         print("TwoPopulations class error in function", func, text)
@@ -128,6 +145,10 @@ class TwoPopulations:
         return state
     
     def StateToJAF(self, sti):
+        #sti += sum(i <= sti for i in self.stationary)
+        for el in self.stationary:
+            if sti >= el:
+                sti += 1
         state = self.MapIndToState(sti)
         jaf = [0 for i in range(7)]
         for lineage in state:
@@ -170,13 +191,47 @@ class TwoPopulations:
         MM = [[0 for col in range(self.Msize)] for row in range(self.Msize)]#transition matrix
         for i in range(self.Msize):
             self.UpdateMatrixCol(i, MM)
+        MM = numpy.delete(MM, self.stationary, 0)
+        MM = numpy.delete(MM, self.stationary, 1)
         MM = mat(MM)
         return(MM)
+        
+    def SetInitialConditions( self , P0 ):
+        self.P0 = P0
+        if self.mu[0] + self.mu[1] == 0:
+            self.P0 = numpy.delete(P0, self.stationary)
+        return( P0 )
+    
+    def UpdateInitialConditions( self , P0):
+        if len(P0) == self.Msize:
+            return( P0 )
+        if len(P0) != self.Msize - len(self.stationary):
+            text = "unexpected length of initial conditions vector " + len(P0)
+            self.PrintError("UpdateInitialConditions", text)
+        for i in range(len(P0)):
+            P0[i] = -1
+        for ind in self.stationary:
+            P0 = numpy.insert( P0, ind, 0 )
+        for ind in self.stationary:
+            st = self.MapIndToState(ind)
+            c = [st[0].d0*st[0].pop + st[1].d0*st[1].pop, st[0].d1*st[0].pop + st[1].d1*st[1].pop]
+            for i in range(self.Msize):
+                st1 = self.MapIndToState(ind)
+                c1 = [0,0]
+                for lineage in st1:
+                    c1[0] += lineage.d0*st[0].pop
+                    c1[1] += lineage.d1*st[0].pop
+                if c1[0] == c[0] and c1[1] == c[1]:
+                    P0[ind] += self.P0[i] - P0[i]
+        return( P0 )
     
     def PrintMatrix(self):
-        for i in range(self.Msize):
-            for j in range(self.Msize):
+        matSize = self.Msize - len(self.stationary)
+        for i in range(matSize):
+            for j in range(matSize):
                 el = format(self.MM.item(i,j), '.10g')
+                if int(el) == 0:
+                    el = '.'
                 print( el, end = "\t" )
             print("")
             
@@ -190,7 +245,10 @@ class TwoPopulations:
         for i in range(self.Msize):
             if self.MM.item(rn, i) != 0:
                 st = self.MapIndToState(i)
-                print (self.PrintState(st) )
+                pr = self.PrintState(st)
+                if int(pr) == 0:
+                    pr = '.'
+                print ( pr )
     
     def UpdateMatrixCol(self, ind, MM):
         state = self.MapIndToState(ind)
@@ -223,18 +281,17 @@ class TwoPopulations:
             st = self.MapIndToState(i)
             if self.MapStateToInd(st) != i:
                 map_test_passed = False
-            if 0:
-                jaf = self.StateToJAF(i)
- #               j = '' + `int(jaf[0])` + `int(jaf[1])` + `int(jaf[2])` + `int(jaf[3])`
-                print(self.PrintState(st), jaf)
-            if 0:
-                st = self.MapIndToState(3)
-                self.mu = [1, 0]
-                self.la = [0, 0]
-                self.MM = self.SetMatrix()
-                self.PrintMatrix()
-                sys.exit(0)
         if map_test_passed:
             print("Map test passed succesfully, map is identity.")
         else:
             print("Map test failed.")
+        if 0:
+           jaf = self.StateToJAF(i)
+        #               j = '' + `int(jaf[0])` + `int(jaf[1])` + `int(jaf[2])` + `int(jaf[3])`
+           print(self.PrintState(st), jaf)
+        if 0:
+           self.mu = [0, 0]
+           self.la = [1, 10]
+           self.MM = self.SetMatrix()
+           self.PrintMatrix()
+           sys.exit(0)
