@@ -38,6 +38,9 @@ class TwoPopulations:
     def MSize(self):
         return self.Msize - len(self.stationary)
     
+    def StateNum(self):
+        return(self.Msize)
+    
     def PrintError(self, func, text):
         func = func + "():"
         print("TwoPopulations class error in function", func, text)
@@ -88,8 +91,8 @@ class TwoPopulations:
     
     def MapIndToState(self, ind):
         if not isinstance(ind, int) or ind < 0 or ind >= self.Msize:
-            print("Unexpected index value", ind, ", index should be an integer between 0 and", self.Msize - 1, ".")
-            sys.exit(0)
+            text = "Unexpected index value " + str(ind) + ", index should be an integer between 0 and " + str(self.Msize - 1) + "."
+            self.PrintError("MapIndToState", text)
         if ind < 9:
             state = [lineage(1, 0, 0), lineage(1, 0, 0), lineage(0, 1, 0), lineage(0, 1, 0)]
             i = ind//3
@@ -146,9 +149,9 @@ class TwoPopulations:
     
     def StateToJAF(self, sti):
         #sti += sum(i <= sti for i in self.stationary)
-        for el in self.stationary:
-            if sti >= el:
-                sti += 1
+#        for el in self.stationary:
+#            if sti >= el:
+#                sti += 1
         state = self.MapIndToState(sti)
         jaf = [0 for i in range(7)]
         for lineage in state:
@@ -199,7 +202,7 @@ class TwoPopulations:
     def SetInitialConditions( self , P0 ):
         self.P0 = P0
         if self.mu[0] + self.mu[1] == 0:
-            self.P0 = numpy.delete(P0, self.stationary)
+            P0 = numpy.delete(P0, self.stationary)
         return( P0 )
     
     def UpdateInitialConditions( self , P0):
@@ -208,22 +211,55 @@ class TwoPopulations:
         if len(P0) != self.Msize - len(self.stationary):
             text = "unexpected length of initial conditions vector " + len(P0)
             self.PrintError("UpdateInitialConditions", text)
-        for i in range(len(P0)):
-            P0[i] = -1
         for ind in self.stationary:
             P0 = numpy.insert( P0, ind, 0 )
+        nP0 = [v for v in P0]
         for ind in self.stationary:
             st = self.MapIndToState(ind)
             c = [st[0].d0*st[0].pop + st[1].d0*st[1].pop, st[0].d1*st[0].pop + st[1].d1*st[1].pop]
+            print( c )
+            print( self.PrintState( st ) )
             for i in range(self.Msize):
-                st1 = self.MapIndToState(ind)
+                st1 = self.MapIndToState(i)
                 c1 = [0,0]
                 for lineage in st1:
-                    c1[0] += lineage.d0*st[0].pop
-                    c1[1] += lineage.d1*st[0].pop
+                    c1[0] += lineage.d0*lineage.pop
+                    c1[1] += lineage.d1*lineage.pop
                 if c1[0] == c[0] and c1[1] == c[1]:
-                    P0[ind] += self.P0[i] - P0[i]
-        return( P0 )
+                    print( "\t", c1 )
+                    print( "\t", self.PrintState( st1 ) )
+                    nP0[ind] += self.P0[i] - P0[i]
+        for i in range(self.Msize):
+            if nP0[i] > 0:
+                st = self.MapIndToState(i)
+                print( nP0[i], "\t", self.PrintState( st ) )
+        return( nP0 )
+    
+    def UpdateIntegral(self, integralP, T):
+        if len(integralP) == self.Msize:
+            return( integralP )
+        if len(integralP) != self.Msize - len(self.stationary):
+            text = "unexpected length of initial conditions vector " + len(P0)
+            self.PrintError("UpdateInitialConditions", text)
+        for ind in self.stationary:
+            integralP = numpy.insert( integralP, ind, 0 )
+        niP = [v for v in integralP]
+        for ind in self.stationary:
+            st = self.MapIndToState(ind)
+            c = [st[0].d0*st[0].pop + st[1].d0*st[1].pop, st[0].d1*st[0].pop + st[1].d1*st[1].pop]
+            print( c )
+            print( self.PrintState( st ) )
+            for i in range(self.Msize):
+                st1 = self.MapIndToState(i)
+                c1 = [0,0]
+                for lineage in st1:
+                    c1[0] += lineage.d0*lineage.pop
+                    c1[1] += lineage.d1*lineage.pop
+                if c1[0] == c[0] and c1[1] == c[1]:
+                    print( "\t", c1 )
+                    print( "\t", self.PrintState( st1 ) )
+                    niP[ind] += T*self.P0[i] - integralP[i]
+        return( niP )
     
     def PrintMatrix(self):
         matSize = self.Msize - len(self.stationary)

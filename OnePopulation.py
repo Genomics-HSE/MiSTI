@@ -24,6 +24,9 @@ class OnePopulation:
     def MSize(self):
         return( self.Msize )
     
+    def StateNum(self):
+        return( self.Msize )
+    
     def PrintError(self, func, text):
         func = func + "():"
         print("TwoPopulations class error in function", func, text)
@@ -125,6 +128,9 @@ class OnePopulation:
     
     def UpdateInitialConditions( self , P0):
         return( P0 )
+        
+    def UpdateIntegral(self, integralP, T):
+        return( integralP )
     
     def SetMatrix(self):
         MM = [[0 for col in range(self.Msize)] for row in range(self.Msize)]#transition matrix

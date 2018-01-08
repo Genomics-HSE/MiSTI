@@ -20,7 +20,6 @@ class MigrationInference:
         self.splitT = splitT
         self.mu = mu
         
-        
         #PSMC parameters
         self.lh = lambdas#pairs of PSMC lambda_0 and lambda_1
         self.times = times
@@ -28,6 +27,9 @@ class MigrationInference:
         if len(self.times) != self.numT - 1:
             print("Unexpected number of time intervals")
             sys.exit(0)
+        
+        #Data parameters
+        self.dataJAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
         
         #Class variables
         self.lc = [[0,0] for i in range(self.numT)]#Corrected lambdas
@@ -37,7 +39,12 @@ class MigrationInference:
         self.P1 = None#Values of solution at the end of the interval
         self.JAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
         print("MigrationInference class initialized.")
-        
+      
+    def PrintError(self, func, text):
+        func = func + "():"
+        print("MigrationInference class error in function", func, text)
+        sys.exit(0)
+      
     def CorrectLambdas(self):
         p0 = [[1,0,0],[0,1,0]]
         if not self.correct:
@@ -53,7 +60,7 @@ class MigrationInference:
                 sol = self.cl.SolveLambdaSystem()
             except optimize.nonlin.NoConvergence:
                 return False
-            print("interval solution\t",sol)
+#            print("interval solution\t",sol)
             self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
             p0 = sol[1]
         for t in range(self.splitT,self.numT):
@@ -61,12 +68,14 @@ class MigrationInference:
         return True
             
     def JAFSpectrum(self):
-        model = TwoPopulations(self.lc[0][0], self.lc[0][1], self.mu[0], self.mu[1])
+        model = TwoPopulations(self.lc[0][0], self.lc[0][1], 1.0, 1.0)
         self.P0 = [0.0 for i in range( model.MSize() )]
         self.P0[2] = 1.0
         for interval in range(self.numT):
             print("Interval", interval)
             if interval < self.splitT:
+                if interval == self.numT - 1 and self.mu[0] + self.mu[1] == 0:
+                    self.PrintError("JAFSpectrum", "Infinite coalescent time. No migration.")
                 model = TwoPopulations(self.lc[interval][0], self.lc[interval][1], self.mu[0], self.mu[1])
             else:
                 model = OnePopulation(self.lc[interval][0])
@@ -74,13 +83,23 @@ class MigrationInference:
                 self.CollapsePops()
             self.M = model.SetMatrix()
             self.P0 = model.SetInitialConditions(self.P0)
-#            print(self.M)
             self.SolveDifEq(interval)
-            for i in range( model.MSize() ):
+            self.P0 = model.UpdateInitialConditions(self.P1)
+            if interval < self.numT - 1:
+                self.integralP = model.UpdateIntegral(self.integralP, self.times[interval])
+            for i in range( model.StateNum() ):
                 jaf = model.StateToJAF(i)
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
-            self.P0 = model.UpdateInitialConditions(self.P1)
-            #self.P0 = self.P1
+    
+    def PrintMatrix(self):
+        matSize = self.M.shape[0]
+        for i in range(matSize):
+            for j in range(matSize):
+                el = format(self.M.item(i,j), '.10g')
+             #   if int(el) == 0:
+             #       el = '.'
+                print( el, end = "\t" )
+            print("")
     
     def CollapsePops(self):
         Pc = [0 for i in range(8)]
@@ -111,29 +130,37 @@ class MigrationInference:
         res = self.CorrectLambdas()
         if not res:
             return -10**(100)
-        if 1:
+        if 0:
             print("ObjectiveFunction(): corrected values of lambdas are", self.lc)
         self.JAFSpectrum()
         norm = sum(self.JAFS)
-        print("----------",self.JAFS[0]/norm,self.JAFS[1]/norm,sep="\t\t")
-        print(self.JAFS[2]/norm,self.JAFS[3]/norm,self.JAFS[4]/norm,sep="\t\t")
-        print(self.JAFS[5]/norm,self.JAFS[6]/norm,"----------",sep="\t\t")
-        n = 1+1/2+1/3
-        print("singletons", (self.JAFS[0]+self.JAFS[2])/norm, 1/n)
-        print("doubletons", (self.JAFS[1]+self.JAFS[3]+self.JAFS[5])/norm, 1/(2*n))
-        print("tripletons", (self.JAFS[4]+self.JAFS[6])/norm, 1/(3*n))
+        if 1:
+            print("----------",self.JAFS[0]/norm,self.JAFS[1]/norm,sep="\t\t")
+            print(self.JAFS[2]/norm,self.JAFS[3]/norm,self.JAFS[4]/norm,sep="\t\t")
+            print(self.JAFS[5]/norm,self.JAFS[6]/norm,"----------",sep="\t\t")
+            n = 1+1/2+1/3
+            print("singletons", (self.JAFS[0]+self.JAFS[2])/norm, 1/n)
+            print("doubletons", (self.JAFS[1]+self.JAFS[3]+self.JAFS[5])/norm, 1/(2*n))
+            print("tripletons", (self.JAFS[4]+self.JAFS[6])/norm, 1/(3*n))
+#        return 0
 #        return self.Likelihood()
-        return log(1)
+        llh = 0
+        for i in range(7):
+            llh += self.dataJAFS[i]*log(self.JAFS[i])
+        print(llh)
+        return -llh
     
     def Solve(self):
         print("Start solving the problem.")
         self.cl = CorrectLambda()
-        self.ObjectiveFunction([self.mu[0], self.mu[1]])
+#        res = optimize.minimize(self.ObjectiveFunction, [0,0], method=’L-BFGS-B’, bounds = ((0, None), (0, None)))
+#        print(res)
         #print(self.ObjectiveFunction([self.mu[0], self.mu[1]]))
 #        optimize ObjectiveFunction(mu0, mu1)
     
     def Test(self):
-        self.Solve()
+        self.cl = CorrectLambda()
+        self.ObjectiveFunction([self.mu[0], self.mu[1]])
         
 
 lambdas, times, mu, splitT, theta = [], [], [], None, None
@@ -154,10 +181,15 @@ for la in l:
 
 #times = [2*0.125]
 lambdas = [[1.0, 2.5], [1.4285714285714286, 1.4285714285714286]]
-mu = [0.01*10000, 0.003*10000]
-mu = [0,0]
-times = [0.25]
+mu = [100.0, 300.0]
+mu = [0.0, 0.0]
+times = [2.5]
 splitT = 1
+
+lambdas = [[1.0, 2.5], [1.4285714285714286, 1.6666666666666667], [2.0, 2.0]]
+mu = [100.0, 30.0]
+times = [0.25, 0.35]
+splitT = 2
 
 '''theta = 0.000001
 lambdas = [[1.0, 1.0], [2.5, 2.5]]
@@ -165,11 +197,11 @@ mu = [0.01, 0.003]
 times = [0.25]
 splitT = 0'''
 print("Input parameters:")
-print("\t", lambdas, sep = "")
-print("\t", times, sep = "")
-print("\t", mu, sep = "")
-print("\t", splitT, sep = "")
-print("\t", theta, sep = "")
+print("\tlambda = ", lambdas, sep = "")
+print("\ttimes  = ", times, sep = "")
+print("\tmigrat = ", mu, sep = "")
+print("\tsplitT = ", splitT, sep = "")
+print("\ttheta  = ", theta, sep = "")
 print("End of input.")
 Migration = MigrationInference(lambdas, times, mu, splitT, theta, False)
 Migration.Test()
