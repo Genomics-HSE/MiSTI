@@ -1,4 +1,4 @@
-#!/Users/shchur/anaconda3/bin/python3
+#!/usr/bin/env python3
 from scipy import (optimize,linalg)
 from numpy import (dot,identity)
 from math import (exp,log)
