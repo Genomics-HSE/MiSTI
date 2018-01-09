@@ -36,13 +36,13 @@ with open(fn) as f:
             if line[1][2] != line[1][3]:
                 f2.append( line[0] )
         fw1.write("@begin " + str( len(f1) ) + "\n" )
-        fw1.write( chrLen + "\n" )
+        fw1.write( str(chrLen) + "\n" )
         for val in f1:
              fw1.write( val + "\t10" + "\n" )
         fw1.write("@end\n")
         
         fw2.write("@begin " + str( len(f2) ) + "\n" )
-        fw2.write( chrLen + "\n" )
+        fw2.write( str(chrLen) + "\n" )
         for val in f2:
              fw2.write( val + "\t10" + "\n" )
         fw2.write("@end\n")
