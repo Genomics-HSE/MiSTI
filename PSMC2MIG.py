@@ -45,6 +45,5 @@ with open(fn) as f:
             line = line.split()
         break
 
-for i in range()
 print(Tk)
 print(Lk)
