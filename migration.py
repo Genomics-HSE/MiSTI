@@ -11,9 +11,10 @@ from math import (exp,log)
 from CorrectLambda import CorrectLambda
 from TwoPopulations import TwoPopulations
 from OnePopulation import OnePopulation
+import migrationIO
 
 class MigrationInference:
-    def __init__(self, lambdas, times, mu, splitT, theta, correct = True):
+    def __init__(self, times, lambdas, dataJAFS, mu, splitT, theta, correct = True):
         self.correct = correct
         #Model parameters
         self.theta = theta#coalescent mutation rate theta/2
@@ -29,7 +30,8 @@ class MigrationInference:
             sys.exit(0)
         
         #Data parameters
-        self.dataJAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
+        #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
+        self.dataJAFS = dataJAFS
         
         #Class variables
         self.lc = [[0,0] for i in range(self.numT)]#Corrected lambdas
@@ -38,6 +40,9 @@ class MigrationInference:
         self.P0 = None#Initial condition for dif eq
         self.P1 = None#Values of solution at the end of the interval
         self.JAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
+        
+        #Class for EP size correction
+        self.cl = CorrectLambda()
         print("MigrationInference class initialized.")
       
     def PrintError(self, func, text):
@@ -159,7 +164,6 @@ class MigrationInference:
 #        optimize ObjectiveFunction(mu0, mu1)
     
     def Test(self):
-        self.cl = CorrectLambda()
         self.ObjectiveFunction([self.mu[0], self.mu[1]])
         
 
@@ -190,6 +194,18 @@ lambdas = [[1.0, 2.5], [1.4285714285714286, 1.6666666666666667], [2.0, 2.0]]
 mu = [100.0, 30.0]
 times = [0.25, 0.35]
 splitT = 2
+dataJAFS = [0 for i in range(7)]
+
+inputData = [times, lambdas]
+
+if len(sys.argv) < 4:
+    print("./migration <PSMC input file 1> <PSMC input file 2> <JAF spectrum file>")
+    sys.exit(0)
+fpsmc1 = sys.argv[1]
+fpsmc2 = sys.argv[2]
+fjafs  = sys.argv[3]
+inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2)
+dataJAFS = migrationIO.ReadJAFS(fjafs)
 
 '''theta = 0.000001
 lambdas = [[1.0, 1.0], [2.5, 2.5]]
@@ -203,8 +219,10 @@ print("\tmigrat = ", mu, sep = "")
 print("\tsplitT = ", splitT, sep = "")
 print("\ttheta  = ", theta, sep = "")
 print("End of input.")
-Migration = MigrationInference(lambdas, times, mu, splitT, theta, False)
-Migration.Test()
+for i in range( len(inputData[0]) - 1 ):
+    splitT = i
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, theta, False)
+    Migration.ObjectiveFunction([mu[0], mu[1]])
 
 #./scrm 4 1 -t 100000.0 -r 100000.0 250000000 -l 100000 -eN 0.0125 0.4 > sim.txt
 #./scrm 4 1 -t 100000.0 -r 100000.0 250000000 -l 100000 -eN 0.0125 0.4 > sim.txt

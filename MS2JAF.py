@@ -23,8 +23,7 @@ with open(fn) as f:
             if line == "@end\n":
                 break
             line = line.split("\t")
-            s = [line[1][0], line[1][1], line[1][2], line[1][3]]
-            fr = [int(v) for v in s]
+            fr = [int(v) for v in line[1]]
             
             s0 = int(fr[0]) + int(fr[1])
             s1 = int(fr[2]) + int(fr[3])
@@ -49,4 +48,5 @@ with open(fn) as f:
 
 norm = sum(jaf)
 jaf = [v/norm for v in jaf]
-print(jaf)
+for v in jaf:
+    print(v)

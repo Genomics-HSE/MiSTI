@@ -39,7 +39,7 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th]
     return( data )
 
-def ReadPSMC(fn1, fn2, RD = -1, collapse = False):
+def ReadPSMC(fn1, fn2, RD = -1):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
     if d1[2] != d2[2]:
@@ -51,6 +51,7 @@ def ReadPSMC(fn1, fn2, RD = -1, collapse = False):
     Lk1 = []
     Lk2 = []
     Tk = sorted( d1[0] + d2[0][1:] )
+    
     j = 0
     for i in range( len(d1[0]) - 1 ):
         while Tk[j] < d1[0][i + 1]:
@@ -58,11 +59,32 @@ def ReadPSMC(fn1, fn2, RD = -1, collapse = False):
             j += 1
     while len(Lk1) < len(Tk):
         Lk1.append(1.0/d1[1][-1])
-    print(len(Tk))
-    print(len(Lk1))
-    for i in range(len(Tk)):
-        print(1/Lk1[i], "\t", Tk[i])
+        
+    j = 0
+    for i in range( len(d2[0]) - 1 ):
+        while Tk[j] < d2[0][i + 1]:
+            Lk2.append( 1.0/d2[1][i] )
+            j += 1
+    while len(Lk2) < len(Tk):
+        Lk2.append(1.0/d2[1][-1])
+    Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
+    return( [Tk, Lk] )
+    
+#    print(len(Tk))
+#    print(len(Lk1))
+#    for i in range(len(Tk)):
+#        print(1/Lk1[i], "\t", Tk[i])
 
+def ReadJAFS(fn):
+    jafs = []
+    with open(fn) as f:
+        for line in f:
+            jafs.append( float(line) )
+    if len(jafs) != 7:
+        print("Unexpected number of lines in the JAFS file.")
+        sys.exit(0)
+    return(jafs)
+    
 fn1 = sys.argv[1]
 fn2 = sys.argv[2]
 ReadPSMC(fn1, fn2)
