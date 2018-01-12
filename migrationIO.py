@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import sys
 def ReadPSMCFile(fn, RD = -1):
     maxRD = -1
     Tk = []
@@ -42,10 +42,6 @@ def ReadPSMCFile(fn, RD = -1):
 def ReadPSMC(fn1, fn2, RD = -1, collapse = False):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
-    print(d1)
-    print("\n\n")
-    print(d2)
-    print("\n\n")
     if d1[2] != d2[2]:
         print("Different RDs for input files 1 and 2.")
         sys.exit(0)
@@ -54,17 +50,19 @@ def ReadPSMC(fn1, fn2, RD = -1, collapse = False):
     Tk = []
     Lk1 = []
     Lk2 = []
-    Tk = sorted( zip(d1[0], d2[0][1:]) )
-    print(Tk)
-    return(0)
-''''    j = 0
+    Tk = sorted( d1[0] + d2[0][1:] )
+    j = 0
     for i in range( len(d1[0]) - 1 ):
         while Tk[j] < d1[0][i + 1]:
             Lk1.append( 1.0/d1[1][i] )
             j += 1
-        if v == d1[0]:
-            l = 1/d
-'''    
+    while len(Lk1) < len(Tk):
+        Lk1.append(1.0/d1[1][-1])
+    print(len(Tk))
+    print(len(Lk1))
+    for i in range(len(Tk)):
+        print(1/Lk1[i], "\t", Tk[i])
+
 fn1 = sys.argv[1]
 fn2 = sys.argv[2]
-ReadPSMC(f1, fn2)
+ReadPSMC(fn1, fn2)
