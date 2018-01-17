@@ -55,8 +55,8 @@ class TwoPopulations:
             tn0 += val.d0
             tn1 += val.d1
         if tn0 != 2 or tn1 != 2:
-            print("CheckState() not passed: expected number of lineages is 2 and 2, instead there are", tn0, "and", tn1, "lineages")
-            sys.exit(0)
+            text = "CheckState() not passed: expected number of lineages is 2 and 2, instead there are " + str(tn0) + " and " + str(tn1) + " lineages"
+            self.PrintError("CheckState", text)
     
     def MapStateToInd(self, state):
         self.CheckState(state)
@@ -70,8 +70,8 @@ class TwoPopulations:
             return i+3*j
         if len(state) == 3:
             if state[0].d0 + state[0].d1 != 2:
-                print("Unexpected number of lineages, expected 2, recieved", state[0].d0 + state[0].d1)
-                sys.exit(0)
+                text = "Unexpected number of lineages, expected 2, recieved " + str(state[0].d0 + state[0].d1)
+                self.PrintError("MapStateToInd", text)
             if state[0].d0 == 2:
                 return 9 + 3*state[0].pop + state[1].pop + state[2].pop
             elif state[0].d0 == 1:
@@ -217,8 +217,6 @@ class TwoPopulations:
         for ind in self.stationary:
             st = self.MapIndToState(ind)
             c = [st[0].d0*st[0].pop + st[1].d0*st[1].pop, st[0].d1*st[0].pop + st[1].d1*st[1].pop]
-            print( c )
-            print( self.PrintState( st ) )
             for i in range(self.Msize):
                 st1 = self.MapIndToState(i)
                 c1 = [0,0]
@@ -226,13 +224,10 @@ class TwoPopulations:
                     c1[0] += lineage.d0*lineage.pop
                     c1[1] += lineage.d1*lineage.pop
                 if c1[0] == c[0] and c1[1] == c[1]:
-                    print( "\t", c1 )
-                    print( "\t", self.PrintState( st1 ) )
                     nP0[ind] += self.P0[i] - P0[i]
         for i in range(self.Msize):
             if nP0[i] > 0:
                 st = self.MapIndToState(i)
-                print( nP0[i], "\t", self.PrintState( st ) )
         return( nP0 )
     
     def UpdateIntegral(self, integralP, T):
@@ -247,8 +242,6 @@ class TwoPopulations:
         for ind in self.stationary:
             st = self.MapIndToState(ind)
             c = [st[0].d0*st[0].pop + st[1].d0*st[1].pop, st[0].d1*st[0].pop + st[1].d1*st[1].pop]
-            print( c )
-            print( self.PrintState( st ) )
             for i in range(self.Msize):
                 st1 = self.MapIndToState(i)
                 c1 = [0,0]
@@ -256,8 +249,6 @@ class TwoPopulations:
                     c1[0] += lineage.d0*lineage.pop
                     c1[1] += lineage.d1*lineage.pop
                 if c1[0] == c[0] and c1[1] == c[1]:
-                    print( "\t", c1 )
-                    print( "\t", self.PrintState( st1 ) )
                     niP[ind] += T*self.P0[i] - integralP[i]
         return( niP )
     
@@ -312,6 +303,7 @@ class TwoPopulations:
         MM[ind][ind] -= total
     
     def Test(self):
+        return
         map_test_passed = True
         for i in range(self.Msize):
             st = self.MapIndToState(i)

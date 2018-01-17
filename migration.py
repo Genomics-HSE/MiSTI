@@ -7,6 +7,8 @@ from scipy import (linalg,optimize)
 from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
+import time
+import matplotlib.pyplot as plt
 
 from CorrectLambda import CorrectLambda
 from TwoPopulations import TwoPopulations
@@ -14,6 +16,10 @@ from OnePopulation import OnePopulation
 import migrationIO
 
 class MigrationInference:
+    COUNT_LLH = 0
+    CORRECTION_CALLED = 0
+    CORRECTION_FAILED = 0
+    
     def __init__(self, times, lambdas, dataJAFS, mu, splitT, theta, correct = True):
         self.correct = correct
         #Model parameters
@@ -51,25 +57,36 @@ class MigrationInference:
         sys.exit(0)
       
     def CorrectLambdas(self):
+        MigrationInference.CORRECTION_CALLED += 1
         p0 = [[1,0,0],[0,1,0]]
-        if not self.correct:
-            for t in range(self.numT):
-                 self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
-            return True
+        nc = [0, 0]#Probability for not coalescing
         for t in range(self.splitT):
 #            print(self.lh[t])
 #            print(self.times[t])
 #            print(p0)
-            self.cl.SetInterval(self.lh[t], self.times[t], p0)
-            try:
-                sol = self.cl.SolveLambdaSystem()
-            except optimize.nonlin.NoConvergence:
-                return False
-#            print("interval solution\t",sol)
-            self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
-            p0 = sol[1]
-        for t in range(self.splitT,self.numT):
-            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
+            if not self.correct or mu[0] + mu[1] == 0:
+                self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
+            else:
+                self.cl.SetInterval(self.lh[t], self.times[t], p0)
+                try:
+                    sol = self.cl.SolveLambdaSystem()
+                except optimize.nonlin.NoConvergence:
+                    MigrationInference.CORRECTION_FAILED += 1
+                    return False
+    #            print("interval solution\t",sol)
+                self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
+                p0 = sol[1]
+            nc[0] += -self.times[t]/self.lh[t][0]
+            nc[1] += -self.times[t]/self.lh[t][1]
+        for t in range(self.splitT,self.numT - 1):
+#            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
+            pnc = ( exp(nc[0])*exp(-self.times[t]/self.lh[t][0]) + exp(nc[1])*exp(-self.times[t]/self.lh[t][1]) )/( exp( nc[0] ) + exp( nc[1] ) )
+            self.lc[t][0] = -self.times[t]/log(pnc)
+            self.lc[t][1] = -self.times[t]/log(pnc)
+            nc[0] += -self.times[t]/self.lc[t][0]
+            nc[1] += -self.times[t]/self.lc[t][1]
+        t = self.numT - 1
+        self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
         return True
             
     def JAFSpectrum(self):
@@ -77,7 +94,6 @@ class MigrationInference:
         self.P0 = [0.0 for i in range( model.MSize() )]
         self.P0[2] = 1.0
         for interval in range(self.numT):
-            print("Interval", interval)
             if interval < self.splitT:
                 if interval == self.numT - 1 and self.mu[0] + self.mu[1] == 0:
                     self.PrintError("JAFSpectrum", "Infinite coalescent time. No migration.")
@@ -131,6 +147,10 @@ class MigrationInference:
         self.integralP = dot(MI,self.integralP)
     
     def ObjectiveFunction(self, mu):
+        return( -self.JAFSLikelyhood( mu ) )
+        
+    def JAFSLikelyhood(self, mu):
+        MigrationInference.COUNT_LLH += 1
         self.cl.SetMu(mu[0], mu[1])
         res = self.CorrectLambdas()
         if not res:
@@ -139,25 +159,26 @@ class MigrationInference:
             print("ObjectiveFunction(): corrected values of lambdas are", self.lc)
         self.JAFSpectrum()
         norm = sum(self.JAFS)
+        self.JAFS = [v/norm for v in self.JAFS]
         if 1:
-            print("----------",self.JAFS[0]/norm,self.JAFS[1]/norm,sep="\t\t")
-            print(self.JAFS[2]/norm,self.JAFS[3]/norm,self.JAFS[4]/norm,sep="\t\t")
-            print(self.JAFS[5]/norm,self.JAFS[6]/norm,"----------",sep="\t\t")
+            print("----------",self.JAFS[0],self.JAFS[1],sep="\t\t")
+            print(self.JAFS[2],self.JAFS[3],self.JAFS[4],sep="\t\t")
+            print(self.JAFS[5],self.JAFS[6],"----------",sep="\t\t")
             n = 1+1/2+1/3
-            print("singletons", (self.JAFS[0]+self.JAFS[2])/norm, 1/n)
-            print("doubletons", (self.JAFS[1]+self.JAFS[3]+self.JAFS[5])/norm, 1/(2*n))
-            print("tripletons", (self.JAFS[4]+self.JAFS[6])/norm, 1/(3*n))
+            print("singletons", (self.JAFS[0]+self.JAFS[2]), 1/n)
+            print("doubletons", (self.JAFS[1]+self.JAFS[3]+self.JAFS[5]), 1/(2*n))
+            print("tripletons", (self.JAFS[4]+self.JAFS[6]), 1/(3*n))
 #        return 0
 #        return self.Likelihood()
         llh = 0
         for i in range(7):
+#            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
             llh += self.dataJAFS[i]*log(self.JAFS[i])
-        print(llh)
-        return -llh
+        return( llh )
     
     def Solve(self):
         print("Start solving the problem.")
-        self.cl = CorrectLambda()
+#        self.cl = CorrectLambda()
 #        res = optimize.minimize(self.ObjectiveFunction, [0,0], method=’L-BFGS-B’, bounds = ((0, None), (0, None)))
 #        print(res)
         #print(self.ObjectiveFunction([self.mu[0], self.mu[1]]))
@@ -165,6 +186,12 @@ class MigrationInference:
     
     def Test(self):
         self.ObjectiveFunction([self.mu[0], self.mu[1]])
+        
+    def Report():
+        print("Total number of likelihood function calls is ", MigrationInference.COUNT_LLH)
+        print("Lambda correction called ", MigrationInference.CORRECTION_CALLED, " times.")
+        print("Lambda correction failed ", MigrationInference.CORRECTION_FAILED, " times.")
+        
         
 
 lambdas, times, mu, splitT, theta = [], [], [], None, None
@@ -201,28 +228,47 @@ inputData = [times, lambdas]
 if len(sys.argv) < 4:
     print("./migration <PSMC input file 1> <PSMC input file 2> <JAF spectrum file>")
     sys.exit(0)
+t1 = time.clock()
 fpsmc1 = sys.argv[1]
 fpsmc2 = sys.argv[2]
 fjafs  = sys.argv[3]
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2)
+doPlot = True
+inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
-
+mu = [0, 0]
 '''theta = 0.000001
 lambdas = [[1.0, 1.0], [2.5, 2.5]]
 mu = [0.01, 0.003]
 times = [0.25]
 splitT = 0'''
 print("Input parameters:")
-print("\tlambda = ", lambdas, sep = "")
-print("\ttimes  = ", times, sep = "")
+print("\ttimes  = ", inputData[0], sep = "")
+print("\tlambda = ", inputData[1], sep = "")
+print("\tJAFS   = ", dataJAFS, sep = "")
 print("\tmigrat = ", mu, sep = "")
 print("\tsplitT = ", splitT, sep = "")
 print("\ttheta  = ", theta, sep = "")
 print("End of input.")
+llh = []
 for i in range( len(inputData[0]) - 1 ):
     splitT = i
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, theta, False)
-    Migration.ObjectiveFunction([mu[0], mu[1]])
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, theta, True)
+    llh.append( exp( Migration.JAFSLikelyhood( mu ) ) )
+norm = sum(llh)
+norm = 1.0
+splT = [0,0]
+for i in range( len(llh) ):
+    if llh[i] > splT[1]:
+        splT = [sum(inputData[0][0:i]), llh[i]]
+    print("SplitT\t", sum(inputData[0][0:i]), "\tLLH\t", llh[i]/norm)
+print("Maximum likelihood split time\t", splT[0], "\tLLH\t", splT[1]/norm)
+if doPlot:
+    plt.axvline(splT[0]*inputData[2], color='r')
+    print(list(plt.xticks()[0]) )
+    plt.savefig("temp.png")
 
+t2 = time.clock()
+MigrationInference.Report()
+print("Total time ", t2-t1)
 #./scrm 4 1 -t 100000.0 -r 100000.0 250000000 -l 100000 -eN 0.0125 0.4 > sim.txt
 #./scrm 4 1 -t 100000.0 -r 100000.0 250000000 -l 100000 -eN 0.0125 0.4 > sim.txt
