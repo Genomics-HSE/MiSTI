@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 import sys
 
-if len(sys.argv) < 2:
-    print("Need input file")
+if len(sys.argv) < 3:
+    print("./MSSPLIT.py <INPUT FILE> <DESTINATION FOLDER>")
     exit(0)
 
 fn = sys.argv[1]
+dest = sys.argv[2]
 
-fnw1 = "data/ms2g1.ms"
-fnw2 = "data/ms2g2.ms"
+fnw1 = dest + "/ms2g1.ms"
+fnw2 = dest + "/ms2g2.ms"
 fw1 = open(fnw1, 'w')
 fw2 = open(fnw2, 'w')
 
