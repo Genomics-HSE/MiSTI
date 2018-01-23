@@ -23,7 +23,7 @@ with open(fn) as f:
             if line == "@end\n":
                 break
             line = line.split("\t")
-            fr = [int(v) for v in line[1]]
+            fr = list(line[1][0:4])
             
             s0 = int(fr[0]) + int(fr[1])
             s1 = int(fr[2]) + int(fr[3])
