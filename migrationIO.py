@@ -42,7 +42,7 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th]
     return( data )
 
-def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
+def ReadPSMC(fn1, fn2, RD = -1, doPlot = False, skip = 0):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
     if d1[2] != d2[2]:
@@ -83,10 +83,11 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
         plt.semilogx(x, y1, x, y2)
+#        plt.savefig("temp2.png")
 #    print("Here we are")
 #    sys.exit(0)
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scale, scale1] )
+    return( [Tk[skip:], Lk[skip:], scale, scale1] )
     
 #    print(len(Tk))
 #    print(len(Lk1))

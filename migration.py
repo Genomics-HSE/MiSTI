@@ -75,12 +75,15 @@ class MigrationInference:
                     return False
     #            print("interval solution\t",sol)
                 self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
+                if sol[0][0] < 0 or sol[0][1] < 0:
+                    MigrationInference.CORRECTION_FAILED += 1
+                    return False
                 p0 = sol[1]
             nc[0] += -self.times[t]/self.lh[t][0]
             nc[1] += -self.times[t]/self.lh[t][1]
         for t in range(self.splitT,self.numT - 1):
 #            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
-            pnc = ( exp(nc[0])*exp(-self.times[t]/self.lh[t][0]) + exp(nc[1])*exp(-self.times[t]/self.lh[t][1]) )/( exp( nc[0] ) + exp( nc[1] ) )
+            pnc = ( exp(-self.times[t]/self.lh[t][0]) + exp(nc[1] - nc[0] - self.times[t]/self.lh[t][1]) )/( 1 + exp( nc[1] - nc[0] ) )
             self.lc[t][0] = -self.times[t]/log(pnc)
             self.lc[t][1] = -self.times[t]/log(pnc)
             nc[0] += -self.times[t]/self.lc[t][0]
@@ -233,9 +236,10 @@ fpsmc1 = sys.argv[1]
 fpsmc2 = sys.argv[2]
 fjafs  = sys.argv[3]
 doPlot = True
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot)
+inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot, skip = 12)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
-mu = [0, 0]
+mu = [0.25, 0.25]
+mu = [0.0, 0.0]
 '''theta = 0.000001
 lambdas = [[1.0, 1.0], [2.5, 2.5]]
 mu = [0.01, 0.003]
@@ -265,7 +269,7 @@ print("Maximum likelihood split time\t", splT[0], "\tLLH\t", splT[1]/norm)
 if doPlot:
     plt.axvline(splT[0]*inputData[2], color='r')
     print(list(plt.xticks()[0]) )
-    plt.savefig("temp.png")
+    plt.savefig("temp1.png")
 
 t2 = time.clock()
 MigrationInference.Report()
