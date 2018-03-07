@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
-import matplotlib.pyplot as plt
+if False:
+    import matplotlib.pyplot as plt
 from math import log
 from CorrectLambda import CorrectLambda
 

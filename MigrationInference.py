@@ -8,7 +8,8 @@ from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 import time
-import matplotlib.pyplot as plt
+if False:
+    import matplotlib.pyplot as plt
 import multiprocessing
 
 from CorrectLambda import CorrectLambda
@@ -349,7 +350,7 @@ class MigrationInference:
     def Solve(self):
         maxVal = 2*self.lh[0][0]
         mu0 = [0.0, 0.0]
-        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': 1e-4, 'fatol': 1e-4 })
+        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': 1e-2, 'fatol': 1e-2 })
         return([res.x, -res.fun])
     
     def MaxLLH(self, muMin = 0.0, muMax = 2.0, step = 0.2, unit = 1):

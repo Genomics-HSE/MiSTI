@@ -8,20 +8,27 @@ from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 import time
-import matplotlib.pyplot as plt
 import multiprocessing
 from MigrationInference import MigrationInference
 import migrationIO
 
+doPlot = False
+if doPlot:
+    import matplotlib.pyplot as plt
 
-def Optimize(times, lambdas, dataJAFS, procNum=4):
+def Help():
+    print("./migration <PSMC input file 1> <PSMC input file 2> <JAF spectrum file>")
+    sys.exit(0)
+
+def Optimize(times, lambdas, dataJAFS, procNum=2):
+    print("Number of processes: ", procNum)
     p = multiprocessing.Pool(procNum)
     splitVals = range( len(times) )
-    splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in [98,99,100,101] ]
+    splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in range(90,100) ]
     res = p.map(RunSolve, splitVals)
+    
     print(res)
 
-#inputData[0], inputData[1], dataJAFS, splitT
 def RunSolve(args):
     print("Solving for split times ", args[3])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, correct = True, enableOutput = False, smooth = True)
@@ -30,18 +37,15 @@ def RunSolve(args):
 
 
 if len(sys.argv) < 4:
-    print("./migration <PSMC input file 1> <PSMC input file 2> <JAF spectrum file>")
-    sys.exit(0)
+    Help()
+
 t1 = time.clock()
 fpsmc1 = sys.argv[1]
 fpsmc2 = sys.argv[2]
 fjafs  = sys.argv[3]
-doPlot = True
+doPlot = False
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot, skip = 0)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
-
-
-
 
 maxllh = 0.0
 maxmu = []
@@ -54,7 +58,7 @@ Optimize(inputData[0], inputData[1], dataJAFS)
 if doPlot:
     mu = maxmu
     splitT = maxsplitT
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, theta, correct = True, smooth = True)
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, 1.0, correct = True, smooth = True)
     Migration.JAFSLikelyhood( mu )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times))]
     print( Migration.lc[0:-1] )
