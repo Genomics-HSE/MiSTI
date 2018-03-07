@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-from scipy import (optimize,linalg)
+from scipy import (optimize,linalg,integrate)
 from numpy import (dot,identity)
+import numpy
+import sys
 from math import (exp,log)
+
+
 
 class CorrectLambda:
 #    def __init__(self):
@@ -9,6 +13,12 @@ class CorrectLambda:
 #        self.mu = [mu0, mu1]
 #        self.P0 = [[1,0,0],[0,1,0]]
 #        self.T = T
+    COUNT = 0
+    
+    def PrintError(self, func, text):
+        func = func + "():"
+        print("MigrationInference class error in function", func, text)
+        sys.exit(0)
     
     def SetMu(self, mu0, mu1):
         self.mu = [mu0, mu1]
@@ -30,30 +40,103 @@ class CorrectLambda:
     def ComputeExpectation(self, npop):
         self.Pexp = dot(linalg.inv(self.M), dot(self.MET-identity(3),self.P0[npop]))
     
-    def LambdaEqaution(self, npop):
+    def LambdaEquation1(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
+            self.PrintError("LambdaEquation", "lambda correction for the last interval is not implemented")
             nch = sum(self.P0[npop])
         else:
             nch = (1-exp(-self.lh[npop]*self.T))*sum(self.P0[npop])
         self.ComputeExpectation(npop)
         nc = self.l[0]*self.Pexp[0]+self.l[1]*self.Pexp[1]
         return nc-nch
+        
+    def LambdaEquation(self, npop):
+        assert npop == 0 or npop == 1, "Population number should be 0 or 1."
+        if self.T == -1:
+            self.PrintError("LambdaEquation", "lambda correction for the last interval is not implemented")
+            nch = sum(self.P0[npop])
+        else:
+            nch = exp(-self.lh[npop]*self.T)*sum(self.P0[npop])
+        p0 = dot(self.MET,self.P0[npop])
+        nc = sum(p0)
+        return nc-nch
     
     def LambdaSystem(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
         self.MatrixExponent()
-        return([self.LambdaEqaution(0), self.LambdaEqaution(1)])
+        return( numpy.array([self.LambdaEquation(0), self.LambdaEquation(1)]) )
 #        print(self.LambdaEqaution(0))
 #        print(self.LambdaEqaution(1))
+
+
+
+    def CoalRateInterval(self,l):
+        self.l = [l[0],l[1]]
+        self.SetMatrix()
+        print(self.M)
+        self.ODE([1, 0, 0],0)
+    
+    def ODE(self, y, t):
+        return( dot(self.M, y) )
+    
+    def CoalRates(self, intervals, splitT, discr = 100):#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
+        p0 = [1.0, 0.0, 0.0]
+        solution = [[],[]]
+        for i in range( len(intervals) ):
+            inter = intervals[i]
+            t1 = inter[0]
+            if inter[0] < splitT:
+                self.SetMu(inter[3], inter[4])
+                self.l = [1.0/inter[1],1.0/inter[2]]
+                self.SetMatrix()
+                t2 = intervals[i+1][0]
+                times = [t1+(t2-t1)/discr*p for p in range(discr + 1)]
+                sol = integrate.odeint(self.ODE, p0, times)
+                p0 = sol[-1]
+                for i in range( len(sol) ):
+                    prob = list(sol[i])
+                    rate = (self.l[0]*prob[0] + self.l[1]*prob[1])/sum(prob)
+                    solution[0].append(rate)
+                    solution[1].append(times[i])
+        return(solution)
     
     def SolveLambdaSystem(self, prec = 1e-14):
-#        x = optimize.broyden1(self.LambdaSystem, [0.00001,0.00001], f_tol=prec)
-        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
+        #x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
+        x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (0, numpy.inf), gtol = prec)
+        x = x1.x
         self.l = x
         self.SetMatrix()
         self.MatrixExponent()
         p0 = dot(self.MET,self.P0[0])
         p1 = dot(self.MET,self.P0[1])
+        ''''        print("\tmatrix=\n",self.MET)
+        print(self.P0[0])
+        print(self.P0[1])
+        print("\tlc=", x)
+        print("\tlh=", self.lh)
+        print("\tmu=", self.mu)
+        print("\tt=", self.T)
+        print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
         return [x,[p0,p1]]
+'''        print("\tmatrix=\n",self.MET)
+        print(self.P0[0])
+        print(self.P0[1])
+        print("\tlc=", x)
+        print("\tlh=", self.lh)
+        print("\tmu=", self.mu)
+        print("\tt=", self.T)
+        print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
+        
+        
+'''
+cl = CorrectLambda()
+inter1 = [0, 1, 1, 1, 1]
+inter2 = [0.02, 0.05, 0.05, 1, 1]
+inter3 = [0.075, 0.5, 0.5, 1, 1]
+inter4 = [2.5, 1, 1, 1, 1]
+splitT = 2.5
+intervals = [inter1, inter2, inter3, inter4]
+coalRates = cl.CoalRates(intervals, splitT)
+print(coalRates)'''

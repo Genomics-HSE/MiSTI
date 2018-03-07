@@ -2,6 +2,7 @@
 import sys
 import matplotlib.pyplot as plt
 from math import log
+from CorrectLambda import CorrectLambda
 
 def ReadPSMCFile(fn, RD = -1):
     maxRD = -1
@@ -70,22 +71,35 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False, skip = 0):
             j += 1
     while len(Lk2) < len(Tk):
         Lk2.append(1.0/d2[1][-1])
-    Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     scale = 1
     scale1 = 1
     if doPlot:
 #    print("Here ready to plot")
         mu = 6.83e-8
         binsize = 100
-        scale = d1[3]/(2*binsize*mu)
+        scale = d1[3]/(2.0*binsize*mu)
         scale1 = scale/2.0/1.0e4
         x = [v*scale for v in Tk]
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
-        plt.semilogx(x, y1, x, y2)
+#        plt.semilogx(x, y1, x, y2)
+        PlotInit()
+        AddToPlot(x, y1)
+        AddToPlot(x, y2)
+    L1tmp = [Lk1[i]]
+    L2tmp = [Lk1[i]]
+    Ttmp = [Tk[0]]
+    '''    if True:
+        for i in range( 1, len(Lk1) ):
+            if Lk1[i] != Lk1[i-1] or Lk2[i] != Lk2[i-1]:
+                L1tmp.append(Lk1[i])
+                L2tmp.append(Lk1[i])
+                Ttmp.append()'''
+                
 #        plt.savefig("temp2.png")
 #    print("Here we are")
 #    sys.exit(0)
+    Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
     return( [Tk[skip:], Lk[skip:], scale, scale1] )
     
@@ -103,3 +117,15 @@ def ReadJAFS(fn):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     return(jafs)
+
+def PlotInit(id=1):
+    plt.figure(id)
+    plt.semilogx()
+    
+def AddToPlot(times, lambdas, id=1):
+    plt.figure(id)
+    plt.step(times, lambdas)
+    
+def SavePlot(pltfn, id=1):
+    plt.figure(id)
+    plt.savefig(pltfn)

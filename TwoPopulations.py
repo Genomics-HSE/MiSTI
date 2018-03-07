@@ -32,7 +32,8 @@ class TwoPopulations:
                 st = self.MapIndToState(i)
                 if len(st) == 2 and st[0].pop != st[1].pop:
                     self.stationary.append(i)
-            print("Stationary states:", self.stationary)
+            if False:
+                print("Stationary states:", self.stationary)
         self.Test()
     
     def MSize(self):
