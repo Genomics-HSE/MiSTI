@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import sys
-if False:
-    import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from math import log
 from CorrectLambda import CorrectLambda
+from MigrationInference import MigrationInference
 
 def ReadPSMCFile(fn, RD = -1):
     maxRD = -1
@@ -44,7 +44,7 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th]
     return( data )
 
-def ReadPSMC(fn1, fn2, RD = -1, doPlot = False, skip = 0):
+def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
     if d1[2] != d2[2]:
@@ -84,7 +84,6 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False, skip = 0):
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
 #        plt.semilogx(x, y1, x, y2)
-        PlotInit()
         AddToPlot(x, y1)
         AddToPlot(x, y2)
     L1tmp = [Lk1[i]]
@@ -102,12 +101,56 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False, skip = 0):
 #    sys.exit(0)
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk[skip:], Lk[skip:], scale, scale1] )
+    return( [Tk, Lk, scale, scale1] )
     
 #    print(len(Tk))
 #    print(len(Lk1))
 #    for i in range(len(Tk)):
 #        print(1/Lk1[i], "\t", Tk[i])
+
+def OutputMigration(fout, mu, Migration):
+    Migration.JAFSLikelyhood( mu )
+    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
+    
+    outData = "#Migration ver 0.1\n"
+    outData += "ST\t" + str(Migration.splitT) + "\n"#split times
+    outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
+    for i in range( len(times) ):
+        outData += str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
+    
+    if fout == "":
+        print(outData)
+    else:
+        fw = open(fout, 'w')
+        fw.write(outData)
+        fw.close()
+    
+def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
+    times = []
+    lc1 = []
+    lc2 = []
+    splitT = None
+    mu = None
+    with open(fmigr) as f:
+        line = next(f).rstrip()
+        line = line.split(" ")
+        print("Format version: ", line[2])
+        line = next(f).rstrip()
+        line = line.split("\t")
+        splitT = int(line[1])
+        line = next(f).rstrip()
+        line = line.split("\t")
+        mu = [float(line[1]), float(line[2])]
+        for line in f:
+            line = line.split("\t")
+            times.append( float(line[0]) )
+            lc1.append( float(line[1]) )
+            lc2.append( float(line[2]) )
+    if doPlot:
+        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
+        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
+        splT=times[splitT]#sum(inputData[0][0:splitT])
+        plt.axvline(splT*scaleTime, color='r')
 
 def ReadJAFS(fn):
     jafs = []
@@ -118,7 +161,7 @@ def ReadJAFS(fn):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     return(jafs)
-
+    
 def PlotInit(id=1):
     plt.figure(id)
     plt.semilogx()
@@ -127,6 +170,6 @@ def AddToPlot(times, lambdas, id=1):
     plt.figure(id)
     plt.step(times, lambdas)
     
-def SavePlot(pltfn, id=1):
+def SavePlot(fout, id=1):
     plt.figure(id)
-    plt.savefig(pltfn)
+    plt.savefig(fout)

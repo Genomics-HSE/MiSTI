@@ -347,10 +347,10 @@ class MigrationInference:
         #print(self.ObjectiveFunction([self.mu[0], self.mu[1]]))
 #        optimize ObjectiveFunction(mu0, mu1)
     
-    def Solve(self):
+    def Solve(self, tol=1e-4):
         maxVal = 2*self.lh[0][0]
         mu0 = [0.0, 0.0]
-        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': 1e-2, 'fatol': 1e-2 })
+        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol })
         return([res.x, -res.fun])
     
     def MaxLLH(self, muMin = 0.0, muMax = 2.0, step = 0.2, unit = 1):

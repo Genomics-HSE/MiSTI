@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
+import os
 import collections
+import argparse
 import numpy
-from scipy import (linalg,optimize)
-from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 import time
@@ -16,45 +16,105 @@ doPlot = False
 if doPlot:
     import matplotlib.pyplot as plt
 
-def Help():
-    print("./migration <PSMC input file 1> <PSMC input file 2> <JAF spectrum file>")
-    sys.exit(0)
+parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
-def Optimize(times, lambdas, dataJAFS, procNum=2):
-    print("Number of processes: ", procNum)
-    p = multiprocessing.Pool(procNum)
-    splitVals = range( len(times) )
-    splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in range(90,100) ]
+parser.add_argument('fpsmc1',
+                    help='psmc file 1')
+parser.add_argument('fpsmc2',
+                    help='psmc file 2')
+parser.add_argument('fjafs',
+                    help='joint allele frequency spectrum file')
+
+parser.add_argument('-o', '--fout', nargs=1, default='',
+                    help='output file, default is stdout')
+parser.add_argument('-wd', nargs=1, default='',
+                    help='working directory (path to data files)')
+parser.add_argument('-pr', nargs=1, type=int, default=1,
+                    help='number of processes for multiprocessing optimisation (default is 1)')
+parser.add_argument('-tol', nargs=1, type=float, default=1,
+                    help='optimisation precision (default is 1e-4)')
+parser.add_argument('-sm', nargs=1, type=int, default=0,
+                    help='minimal split time')
+parser.add_argument('-sM', nargs=1, type=int, default=0,
+                    help='maximal split time')
+
+clargs = parser.parse_args()
+if isinstance(clargs.fout, list):
+    clargs.fout = clargs.fout[0]
+if isinstance(clargs.wd, list):
+    clargs.wd = clargs.wd[0]
+if isinstance(clargs.pr, list):
+    clargs.pr = clargs.pr[0]
+if isinstance(clargs.tol, list):
+    clargs.tol = clargs.tol[0]
+if isinstance(clargs.sm, list):
+    clargs.sm = clargs.sm[0]
+if isinstance(clargs.sM, list):
+    clargs.sM = clargs.sM[0]
+
+def Optimize(times, lambdas, dataJAFS):
+    global clargs
+    print("Number of processes: ", clargs.pr)
+    smin = min( clargs.sm, len(times) )
+    smax = min( clargs.sM, len(times) )
+    smax = max( smax, smin )
+    if clargs.sM == 0:
+        smax = len(times)
+    splitTimes = list(range( smin, smax ))
+    splitTimes = list( range(90, 92) )
+    splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
+    p = multiprocessing.Pool( clargs.pr )
     res = p.map(RunSolve, splitVals)
-    
+    p.close()
+    p.join()
+#    p.close()
+#    res = sorted( res, key=lambda val: val[2])
     print(res)
+    res = sorted( res, key=lambda val: val[1])[-1]
+    return(res)
 
 def RunSolve(args):
-    print("Solving for split times ", args[3])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, correct = True, enableOutput = False, smooth = True)
-    muSol = Migration.Solve()
-    print(muSol)
-
-
-if len(sys.argv) < 4:
-    Help()
+    global clargs
+#    print("Solving for split times ", args[3])
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
+    muSol = Migration.Solve(clargs.tol)
+    muSol.append(args[3])
+    return( muSol )
 
 t1 = time.clock()
-fpsmc1 = sys.argv[1]
-fpsmc2 = sys.argv[2]
-fjafs  = sys.argv[3]
+
+fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
+fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
+fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
+
+fout   = clargs.fout
+if fout != "":
+    fout  = os.path.join( clargs.wd, clargs.fout  )
+    
 doPlot = False
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot, skip = 0)
+inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
+
+sol = Optimize(inputData[0], inputData[1], dataJAFS)
+print(sol)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True)
+migrationIO.OutputMigration(fout, sol[0], Migration)
+
+MigrationInference.Report()
+
+t2 = time.clock()
+print("Total time ", t2-t1)
+sys.exit(0)
+
+
+
+
+
+
 
 maxllh = 0.0
 maxmu = []
 maxsplitT = 0
-
-Optimize(inputData[0], inputData[1], dataJAFS)
-
-
-
 if doPlot:
     mu = maxmu
     splitT = maxsplitT
@@ -70,11 +130,9 @@ if doPlot:
 if doPlot:
     plt.savefig("data_bn20_bn20/plot.png")
 
-MigrationInference.Report()
 
-t2 = time.clock()
-print("Total time ", t2-t1)
 
 
 #DIR=
 #./migration.py $DIR/ms2g1.psmc $DIR/ms2g2.psmc $DIR/sim.jafs >> $DIR/output.txt
+#./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR >> $DIR/output1.txt
