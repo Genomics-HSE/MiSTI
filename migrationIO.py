@@ -143,14 +143,18 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         mu = [float(line[1]), float(line[2])]
         for line in f:
             line = line.split("\t")
-            times.append( float(line[0]) )
-            lc1.append( float(line[1]) )
-            lc2.append( float(line[2]) )
+            times.append( float(line[0])*scaleTime )
+            lc1.append( float(line[1])/scaleEPS )
+            lc2.append( float(line[2])/scaleEPS )
     if doPlot:
-        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
-        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
+        lc1 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc1]
+        lc2 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc2]
+#        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
+#        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
+        AddToPlot(times, lc1)
+        AddToPlot(times, lc2)
         splT=times[splitT]#sum(inputData[0][0:splitT])
-        plt.axvline(splT*scaleTime, color='r')
+        plt.axvline(splT, color='r')
 
 def ReadJAFS(fn):
     jafs = []

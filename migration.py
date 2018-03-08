@@ -57,7 +57,7 @@ def Optimize(times, lambdas, dataJAFS):
     if clargs.sM == 0:
         smax = len(times)
     splitTimes = list(range( smin, smax ))
-    splitTimes = list( range(90, 92) )
+    splitTimes = list( range(100, 102) )
     splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
     p = multiprocessing.Pool( clargs.pr )
     res = p.map(RunSolve, splitVals)
@@ -89,11 +89,16 @@ if fout != "":
     
 doPlot = False
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot)
+migrUnit = inputData[1][0][0]/2#TODO remove or fix
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
 sol = Optimize(inputData[0], inputData[1], dataJAFS)
 print(sol)
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True)
+#sol[0] = [0.34646987, 0.32497276]
+#sol[2] = 100
+splitT = sol[2]
+print("splitT = ", splitT, "\ttime = ", sum(inputData[0][0:splitT])*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, correct = True)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 MigrationInference.Report()
