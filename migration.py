@@ -12,10 +12,6 @@ import multiprocessing
 from MigrationInference import MigrationInference
 import migrationIO
 
-doPlot = False
-if doPlot:
-    import matplotlib.pyplot as plt
-
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
 parser.add_argument('fpsmc1',
@@ -105,32 +101,6 @@ MigrationInference.Report()
 t2 = time.clock()
 print("Total time ", t2-t1)
 sys.exit(0)
-
-
-
-
-
-
-
-maxllh = 0.0
-maxmu = []
-maxsplitT = 0
-if doPlot:
-    mu = maxmu
-    splitT = maxsplitT
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, mu, splitT, 1.0, correct = True, smooth = True)
-    Migration.JAFSLikelyhood( mu )
-    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times))]
-    print( Migration.lc[0:-1] )
-    print(mu)
-    plt.step([v*inputData[2] for v in times[0:]], [1.0/max(v[0],0.1)*inputData[3] for v in Migration.lc[0:-1]])
-    splT=sum(inputData[0][0:splitT])
-    plt.axvline(splT*inputData[2], color='r')
-    
-if doPlot:
-    plt.savefig("data_bn20_bn20/plot.png")
-
-
 
 
 #DIR=
