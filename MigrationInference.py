@@ -8,8 +8,6 @@ from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 import time
-if False:
-    import matplotlib.pyplot as plt
 import multiprocessing
 
 from CorrectLambda import CorrectLambda
