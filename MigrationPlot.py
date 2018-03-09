@@ -8,8 +8,9 @@ import numpy
 import math
 from math import (exp,log)
 import migrationIO
+import matplotlib
+matplotlib.use('pdf')
 import matplotlib.pyplot as plt
-
 plt.ioff()
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
@@ -23,7 +24,7 @@ parser.add_argument('fmigr',
 
 parser.add_argument('-wd', nargs=1, default='',
                     help='working directory (path to data files)')
-parser.add_argument('-o', nargs=1, default='plot.png',
+parser.add_argument('-o', nargs=1, default='plot.pdf',
                     help='output filename')
 
 clargs = parser.parse_args()
