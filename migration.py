@@ -58,6 +58,7 @@ def Optimize(times, lambdas, dataJAFS):
     if clargs.sM == 0:
         smax = len(times)
     PrintErr("Optimizing for split time range from ", smin, " to ", smax)
+    PrintErr("Optimization tolerance ", clargs.tol)
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
     splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
@@ -77,6 +78,7 @@ def RunSolve(args):
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
+    Migration.Report()
     return( muSol )
 
 t1 = time.clock()
