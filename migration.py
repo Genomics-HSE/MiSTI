@@ -78,7 +78,7 @@ def RunSolve(args):
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
-    Migration.Report()
+    MigrationInference.Report()
     return( muSol )
 
 t1 = time.clock()
@@ -110,6 +110,7 @@ MigrationInference.Report()
 
 t2 = time.clock()
 PrintErr("Total time ", t2-t1)
+print("Total time ", t2-t1)
 sys.exit(0)
 
 
