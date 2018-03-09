@@ -11,6 +11,7 @@ import time
 import multiprocessing
 from MigrationInference import MigrationInference
 import migrationIO
+from migrationIO import PrintErr
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
@@ -50,14 +51,15 @@ if isinstance(clargs.sM, list):
 
 def Optimize(times, lambdas, dataJAFS):
     global clargs
-    print("Number of processes: ", clargs.pr)
+    PrintErr("Number of processes: ", clargs.pr)
     smin = min( clargs.sm, len(times) )
     smax = min( clargs.sM, len(times) )
     smax = max( smax, smin )
     if clargs.sM == 0:
         smax = len(times)
+    PrintErr("Optimizing for split time range from ", smin, " to ", smax)
     splitTimes = list(range( smin, smax ))
-    splitTimes = list( range(100, 102) )
+#    splitTimes = list( range(100, 102) )
     splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
     p = multiprocessing.Pool( clargs.pr )
     res = p.map(RunSolve, splitVals)
@@ -71,7 +73,7 @@ def Optimize(times, lambdas, dataJAFS):
 
 def RunSolve(args):
     global clargs
-#    print("Solving for split times ", args[3])
+    PrintErr("Solving for split times ", args[3])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
@@ -87,8 +89,9 @@ fout   = clargs.fout
 if fout != "":
     fout  = os.path.join( clargs.wd, clargs.fout  )
     
-doPlot = False
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, doPlot = doPlot)
+print(clargs)
+
+inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2)
 migrUnit = inputData[1][0][0]/2#TODO remove or fix
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
@@ -104,7 +107,7 @@ migrationIO.OutputMigration(fout, sol[0], Migration)
 MigrationInference.Report()
 
 t2 = time.clock()
-print("Total time ", t2-t1)
+PrintErr("Total time ", t2-t1)
 sys.exit(0)
 
 

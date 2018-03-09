@@ -5,6 +5,13 @@ from math import log
 from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
 
+def PrintErr(*args, sep="", endl="\n"):
+    message = ""
+    for word in args:
+        message += str(word) + sep
+    message += endl
+    sys.stderr.write(message)
+
 def ReadPSMCFile(fn, RD = -1):
     maxRD = -1
     Tk = []

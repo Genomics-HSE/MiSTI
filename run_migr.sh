@@ -12,10 +12,10 @@ if [ "$#" -gt 1 ]; then
 	fi
 fi
 
-if [ CLEAN -eq 1 ]; then
+if [ $CLEAN -eq 1 ]; then
 	rm $DIR/sim.ms
 	rm $DIR/ms2g1.ms
 	rm $DIR/ms2g2.ms
 fi
-./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR -tol 1e-4 -o solution.migr > $DIR/output.txt
+./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR -tol 1e-4 -sm 70 -pr 24 -o solution.migr > $DIR/output.txt
 ./MigrationPlot.py ms2g1.psmc ms2g2.psmc solution.migr -wd $DIR
