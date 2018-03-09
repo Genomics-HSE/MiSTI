@@ -176,7 +176,7 @@ def ReadJAFS(fn):
 def PlotInit(id=1):
 #    plt.figure(id)
     plt.ioff()
-    plt.semilogx()
+#    plt.semilogx()
     
 def AddToPlot(times, lambdas, id=1):
 #    plt.figure(id)
