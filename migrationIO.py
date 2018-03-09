@@ -174,13 +174,14 @@ def ReadJAFS(fn):
     return(jafs)
     
 def PlotInit(id=1):
-    plt.figure(id)
+#    plt.figure(id)
+    plt.ioff()
     plt.semilogx()
     
 def AddToPlot(times, lambdas, id=1):
-    plt.figure(id)
+#    plt.figure(id)
     plt.step(times, lambdas)
     
 def SavePlot(fout, id=1):
-    plt.figure(id)
+#    plt.figure(id)
     plt.savefig(fout)

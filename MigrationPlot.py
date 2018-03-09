@@ -10,6 +10,8 @@ from math import (exp,log)
 import migrationIO
 import matplotlib.pyplot as plt
 
+plt.ioff()
+
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
 parser.add_argument('fpsmc1',
@@ -35,7 +37,6 @@ fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 fout   = os.path.join( clargs.wd, clargs.o )
 
-plt.ioff()
 migrationIO.PlotInit()
 
 data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, -1, True)
