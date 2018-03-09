@@ -367,7 +367,7 @@ class MigrationInference:
         self.ObjectiveFunction([self.mu[0], self.mu[1]])
         
     def Report():
-        print("Split time ", self.splitT)
+#        print("Split time ", self.splitT)
         print("Total number of likelihood function calls is ", MigrationInference.COUNT_LLH)
         print("Lambda correction called ", MigrationInference.CORRECTION_CALLED, " times.")
         print("Lambda correction failed ", MigrationInference.CORRECTION_FAILED, " times.")
