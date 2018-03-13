@@ -61,10 +61,10 @@ class MigrationInference:
         self.dataJAFS = [el for el in dataJAFS[1:]]
         
         self.llhConst = 0
-        for j in range(self.snps):
+        for j in range(1, self.snps+1):
             self.llhConst += log(j)
         for i in range(7):
-            for j in range(self.dataJAFS[i]):
+            for j in range(1, self.dataJAFS[i]+1):
                 self.llhConst -= log(j)
         
         #Class variables
