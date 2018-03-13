@@ -46,7 +46,10 @@ with open(fn) as f:
                 elif s1 == 1:
                     jaf[4] += 1
 
+print("#Migration_JAFS version 0.1")
 norm = sum(jaf)
-jaf = [v/norm for v in jaf]
-for v in jaf:
-    print(v)
+print("total\t", norm)
+#jaf = [v/norm for v in jaf]
+jfn = ["0100", "1100", "0001", "0101", "1101", "0011", "0111"]
+for v in zip(jaf, jfn):
+    print(v[1], "\t", v[0])

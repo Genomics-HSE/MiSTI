@@ -57,7 +57,15 @@ class MigrationInference:
         
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
-        self.dataJAFS = dataJAFS
+        self.snps = dataJAFS[0]
+        self.dataJAFS = [el for el in dataJAFS[1:]]
+        
+        self.llhConst = 0
+        for j in range(self.snps):
+            llh += log(j)
+        for i in range(7):
+            for j in range(self.dataJAFS[i]):
+                llh -= log(j)
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -310,7 +318,7 @@ class MigrationInference:
             print("JAFS = ", self.JAFS)
 #        return 0
 #        return self.Likelihood()
-        llh = 0
+        llh = self.llhConst
         for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
             llh += self.dataJAFS[i]*log(self.JAFS[i])

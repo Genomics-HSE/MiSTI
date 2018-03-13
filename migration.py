@@ -57,15 +57,24 @@ def Optimize(times, lambdas, dataJAFS):
     smax = max( smax, smin )
     if clargs.sM == 0:
         smax = len(times)
+    if smax == smin:
+        print("-sm should be strictly smaller than -sM.")
+        sys.exit(0)
     PrintErr("Optimizing for split time range from ", smin, " to ", smax)
     PrintErr("Optimization tolerance ", clargs.tol)
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
     splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
-    p = multiprocessing.Pool( clargs.pr )
-    res = p.map(RunSolve, splitVals)
-    p.close()
-    p.join()
+    res = []
+    if clargs.pr == 1:
+        for el in splitVals:
+            print(el)
+            res.append( RunSolve(el) )
+    else:
+        p = multiprocessing.Pool( clargs.pr )
+        res = p.map(RunSolve, splitVals)
+        p.close()
+        p.join()
 #    p.close()
 #    res = sorted( res, key=lambda val: val[2])
     print(res)
@@ -105,7 +114,8 @@ sol = Optimize(inputData[0], inputData[1], dataJAFS)
 #print(sol)
 #sol[0] = [0.34646987, 0.32497276]
 #sol[2] = 98
-#splitT = sol[2]
+
+splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", sum(inputData[0][0:splitT])*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, correct = True)
 migrationIO.OutputMigration(fout, sol[0], Migration)

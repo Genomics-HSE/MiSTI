@@ -167,8 +167,14 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
 def ReadJAFS(fn):
     jafs = []
     with open(fn) as f:
+        line = next(f).rstrip()
+        line = line.split(" ")
+        print("Format version: ", line[2])
+        line = next(f).rstrip()
+        line = line.split("\t")
+        jafs.append( int(line[1]) )
         for line in f:
-            jafs.append( float(line) )
+            jafs.append( int(line[1]) )
     if len(jafs) != 7:
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
