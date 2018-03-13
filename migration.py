@@ -93,6 +93,10 @@ def RunSolve(args):
 #t1 = time.clock()
 t1 = time.time()
 
+startTime = time.strftime("Job run at %H:%M:%S on %d %b %Y")
+PrintErr(startTime)
+print(startTime)
+
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
