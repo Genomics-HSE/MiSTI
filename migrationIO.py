@@ -174,6 +174,7 @@ def ReadJAFS(fn):
         line = line.split("\t")
         jafs.append( int(line[1]) )
         for line in f:
+            line = line.split("\t")
             jafs.append( int(line[1]) )
     if len(jafs) != 8:
         print("Unexpected number of lines in the JAFS file.")

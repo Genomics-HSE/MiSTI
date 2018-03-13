@@ -61,11 +61,13 @@ class MigrationInference:
         self.dataJAFS = [el for el in dataJAFS[1:]]
         
         self.llhConst = 0
+        print(self.dataJAFS)
         for j in range(1, self.snps+1):
             self.llhConst += log(j)
         for i in range(7):
             for j in range(1, self.dataJAFS[i]+1):
                 self.llhConst -= log(j)
+        print("llhConst = ", self.llhConst)
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -322,6 +324,7 @@ class MigrationInference:
         for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
             llh += self.dataJAFS[i]*log(self.JAFS[i])
+        print("full log llh=", llh)
         return( llh )
     
     def ObjectiveFunction(self, mu):
