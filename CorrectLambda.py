@@ -3,12 +3,13 @@ from scipy import (optimize,linalg,integrate)
 from numpy import (dot,identity)
 import numpy
 import sys
-from math import (exp,log)
+from math import (exp,log,sqrt)
 
 
 
 class CorrectLambda:
-#    def __init__(self):
+    def __init__(self):
+        self.doBroyden1 = True
 #        self.lh = [lh0, lh1]#PSMC inferred lambda
 #        self.mu = [mu0, mu1]
 #        self.P0 = [[1,0,0],[0,1,0]]
@@ -70,8 +71,6 @@ class CorrectLambda:
 #        print(self.LambdaEqaution(0))
 #        print(self.LambdaEqaution(1))
 
-
-
     def CoalRateInterval(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
@@ -102,16 +101,40 @@ class CorrectLambda:
                     solution[1].append(times[i])
         return(solution)
     
-    def SolveLambdaSystem(self, prec = 1e-14):
-        #x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
-        x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (0, numpy.inf), gtol = prec)
+    def SolveLambdaSystem(self, prec = 1e-14, normEps=0.006):
+        norm = 0
+        for i in range(3):
+            norm += (self.P0[0][i] - self.P0[1][i])**2
+        norm = sqrt(norm)
+        if norm < normEps:
+            nlh = (self.lh[0]+self.lh[1])/2.0
+            self.lh[0],self.lh[1] = nlh,nlh
+        x = None
+#        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
+        upperLimit = numpy.inf#10*self.lh[0]
+        lowerLimit = 0.1*self.lh[0]#0
+        x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
+        '''        if False:
+            try:
+                x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
+            except:
+                self.doBroyden1 = False
+                upperLimit = numpy.inf#10*self.lh[0]
+                lowerLimit = 0.1*self.lh[0]#0
+                x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+                x = x1.x
+        if False:
+            upperLimit = numpy.inf#10*self.lh[0]
+            lowerLimit = 0.1*self.lh[0]#0
+            x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+            x = x1.x'''
         self.l = x
         self.SetMatrix()
         self.MatrixExponent()
         p0 = dot(self.MET,self.P0[0])
         p1 = dot(self.MET,self.P0[1])
-        ''''        print("\tmatrix=\n",self.MET)
+        '''        print("\tmatrix=\n",self.MET)
         print(self.P0[0])
         print(self.P0[1])
         print("\tlc=", x)

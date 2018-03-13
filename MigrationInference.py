@@ -117,7 +117,7 @@ class MigrationInference:
                     print("lc=", sol[0])
                     print("t=", self.times[t])
                     print("initial conditions", p0[0], "\t", p0[1])
-    #            print("interval solution\t",sol)
+#                print("time = ", t, "\tinterval solution\t",sol)
                 self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
                 if sol[0][0] < 0 or sol[0][1] < 0:
                     MigrationInference.CORRECTION_FAILED += 1
@@ -138,7 +138,8 @@ class MigrationInference:
             nc[0] += -self.times[t]*self.lc[t][0]
             nc[1] += -self.times[t]*self.lc[t][1]
         t = self.numT - 1
-        self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
+        self.lc[t][0] = (self.lh[t][0]+self.lh[t][1])/2
+        self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2
         self.Smooth()
         return True
     
@@ -166,9 +167,7 @@ class MigrationInference:
             nc = 0.0
             time = 0.0
             k = j
-                
-        
-    
+
     def SmoothInterval(self, interval, left, right = None):
         if not self.smooth:
             return
@@ -320,51 +319,11 @@ class MigrationInference:
     def ObjectiveFunction(self, mu):
         return( -exp( self.JAFSLikelyhood( mu ) ) )
     
-    def SetSimplex(self):
-        mm = max([max(el) for el in self.lh])
-        p1 = 2*mm
-        return( [[0,0], [p1,0], [0,p1]] )
-    
-    def Solve1(self):
-        print("Start solving the problem.")
-        maxVal = 2*self.lh[0][0]
-        print("maxVal=", maxVal)
-        mu0 = [maxVal/2, maxVal/2]
-        mu0 = [0.0, 0.0]
-        print("mu0=", mu0)
-        print("self.mu=", self.mu)
-        initSimp = self.SetSimplex()
-        print("Initial simplex ", initSimp)
-#        res = optimize.minimize(self.ObjectiveFunction, mu0, method='L-BFGS-B', bounds = ((0, maxVal), (0, maxVal)), options={'gtol': 1e-10, 'disp': True})
-        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': 1e-4, 'fatol': 1e-4 })#'initial_simplex': initSimp, 
-        print(res)
-        return([res.x, -res.fun])
-#        self.cl = CorrectLambda()
-#        res = optimize.minimize(self.ObjectiveFunction, [0,0], method=’L-BFGS-B’, bounds = ((0, None), (0, None)))
-#        print(res)
-        #print(self.ObjectiveFunction([self.mu[0], self.mu[1]]))
-#        optimize ObjectiveFunction(mu0, mu1)
-    
     def Solve(self, tol=1e-4):
         maxVal = 2*self.lh[0][0]
         mu0 = [0.0, 0.0]
         res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol })
         return([res.x, -res.fun])
-    
-    def MaxLLH(self, muMin = 0.0, muMax = 2.0, step = 0.2, unit = 1):
-        muVals = numpy.arange(muMin*unit, muMax*unit+step*unit, step*unit)
-        maxllh = 0
-        maxmu = [-1, -1]
-        for i in muVals:
-            for j in muVals:
-                llh = exp( self.JAFSLikelyhood([i, j]) )
-                if llh > maxllh:
-                    maxmu = [i, j]
-                    maxllh = llh
-        return([maxllh, maxmu])
-    
-    def Test(self):
-        self.ObjectiveFunction([self.mu[0], self.mu[1]])
         
     def Report():
 #        print("Split time ", self.splitT)

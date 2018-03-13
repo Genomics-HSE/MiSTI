@@ -81,11 +81,15 @@ def RunSolve(args):
     MigrationInference.Report()
     return( muSol )
 
-t1 = time.clock()
+#t1 = time.clock()
+t1 = time.time()
 
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
+
+PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
+print("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
 
 fout   = clargs.fout
 if fout != "":
@@ -96,19 +100,20 @@ print(clargs)
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2)
 migrUnit = inputData[1][0][0]/2#TODO remove or fix
 dataJAFS = migrationIO.ReadJAFS(fjafs)
-
+sol = [[], [], []]
 sol = Optimize(inputData[0], inputData[1], dataJAFS)
-print(sol)
+#print(sol)
 #sol[0] = [0.34646987, 0.32497276]
-#sol[2] = 100
-splitT = sol[2]
+#sol[2] = 98
+#splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", sum(inputData[0][0:splitT])*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, correct = True)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
-MigrationInference.Report()
+#MigrationInference.Report()
 
-t2 = time.clock()
+#t2 = time.clock()
+t2 = time.time()
 PrintErr("Total time ", t2-t1)
 print("Total time ", t2-t1)
 sys.exit(0)

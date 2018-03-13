@@ -81,12 +81,12 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
         Lk2.append(1.0/d2[1][-1])
     scale = 1
     scale1 = 1
+    mu = 6.83e-8
+    binsize = 100
+    scale = d1[3]/(2.0*binsize*mu)
+    scale1 = scale/2.0/1.0e4
     if doPlot:
 #    print("Here ready to plot")
-        mu = 6.83e-8
-        binsize = 100
-        scale = d1[3]/(2.0*binsize*mu)
-        scale1 = scale/2.0/1.0e4
         x = [v*scale for v in Tk]
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
@@ -116,7 +116,8 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
 #        print(1/Lk1[i], "\t", Tk[i])
 
 def OutputMigration(fout, mu, Migration):
-    Migration.JAFSLikelyhood( mu )
+    llh = Migration.JAFSLikelyhood( mu )
+    print("llh = ", llh)
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
     
     outData = "#Migration ver 0.1\n"
@@ -161,7 +162,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         AddToPlot(times, lc1)
         AddToPlot(times, lc2)
         splT=times[splitT]#sum(inputData[0][0:splitT])
-        plt.axvline(splT, color='r')
+        plt.axvline(splT, color='k', alpha=0.1)
 
 def ReadJAFS(fn):
     jafs = []
@@ -179,7 +180,7 @@ def PlotInit(id=1):
     
 def AddToPlot(times, lambdas, id=1):
     plt.figure(id)
-    plt.step(times, lambdas)
+    plt.step(times, lambdas, alpha=0.7)
     
 def SavePlot(fout, id=1):
     plt.figure(id)

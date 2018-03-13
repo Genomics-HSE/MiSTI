@@ -7,10 +7,10 @@ import argparse
 import numpy
 import math
 from math import (exp,log)
-import migrationIO
 import matplotlib
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
+import migrationIO
 plt.ioff()
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
@@ -37,6 +37,8 @@ fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 fout   = os.path.join( clargs.wd, clargs.o )
+
+print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
