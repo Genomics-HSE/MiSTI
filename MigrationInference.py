@@ -324,11 +324,11 @@ class MigrationInference:
         for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
             llh += self.dataJAFS[i]*log(self.JAFS[i])
-        print("full log llh=", llh)
+#        print("full log llh=", llh)
         return( llh )
     
     def ObjectiveFunction(self, mu):
-        return( -exp( self.JAFSLikelyhood( mu ) ) )
+        return( -self.JAFSLikelyhood( mu ) )
     
     def Solve(self, tol=1e-4):
         maxVal = 2*self.lh[0][0]
