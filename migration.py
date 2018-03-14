@@ -78,17 +78,24 @@ def Optimize(times, lambdas, dataJAFS):
 #    p.close()
 #    res = sorted( res, key=lambda val: val[2])
     print(res)
+    ct = 0
+    for el in res:
+        ct += el[3]
+    print("Multiprocessing CPU time: ", ct)
     res = sorted( res, key=lambda val: val[1])[-1]
     return(res)
 
 def RunSolve(args):
     global clargs
+    t1 = time.clock()
     PrintErr("Solving for split times ", args[3])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
     MigrationInference.Report()
+    t2 = time.clock()
+    muSol.append(t2-t1)
     return( muSol )
 
 #t1 = time.clock()
