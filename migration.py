@@ -53,7 +53,7 @@ def Optimize(times, lambdas, dataJAFS):
     global clargs
     PrintErr("Number of processes: ", clargs.pr)
     smin = min( clargs.sm, len(times) )
-    smax = min( clargs.sM, len(times) )
+    smax = min( clargs.sM, len(times)+1 )
     smax = max( smax, smin )
     if clargs.sM == 0:
         smax = len(times)
@@ -87,6 +87,7 @@ def RunSolve(args):
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
+    print(Migration.JAFSLikelyhood( muSol[0] ) )
     MigrationInference.Report()
     return( muSol )
 
@@ -111,11 +112,13 @@ if fout != "":
 print(clargs)
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2)
-migrUnit = inputData[1][0][0]/2#TODO remove or fix
+migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
+#migrUnit = (inputData[1][0][0]+inputData[1][1][0])/4.0
 dataJAFS = migrationIO.ReadJAFS(fjafs)
+
 sol = [[], [], []]
 sol = Optimize(inputData[0], inputData[1], dataJAFS)
-#print(sol)
+print(sol)
 #sol[0] = [0.34646987, 0.32497276]
 #sol[2] = 98
 
@@ -125,13 +128,17 @@ Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()
-
 #t2 = time.clock()
 t2 = time.time()
 PrintErr("Total time ", t2-t1)
 print("Total time ", t2-t1)
 sys.exit(0)
 
+inputData = migrationIO.ReadMS("4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.05 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0")
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, [1, 1], inputData[4], 1.0, enableOutput = False, smooth = False, correct = False)
+print(Migration.JAFSLikelyhood( [1.0, 1.0] ) )
+print(Migration.JAFSLikelyhood( [1.0036919845350205, 1.0035904582181976] ) )
+sys.exit(0)
 
 #DIR=
 #./migration.py $DIR/ms2g1.psmc $DIR/ms2g2.psmc $DIR/sim.jafs >> $DIR/output.txt

@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from math import log
 from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
+import argparse
 
 def PrintErr(*args, sep="", endl="\n"):
     message = ""
@@ -180,7 +181,44 @@ def ReadJAFS(fn):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     return(jafs)
-    
+
+def ReadMS(argument_string):
+    PrintErr("WARNING: ReadMS() is not safe to use, the function has many assumptions on the ms command line")
+    args = argument_string.split(" ")
+    genMS = [[[0.0, 1.0]], [[0.0, 1.0]]]
+    splitT = 0
+    for i in range( len(args) ):
+        if args[i] == "-n" and False:#FIXME
+            pop = int(args[i+1]) - 1
+            genMS[pop].append([0.0, float(args[i+2])])
+        if args[i] == "-en":
+            pop = int(args[i+2]) - 1
+            genMS[pop].append([float(args[i+1]), float(args[i+3])])
+        if args[i] == "-eN":
+            genMS[0].append([float(args[i+1]), float(args[i+2])])
+            genMS[1].append([float(args[i+1]), float(args[i+2])])
+        if args[i] == "-ej":
+            splitT = float( args[i+1] )
+    splitT = splitT*2.0
+    scale = 1
+    scale1 = 1
+    theta = 1
+    mu = 6.83e-8
+    binsize = 100
+    scale = theta/(2.0*binsize*mu)
+    scale1 = scale/2.0/1.0e4
+    Tk, Lk1, Lk2 = [], [], []
+    for el in sorted(genMS[0], key=lambda val: val[0]):
+        Tk.append(el[0]*2.0)
+        Lk1.append(1.0/el[1])
+    for el in sorted(genMS[1], key=lambda val: val[0]):
+        Lk2.append(1.0/el[1])
+    splitT = [i for i,x in enumerate(Tk) if x == splitT]
+    Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
+    Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
+    return( [Tk, Lk, scale, scale1, splitT[0]] )
+#4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.05 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0
+
 def PlotInit(id=1):
     plt.figure(id)
     plt.semilogx()

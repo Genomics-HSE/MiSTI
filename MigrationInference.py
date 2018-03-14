@@ -67,7 +67,6 @@ class MigrationInference:
         for i in range(7):
             for j in range(1, self.dataJAFS[i]+1):
                 self.llhConst -= log(j)
-        print("llhConst = ", self.llhConst)
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -334,6 +333,7 @@ class MigrationInference:
         maxVal = 2*self.lh[0][0]
         mu0 = [0.0, 0.0]
         res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol })
+        #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
         return([res.x, -res.fun])
         
     def Report():
