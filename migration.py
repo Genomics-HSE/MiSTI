@@ -10,6 +10,7 @@ from math import (exp,log)
 import time
 import multiprocessing
 from MigrationInference import MigrationInference
+from CorrectLambda import CorrectLambda
 import migrationIO
 from migrationIO import PrintErr
 
@@ -87,14 +88,14 @@ def Optimize(times, lambdas, dataJAFS):
 
 def RunSolve(args):
     global clargs
-    t1 = time.clock()
+    t1 = time.process_time()
     PrintErr("Solving for split times ", args[3])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
     MigrationInference.Report()
-    t2 = time.clock()
+    t2 = time.process_time()
     muSol.append(t2-t1)
     return( muSol )
 
@@ -108,6 +109,19 @@ print(startTime)
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
+
+'''cl = CorrectLambda()
+mu1=[1.0,1.0]
+inter1 = [0, 1, 1, mu1[0], mu1[1]]
+inter2 = [0.02, 0.05, 0.05, mu1[0], mu1[1]]
+inter3 = [0.075, 0.5, 0.5, mu1[0], mu1[1]]
+inter4 = [2.5, 1, 1, mu1[0], mu1[1]]
+splitT = 2.5
+intervals = [inter1, inter2, inter3, inter4]
+coalRates = cl.CoalRates(intervals, splitT, 100)
+print(coalRates)
+sys.exit(0)'''
+
 
 PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
 print("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)

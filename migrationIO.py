@@ -202,7 +202,7 @@ def ReadMS(argument_string):
     splitT = splitT*2.0
     scale = 1
     scale1 = 1
-    theta = 1
+    theta = 1#FIXME
     mu = 6.83e-8
     binsize = 100
     scale = theta/(2.0*binsize*mu)
