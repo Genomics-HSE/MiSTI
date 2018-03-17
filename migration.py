@@ -65,13 +65,17 @@ def Optimize(times, lambdas, dataJAFS):
     PrintErr("Optimization tolerance ", clargs.tol)
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
-    splitVals = [ [times, lambdas, dataJAFS, splitT] for splitT in splitTimes ]
+    mu0 = [0.0, 0.0]
     res = []
     if clargs.pr == 1:
-        for el in splitVals:
-            print(el)
-            res.append( RunSolve(el) )
+        data = [times, lambdas, dataJAFS, 0, mu0]
+        for splitT in splitTimes:
+            data[3] = splitT
+            data[4] = mu0
+            res.append( RunSolve(data) )
+            mu0 = res[-1][0]
     else:
+        splitVals = [ [times, lambdas, dataJAFS, splitT, mu0] for splitT in splitTimes ]
         p = multiprocessing.Pool( clargs.pr )
         res = p.map(RunSolve, splitVals)
         p.close()
@@ -89,7 +93,7 @@ def Optimize(times, lambdas, dataJAFS):
 def RunSolve(args):
     global clargs
     t1 = time.process_time()
-    PrintErr("Solving for split times ", args[3])
+    PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True)
     muSol = Migration.Solve(clargs.tol)
     muSol.append(args[3])

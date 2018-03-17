@@ -102,11 +102,17 @@ class CorrectLambda:
         return(solution)
     
     def SolveLambdaSystem(self, prec = 1e-14, normEps=0.006):
-        norm = 0
+        normV0 = 0
+        normV1 = 0
+        normD = 0
         for i in range(3):
-            norm += (self.P0[0][i] - self.P0[1][i])**2
-        norm = sqrt(norm)
-        if norm < normEps:
+            normV0 += ( self.P0[0][i] )**2
+            normV1 += ( self.P0[1][i] )**2
+            normD += (self.P0[0][i] - self.P0[1][i])**2
+        normV0 = sqrt(normV0)
+        normV1 = sqrt(normV1)
+        normD = sqrt(normD)
+        if normD < normEps:#FIXME
             nlh = (self.lh[0]+self.lh[1])/2.0
             self.lh[0],self.lh[1] = nlh,nlh
         x = None
@@ -143,14 +149,6 @@ class CorrectLambda:
         print("\tt=", self.T)
         print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
         return [x,[p0,p1]]
-'''        print("\tmatrix=\n",self.MET)
-        print(self.P0[0])
-        print(self.P0[1])
-        print("\tlc=", x)
-        print("\tlh=", self.lh)
-        print("\tmu=", self.mu)
-        print("\tt=", self.T)
-        print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
         
         
 '''

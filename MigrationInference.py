@@ -328,10 +328,9 @@ class MigrationInference:
     def ObjectiveFunction(self, mu):
         return( -self.JAFSLikelyhood( mu ) )
     
-    def Solve(self, tol=1e-4):
+    def Solve(self, tol=1e-4, mu0 = [0.0, 0.0]):
         maxVal = 2*self.lh[0][0]
-        mu0 = [0.0, 0.0]
-        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol })
+        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
         #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
         return([res.x, -res.fun])
         
