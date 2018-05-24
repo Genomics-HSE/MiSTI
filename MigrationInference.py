@@ -46,6 +46,9 @@ class MigrationInference:
         self.theta = theta#coalescent mutation rate theta/2
         self.splitT = splitT
         self.mu = mu
+        self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
+        if "sampleDate" in kwargs:
+            self.sampleDate = kwargs["sampleDate"]
         
         #PSMC parameters
         self.lh = lambdas#pairs of PSMC lambda_0 and lambda_1
@@ -240,8 +243,16 @@ class MigrationInference:
         model = TwoPopulations(self.lc[0][0], self.lc[0][1], 1.0, 1.0)
         self.P0 = [0.0 for i in range( model.MSize() )]
         self.P0[2] = 1.0
+        pnc = 1#used from present time to ancient genome time
         for interval in range(self.numT):
-            if interval < self.splitT:
+            if interval < self.sampleDate:
+                pnc_i = exp(-self.lc[interval][0]*self.times[interval])
+                integral_pnc = pnc*(1-pnc_i)/self.lc[interval][0]
+                self.JAFS[0] += 2*integral_pnc
+                self.JAFS[1] += self.times[interval] - integral_pnc
+                pnc = pnc*pnc_i
+                continue
+            elif interval < self.splitT:
                 if interval == self.numT - 1 and self.mu[0] + self.mu[1] == 0:
                     self.PrintError("JAFSpectrum", "Infinite coalescent time. No migration.")
                 model = TwoPopulations(self.lc[interval][0], self.lc[interval][1], self.mu[0], self.mu[1])

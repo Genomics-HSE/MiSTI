@@ -25,7 +25,7 @@ def ReadPSMCFile(fn, RD = -1):
             if line[0] == "RD":
                 maxRD = int( line[1] )
         if maxRD == -1:
-            print("Corrupted of empty input file")
+            print("Corrupted or empty input file")
             sys.exit(0)
         if RD == -1 or RD > maxRD:
             RD = maxRD

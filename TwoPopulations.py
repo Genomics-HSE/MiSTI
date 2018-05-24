@@ -236,7 +236,7 @@ class TwoPopulations:
             return( integralP )
         if len(integralP) != self.Msize - len(self.stationary):
             text = "unexpected length of initial conditions vector " + len(P0)
-            self.PrintError("UpdateInitialConditions", text)
+            self.PrintError("UpdateIntegral", text)
         for ind in self.stationary:
             integralP = numpy.insert( integralP, ind, 0 )
         niP = [v for v in integralP]

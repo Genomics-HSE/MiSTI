@@ -8,8 +8,8 @@ from math import (exp,log,sqrt)
 
 
 class CorrectLambda:
-    def __init__(self):
-        self.doBroyden1 = True
+#    def __init__(self):
+#        self.doBroyden1 = True
 #        self.lh = [lh0, lh1]#PSMC inferred lambda
 #        self.mu = [mu0, mu1]
 #        self.P0 = [[1,0,0],[0,1,0]]
@@ -100,8 +100,14 @@ class CorrectLambda:
                     solution[0].append(rate)
                     solution[1].append(times[i])
         return(solution)
-    
-    def SolveLambdaSystem(self, prec = 1e-14, normEps=0.006):
+
+    def StationarySystem(self, l):
+        eq0 = -(2*self.mu[0]+l[0]) + self.mu[1]/self.a[0]
+        eq1 = -(2*self.mu[1]+l[1]) + self.mu[0]/self.a[1]
+        eq2 = 2*self.mu[0]*self.a[0] + 2*self.mu[1]*self.a[1] - (self.mu[0]+self.mu[1])
+        return([eq0-eq2, eq1-eq2])
+
+    def SolveLambdaSystemExperimental(self, prec = 1e-10, normEps=0.02):#computes lambdas from stationary distribution when |self.P0[0]-self.P0[1]| < eps. The issue: how to capture changes in ef. pop. sizes?
         normV0 = 0
         normV1 = 0
         normD = 0
@@ -112,7 +118,38 @@ class CorrectLambda:
         normV0 = sqrt(normV0)
         normV1 = sqrt(normV1)
         normD = sqrt(normD)
-        if normD < normEps:#FIXME
+        x = None
+        if normD < normEps*min(normV0, normV1):
+            statV = [(el1+el2)/2.0 for el1, el2 in zip(self.P0[0], self.P0[1])]
+            upperLimit = numpy.inf
+            lowerLimit = 0
+            self.a = [statV[0]/statV[2], statV[1]/statV[2]]
+            x1 = optimize.least_squares(self.StationarySystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+            x = x1.x
+        else:
+            upperLimit = numpy.inf#10*self.lh[0]
+            lowerLimit = 0#0.1*self.lh[0]
+            x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+            x = x1.x
+        self.l = x
+        self.SetMatrix()
+        self.MatrixExponent()
+        p0 = dot(self.MET,self.P0[0])
+        p1 = dot(self.MET,self.P0[1])
+        return [x,[p0,p1]]
+
+    def SolveLambdaSystem(self, prec = 1e-10, normEps=0.02):
+        normV0 = 0
+        normV1 = 0
+        normD = 0
+        for i in range(3):
+            normV0 += ( self.P0[0][i] )**2
+            normV1 += ( self.P0[1][i] )**2
+            normD += (self.P0[0][i] - self.P0[1][i])**2
+        normV0 = sqrt(normV0)
+        normV1 = sqrt(normV1)
+        normD = sqrt(normD)
+        if normD < normEps*min(normV0, normV1):
             nlh = (self.lh[0]+self.lh[1])/2.0
             self.lh[0],self.lh[1] = nlh,nlh
         x = None
