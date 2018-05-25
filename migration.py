@@ -35,6 +35,8 @@ parser.add_argument('-sm', nargs=1, type=int, default=0,
                     help='minimal split time')
 parser.add_argument('-sM', nargs=1, type=int, default=0,
                     help='maximal split time')
+parser.add_argument('-fil', nargs=1, type=int, default=0, #fil for first interval length in case of optimisation of first lambdas
+                    help='first interval length')
 parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
@@ -55,6 +57,8 @@ if isinstance(clargs.sM, list):
     clargs.sM = clargs.sM[0]
 if isinstance(clargs.sM, list):
     clargs.sd = clargs.sd[0]
+if isinstance(clargs.fil, list):
+    clargs.fil = clargs.fil[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 
@@ -73,21 +77,30 @@ def Optimize(times, lambdas, dataJAFS):
     PrintErr("Optimization tolerance ", clargs.tol)
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
-    mu0 = [0.0, 0.0]
     res = []
-    if clargs.pr == 1:
+    if False:
+        mu0 = [0.0, 0.0]
+        if clargs.pr == 1:
+            data = [times, lambdas, dataJAFS, 0, mu0]
+            for splitT in splitTimes:
+                data[3] = splitT
+                data[4] = mu0
+                res.append( RunSolve(data) )
+                mu0 = res[-1][0]
+        else:
+            splitVals = [ [times, lambdas, dataJAFS, splitT, mu0] for splitT in splitTimes ]
+            p = multiprocessing.Pool( clargs.pr )
+            res = p.map(RunSolve, splitVals)
+            p.close()
+            p.join()
+    else:
+        mu0 = [0.0, 0.0, 1.0, 1.0]
         data = [times, lambdas, dataJAFS, 0, mu0]
         for splitT in splitTimes:
             data[3] = splitT
             data[4] = mu0
-            res.append( RunSolve(data) )
+            res.append( RunSolve4(data) )
             mu0 = res[-1][0]
-    else:
-        splitVals = [ [times, lambdas, dataJAFS, splitT, mu0] for splitT in splitTimes ]
-        p = multiprocessing.Pool( clargs.pr )
-        res = p.map(RunSolve, splitVals)
-        p.close()
-        p.join()
 #    p.close()
 #    res = sorted( res, key=lambda val: val[2])
     print(res)
@@ -104,6 +117,19 @@ def RunSolve(args):
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, sampleDate = clargs.sd)
     muSol = Migration.Solve(clargs.tol, args[4])
+    muSol.append(args[3])
+    print(Migration.JAFSLikelyhood( muSol[0] ) )
+    MigrationInference.Report()
+    t2 = time.process_time()
+    muSol.append(t2-t1)
+    return( muSol )
+
+def RunSolve4(args):
+    global clargs
+    t1 = time.process_time()
+    PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, sampleDate = clargs.sd)
+    muSol = Migration.Solve4(clargs.tol, args[4], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
     MigrationInference.Report()
