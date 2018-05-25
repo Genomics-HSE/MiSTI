@@ -11,8 +11,8 @@ jaf = [0 for _ in range(7)]
 
 with open(fn) as f:
     for line in f:
-        freqs = line.split("\t")
-        for i in range(1, 9):
+        freqs = line.split(" ")
+        for i in range(1, 8):
             jaf[i-1] += float( freqs[i] )
 
 PrintJAFSFile(jaf)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-import migrationIO
+from migrationIO import PrintJAFSFile
 
 if len(sys.argv) < 2:
     print("./MS2JAF.py <INPUT FILE>")

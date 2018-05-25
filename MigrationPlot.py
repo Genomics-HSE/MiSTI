@@ -10,7 +10,7 @@ from math import (exp,log)
 import matplotlib
 matplotlib.use('pdf')
 import matplotlib.pyplot as plt
-import migrationIO
+from migrationIO import PrintJAFSFile
 plt.ioff()
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
