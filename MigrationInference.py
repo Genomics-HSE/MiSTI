@@ -341,8 +341,8 @@ class MigrationInference:
         
     def ObjectiveFunction4(self, params):
         if params[2] < 0.000001 or params[3] < 0.000001:
-            print(params, "   -inf")
-            return float('-inf')
+            print(params, "   inf")
+            return float('inf')
         for i in range(self.numOfInts):
             self.lh[i][0] = params[2]
             self.lh[i][1] = params[3]
