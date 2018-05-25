@@ -41,6 +41,8 @@ parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
+parser.add_argument('-ol', nargs=1, type=int, default=0,
+                    help='Optimisation of lambdas (to optimise lambdas set it to 1, default is 0)')
 
 clargs = parser.parse_args()
 if isinstance(clargs.fout, list):
@@ -61,6 +63,8 @@ if isinstance(clargs.fil, list):
     clargs.fil = clargs.fil[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
+if isinstance(clargs.ol, list):
+    clargs.ol = clargs.ol[0]
 
 def Optimize(times, lambdas, dataJAFS):
     global clargs
@@ -78,7 +82,7 @@ def Optimize(times, lambdas, dataJAFS):
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
     res = []
-    if False:
+    if not clargs.ol:
         mu0 = [0.0, 0.0]
         if clargs.pr == 1:
             data = [times, lambdas, dataJAFS, 0, mu0]
