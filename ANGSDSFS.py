@@ -15,4 +15,5 @@ with open(fn) as f:
         for i in range(1, 8):
             jaf[i-1] += float( freqs[i] )
 
+jaf = [round(u) for u in jaf]
 PrintJAFSFile(jaf)
