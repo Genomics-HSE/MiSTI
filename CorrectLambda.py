@@ -155,7 +155,7 @@ class CorrectLambda:
         x = None
 #        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
         upperLimit = numpy.inf#10*self.lh[0]
-        lowerLimit = 0.1*self.lh[0]#0
+        lowerLimit = 0.1*min(self.lh[0], self.lh[1])#0
         x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
         '''        if False:
