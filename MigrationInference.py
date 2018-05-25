@@ -340,12 +340,13 @@ class MigrationInference:
         return( -self.JAFSLikelyhood( mu ) )
         
     def ObjectiveFunction4(self, params):
-        print(params)
-        if params[2] < 0.001 or params[3] < 0.001:
+        if params[2] < 0.000001 or params[3] < 0.000001:
+            print(params, "   -inf")
             return float('-inf')
         for i in range(self.numOfInts):
             self.lh[i][0] = params[2]
             self.lh[i][1] = params[3]
+        print(params, "   ", -self.JAFSLikelyhood( params[0:2] ))
         return( -self.JAFSLikelyhood( params[0:2] ) )
     
     def Solve(self, tol=1e-4, mu0 = [0.0, 0.0]):
