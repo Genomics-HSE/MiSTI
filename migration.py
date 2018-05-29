@@ -41,8 +41,13 @@ parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
-parser.add_argument('-ol', nargs=1, type=int, default=0,
-                    help='Optimisation of lambdas (to optimise lambdas set it to 1, default is 0)')
+parser.add_argument('-ol', action='store_true',
+                    help='Optimisation of lambdas')
+parser.add_argument('-uf', action='store_true',
+                    help='Unfolded spectrum')
+
+print(clargs.ol)
+print(clargs.uf)
 
 clargs = parser.parse_args()
 if isinstance(clargs.fout, list):
@@ -65,6 +70,8 @@ if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 if isinstance(clargs.ol, list):
     clargs.ol = clargs.ol[0]
+if isinstance(clargs.uf, list):
+    clargs.uf = clargs.uf[0]
 
 def Optimize(times, lambdas, dataJAFS):
     global clargs
@@ -119,7 +126,7 @@ def RunSolve(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, sampleDate = clargs.sd)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd)
     muSol = Migration.Solve(clargs.tol, args[4])
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
@@ -132,7 +139,7 @@ def RunSolve4(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, sampleDate = clargs.sd)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd)
     muSol = Migration.Solve4(clargs.tol, args[4], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )

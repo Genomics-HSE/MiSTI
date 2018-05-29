@@ -41,6 +41,11 @@ class MigrationInference:
         if "smooth" in kwargs:
             if kwargs["smooth"]:
                 self.smooth = True
+
+        self.unfolded = False
+        if "unfolded" in kwargs:
+            if kwargs["unfolded"]:
+                self.unfolded = True
         
         #Model parameters
         self.theta = theta#coalescent mutation rate theta/2
@@ -330,9 +335,15 @@ class MigrationInference:
 #        return 0
 #        return self.Likelihood()
         llh = self.llhConst
-        for i in range(7):
+        if self.unfolded:
+            llh += (self.dataJAFS[0]+self.dataJAFS[6])*log(self.JAFS[0]+self.JAFS[6])
+            llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(self.JAFS[1]+self.JAFS[5])
+            llh += (self.dataJAFS[2]+self.dataJAFS[4])*log(self.JAFS[2]+self.JAFS[4])
+            llh += self.dataJAFS[3]*log(self.JAFS[3])
+        else:
+            for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
-            llh += self.dataJAFS[i]*log(self.JAFS[i])
+                llh += self.dataJAFS[i]*log(self.JAFS[i])
 #        print("full log llh=", llh)
         return( llh )
     
