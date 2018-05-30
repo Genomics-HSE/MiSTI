@@ -6,6 +6,12 @@ from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
 import argparse
 
+def SetScaling():
+    mu = 1.1e-8#6.83e-8
+    binsize = 100
+    scaling = [mu, binsize]
+    return(scaling)
+
 def PrintErr(*args, sep="", endl="\n"):
     message = ""
     for word in args:
@@ -82,8 +88,9 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
         Lk2.append(1.0/d2[1][-1])
     scale = 1
     scale1 = 1
-    mu = 6.83e-8
-    binsize = 100
+    scaling = SetScaling()
+    mu = scaling[0]
+    binsize = scaling[1]
     scale = d1[3]/(2.0*binsize*mu)
     scale1 = scale/2.0/1.0e4
     if doPlot:
@@ -203,8 +210,9 @@ def ReadMS(argument_string):
     scale = 1
     scale1 = 1
     theta = 1#FIXME
-    mu = 6.83e-8
-    binsize = 100
+    scaling = SetScaling()
+    mu = scaling[0]
+    binsize = scaling[1]
     scale = theta/(2.0*binsize*mu)
     scale1 = scale/2.0/1.0e4
     Tk, Lk1, Lk2 = [], [], []
