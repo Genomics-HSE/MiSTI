@@ -342,6 +342,7 @@ class MigrationInference:
             llh += self.dataJAFS[3]*log(self.JAFS[3])
             print(self.dataJAFS)
             print(self.JAFS)
+            print(llh)
             sys.exit(0)
         else:
             for i in range(7):
