@@ -69,10 +69,22 @@ class MigrationInference:
         self.dataJAFS = [el for el in dataJAFS[1:]]
         
         self.llhConst = 0
-        for j in range(1, self.snps+1):
-            self.llhConst += log(j)
-        for i in range(7):
-            for j in range(1, self.dataJAFS[i]+1):
+        if self.unfolded:
+            for j in range(1, self.snps+1):
+                self.llhConst += log(j)
+            for i in range(7):
+                for j in range(1, self.dataJAFS[i]+1):
+                    self.llhConst -= log(j)
+        else:
+            for j in range(1, self.snps+1):
+                self.llhConst += log(j)
+            for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
+                self.llhConst -= log(j)
+            for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
+                self.llhConst -= log(j
+            for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
+                self.llhConst -= log(j)
+            for j in range(1, self.dataJAFS[3]+1):
                 self.llhConst -= log(j)
         
         #Class variables
@@ -335,16 +347,11 @@ class MigrationInference:
 #        return 0
 #        return self.Likelihood()
         llh = self.llhConst
-        llh = 0
         if not self.unfolded:
             llh += (self.dataJAFS[0]+self.dataJAFS[6])*log(self.JAFS[0]+self.JAFS[6])
             llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(self.JAFS[1]+self.JAFS[5])
             llh += (self.dataJAFS[2]+self.dataJAFS[4])*log(self.JAFS[2]+self.JAFS[4])
             llh += self.dataJAFS[3]*log(self.JAFS[3])
-            print(self.dataJAFS)
-            print(self.JAFS)
-            print(llh)
-            sys.exit(0)
         else:
             for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
