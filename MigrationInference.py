@@ -335,6 +335,7 @@ class MigrationInference:
 #        return 0
 #        return self.Likelihood()
         llh = self.llhConst
+        llh = 0
         if not self.unfolded:
             llh += (self.dataJAFS[0]+self.dataJAFS[6])*log(self.JAFS[0]+self.JAFS[6])
             llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(self.JAFS[1]+self.JAFS[5])
