@@ -48,9 +48,6 @@ parser.add_argument('-uf', action='store_true',
 
 clargs = parser.parse_args()
 
-print(clargs.ol)
-print(clargs.uf)
-
 if isinstance(clargs.fout, list):
     clargs.fout = clargs.fout[0]
 if isinstance(clargs.wd, list):

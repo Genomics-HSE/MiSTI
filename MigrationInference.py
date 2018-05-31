@@ -340,6 +340,9 @@ class MigrationInference:
             llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(self.JAFS[1]+self.JAFS[5])
             llh += (self.dataJAFS[2]+self.dataJAFS[4])*log(self.JAFS[2]+self.JAFS[4])
             llh += self.dataJAFS[3]*log(self.JAFS[3])
+            print(self.dataJAFS)
+            print(self.JAFS)
+            sys.exit(0)
         else:
             for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
