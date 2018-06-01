@@ -45,7 +45,7 @@ parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
-parser.add_argument('-oьl', action='store_true',
+parser.add_argument('-oml', action='store_true',
                     help='Optimisation of migration rates and lambdas')
 parser.add_argument('-ol', action='store_true',
                     help='Optimisation of lambdas')
