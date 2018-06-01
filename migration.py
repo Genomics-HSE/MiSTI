@@ -31,6 +31,10 @@ parser.add_argument('-pr', nargs=1, type=int, default=1,
                     help='number of processes for multiprocessing optimisation (default is 1)')
 parser.add_argument('-tol', nargs=1, type=float, default=1e-4,
                     help='optimisation precision (default is 1e-4)')
+                    
+parser.add_argument('-mu0', nargs=2, type=float, default=[0.0, 0.0],
+                    help='initial values for mu0 in the optimisation')
+                    
 parser.add_argument('-sm', nargs=1, type=int, default=0,
                     help='minimal split time')
 parser.add_argument('-sM', nargs=1, type=int, default=0,
@@ -88,7 +92,7 @@ def Optimize(times, lambdas, dataJAFS):
 #    splitTimes = list( range(100, 102) )
     res = []
     if not clargs.ol:
-        mu0 = [0.0, 0.0]
+        mu0 = clargs.mu0
         if clargs.pr == 1:
             data = [times, lambdas, dataJAFS, 0, mu0]
             for splitT in splitTimes:
@@ -103,7 +107,7 @@ def Optimize(times, lambdas, dataJAFS):
             p.close()
             p.join()
     else:
-        mu0 = [0.0, 0.0, 1.0, 1.0]
+        mu0 = clargs.mu0+[1.0, 1.0]
         data = [times, lambdas, dataJAFS, 0, mu0]
         for splitT in splitTimes:
             data[3] = splitT
@@ -146,6 +150,8 @@ def RunSolve4(args):
     muSol.append(t2-t1)
     return( muSol )
 
+
+print( " ".join(sys.argv) )
 #t1 = time.clock()
 t1 = time.time()
 
