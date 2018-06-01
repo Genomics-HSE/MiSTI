@@ -45,6 +45,8 @@ parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
+parser.add_argument('-oьl', action='store_true',
+                    help='Optimisation of migration rates and lambdas')
 parser.add_argument('-ol', action='store_true',
                     help='Optimisation of lambdas')
 parser.add_argument('-uf', action='store_true',
@@ -72,6 +74,10 @@ if isinstance(clargs.fil, list):
     clargs.fil = clargs.fil[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
+if isinstance(clargs.llh, list):
+    clargs.llh = clargs.llh[0]
+if isinstance(clargs.oml, list):
+    clargs.oml = clargs.oml[0]
 if isinstance(clargs.ol, list):
     clargs.ol = clargs.ol[0]
 if isinstance(clargs.uf, list):
@@ -97,7 +103,23 @@ def Optimize(times, lambdas, dataJAFS):
     splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
     res = []
-    if not clargs.ol:
+    if clargs.oml:
+        mu0 = clargs.mu0+[1.0, 1.0]
+        data = [times, lambdas, dataJAFS, 0, mu0]
+        for splitT in splitTimes:
+            data[3] = splitT
+            data[4] = mu0
+            res.append( RunSolveMuLa(data) )
+            mu0 = res[-1][0]
+    elif clargs.ol:
+        mu0 = clargs.mu0+[1.0, 1.0]
+        data = [times, lambdas, dataJAFS, 0, mu0]
+        for splitT in splitTimes:
+            data[3] = splitT
+            data[4] = mu0
+            res.append( RunSolveLa(data) )
+            mu0 = res[-1][0]
+    else:
         mu0 = clargs.mu0
         if clargs.pr == 1:
             data = [times, lambdas, dataJAFS, 0, mu0]
@@ -112,14 +134,7 @@ def Optimize(times, lambdas, dataJAFS):
             res = p.map(RunSolve, splitVals)
             p.close()
             p.join()
-    else:
-        mu0 = clargs.mu0+[1.0, 1.0]
-        data = [times, lambdas, dataJAFS, 0, mu0]
-        for splitT in splitTimes:
-            data[3] = splitT
-            data[4] = mu0
-            res.append( RunSolve4(data) )
-            mu0 = res[-1][0]
+        
 #    p.close()
 #    res = sorted( res, key=lambda val: val[2])
     print(res)
@@ -143,12 +158,25 @@ def RunSolve(args):
     muSol.append(t2-t1)
     return( muSol )
 
-def RunSolve4(args):
+def RunSolveMuLa(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
     Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd)
-    muSol = Migration.Solve4(clargs.tol, args[4], clargs.fil)
+    muSol = Migration.SolveMuLa(clargs.tol, args[4], clargs.fil)
+    muSol.append(args[3])
+    print(Migration.JAFSLikelyhood( muSol[0] ) )
+    MigrationInference.Report()
+    t2 = time.process_time()
+    muSol.append(t2-t1)
+    return( muSol )
+    
+def RunSolveLa(args):
+    global clargs
+    t1 = time.process_time()
+    PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
+    Migration = MigrationInference(args[0], args[1], args[2], args[4][0:2], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd)
+    muSol = Migration.SolveMuLa(clargs.tol, args[4][2:], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
     MigrationInference.Report()
