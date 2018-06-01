@@ -49,6 +49,8 @@ parser.add_argument('-ol', action='store_true',
                     help='Optimisation of lambdas')
 parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
+parser.add_argument('-llh', action='store_true',
+                    help='Compute model llh')
 
 clargs = parser.parse_args()
 
@@ -74,6 +76,10 @@ if isinstance(clargs.ol, list):
     clargs.ol = clargs.ol[0]
 if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
+
+mode = "optimize"
+if clargs.llh:
+    mode = "llhmodel"
 
 def Optimize(times, lambdas, dataJAFS):
     global clargs
@@ -191,8 +197,15 @@ migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
 sol = [[], [], []]
-sol = Optimize(inputData[0], inputData[1], dataJAFS)
-print(sol)
+if mode == "optimize":
+    sol = Optimize(inputData[0], inputData[1], dataJAFS)
+    print(sol)
+elif mode == "llhmodel":
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, clargs.sm, 1.0, enableOutput = False, smooth = True, correct = True)
+    sol = [clargs.mu0, Migration.JAFSLikelyhood( clargs.mu0 ), clargs.sm, 0.0]
+else:
+    print("Unknown mode")
+    sys.exit(0)
 #sol[0] = [0.34646987, 0.32497276]
 #sol[2] = 110
 
