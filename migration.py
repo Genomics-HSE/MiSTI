@@ -229,8 +229,12 @@ if mode == "optimize":
     sol = Optimize(inputData[0], inputData[1], dataJAFS)
     print(sol)
 elif mode == "llhmodel":
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, clargs.sm, 1.0, enableOutput = False, smooth = True, correct = True)
-    sol = [clargs.mu0, Migration.JAFSLikelyhood( clargs.mu0 ), clargs.sm, 0.0]
+    res = []
+    for splitT in range(clargs.sm, clargs.sM):
+        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, clargs.sm, 1.0, enableOutput = False, smooth = True, correct = True)
+        res.append( [clargs.mu0, Migration.JAFSLikelyhood( clargs.mu0 ), clargs.sm, 0.0] )
+    print(res)
+    sol = sorted( res, key=lambda val: val[1])[-1]
 else:
     print("Unknown mode")
     sys.exit(0)
