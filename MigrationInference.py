@@ -14,7 +14,6 @@ from CorrectLambda import CorrectLambda
 from TwoPopulations import TwoPopulations
 from OnePopulation import OnePopulation
 
-
 class MigrationInference:
     COUNT_LLH = 0
     CORRECTION_CALLED = 0
@@ -46,17 +45,25 @@ class MigrationInference:
         if "unfolded" in kwargs:
             if kwargs["unfolded"]:
                 self.unfolded = True
+                
+        self.migStart = 0
+        if "migStart" in kwargs:
+            if kwargs["migStart"] < splitT:
+                self.migStart = kwargs["migStart"]
         
         #Model parameters
         self.theta = theta#coalescent mutation rate theta/2
         self.splitT = splitT
-        self.mu = mu
+        self.migEnd = self.splitT
+        self.mu = list(lambdas)#initialize migration with the same size as lambdas
+        self.SetModel(mu)#set values for mu
+#        self.mu = mu
         self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]
         
         #PSMC parameters
-        self.lh = lambdas#pairs of PSMC lambda_0 and lambda_1
+        self.lh = list(lambdas)#pairs of PSMC lambda_0 and lambda_1
         self.times = times
         self.numT = len(self.lh)#number of time intervals
         if len(self.times) != self.numT - 1:
@@ -112,7 +119,23 @@ class MigrationInference:
                     self.scaleT = float(kwargs[scaleT])
         
         print("MigrationInference class initialized. Class size", self.numT)
-      
+    
+    def SetModel(self, params):
+        for i in range(self.migStart):
+            self.mu[i] = [0.0,0.0]
+        for i in range(self.migStart, self.migEnd):
+            self.mu[i] = [params[0], params[1]]
+        for i in range(self.migEnd, self.splitT):
+            self.mu[i] = [0.0,0.0]
+        for i in range(self.splitT, len(self.mu)):
+            self.mu[i] = [0.0,0.0]
+    
+    def MapParameters(self, params):
+        for i in range(self.migStart, self.migEnd):
+            self.mu[i] = [params[0], params[1]]
+        for i in range(self.splitT):
+            print(self.mu[i])
+    
     def PrintError(self, func, text):
         func = func + "():"
         print("MigrationInference class error in function", func, text)
@@ -126,7 +149,8 @@ class MigrationInference:
 #            print(self.lh[t])
 #            print(self.times[t])
 #            print(p0)
-            if not self.correct or self.mu[0] + self.mu[1] == 0:
+            self.cl.SetMu(self.mu[t][0], self.mu[t][1])
+            if not self.correct or self.mu[t][0] + self.mu[t][1] == 0:
                 self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
             else:
                 self.cl.SetInterval(self.lh[t], self.times[t], p0)
@@ -135,7 +159,7 @@ class MigrationInference:
                 except optimize.nonlin.NoConvergence:
                     print("lh=", self.lh[t])
                     print("t=", self.times[t])
-                    print("mu=", self.mu)
+                    print("mu=", self.mu[t])
                     print("p0=", p0)
                     MigrationInference.CORRECTION_FAILED += 1
                     sys.exit(0)
@@ -270,9 +294,9 @@ class MigrationInference:
                 pnc = pnc*pnc_i
                 continue
             elif interval < self.splitT:
-                if interval == self.numT - 1 and self.mu[0] + self.mu[1] == 0:
+                if interval == self.numT - 1 and self.mu[interval][0] + self.mu[interval][1] == 0.0:
                     self.PrintError("JAFSpectrum", "Infinite coalescent time. No migration.")
-                model = TwoPopulations(self.lc[interval][0], self.lc[interval][1], self.mu[0], self.mu[1])
+                model = TwoPopulations(self.lc[interval][0], self.lc[interval][1], self.mu[interval][0], self.mu[interval][1])
             else:
                 model = OnePopulation(self.lc[interval][0])
             if interval == self.splitT:
@@ -325,8 +349,8 @@ class MigrationInference:
         MigrationInference.COUNT_LLH += 1
         if mu[0] < 0 or mu[1] < 0:
             return float('-inf')
-        self.mu[0],self.mu[1]=mu[0],mu[1]
-        self.cl.SetMu(mu[0], mu[1])
+#        self.mu[0],self.mu[1]=mu[0],mu[1]
+        self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
             return float('-inf') # -10**(10)
@@ -363,6 +387,7 @@ class MigrationInference:
         return( -self.JAFSLikelyhood( mu ) )
         
     def ObjectiveFunctionMuLa(self, params):
+        self.PrintError("ObjectiveFunctionMuLa", "this function was experemental and not supported in the current version")
         if params[2] < 0.000001 or params[3] < 0.000001:
             return float('inf')
         for i in range(self.numOfInts):
@@ -371,6 +396,7 @@ class MigrationInference:
         return( -self.JAFSLikelyhood( params[0:2] ) )
         
     def ObjectiveFunctionLa(self, lambdas):
+        self.PrintError("ObjectiveFunctionLa", "this function was experemental and not supported in the current version")
         if lambdas[0] < 0.00001 or lambdas[1] < 0.00001:
             return float('inf')
         for i in range(self.numOfInts):
