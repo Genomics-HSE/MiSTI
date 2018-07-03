@@ -50,10 +50,10 @@ class MigrationInference:
         if "migStart" in kwargs:
             if kwargs["migStart"] < splitT:
                 self.migStart = kwargs["migStart"]
-        self.migEnd = 0
+        self.migEnd = splitT
         if "migEnd" in kwargs:
             if kwargs["migEnd"] < splitT:
-                self.migStart = kwargs["migEnd"]
+                self.migEnd = kwargs["migEnd"]
         
         #Model parameters
         self.theta = theta#coalescent mutation rate theta/2
