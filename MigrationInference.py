@@ -52,7 +52,7 @@ class MigrationInference:
                 self.migStart = kwargs["migStart"]
         self.migEnd = splitT
         if "migEnd" in kwargs:
-            if kwargs["migEnd"] < splitT:
+            if kwargs["migEnd"] > 0:
                 self.migEnd = kwargs["migEnd"]
         
         #Model parameters
