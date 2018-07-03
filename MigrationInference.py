@@ -133,8 +133,6 @@ class MigrationInference:
     def MapParameters(self, params):
         for i in range(self.migStart, self.migEnd):
             self.mu[i] = [params[0], params[1]]
-        for i in range(self.splitT):
-            print(self.mu[i])
     
     def PrintError(self, func, text):
         func = func + "():"
