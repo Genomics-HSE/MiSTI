@@ -169,6 +169,7 @@ def RunSolve(args):
     muSol = Migration.Solve(clargs.tol, args[4])
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
+    print( muSol )
     MigrationInference.Report()
     t2 = time.process_time()
     muSol.append(t2-t1)

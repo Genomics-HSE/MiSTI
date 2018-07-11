@@ -126,6 +126,7 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
 def OutputMigration(fout, mu, Migration):
     llh = Migration.JAFSLikelyhood( mu )
     print("llh = ", llh)
+#    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
     
     outData = "#Migration ver 0.2\n"
