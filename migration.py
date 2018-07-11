@@ -247,7 +247,7 @@ if mode == "optimize":
 elif mode == "llhmodel":
     res = []
     for splitT in range(clargs.sm, clargs.sM):
-        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, 1.0, enableOutput = False, smooth = True, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
+        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
         res.append( [clargs.mu0, Migration.JAFSLikelyhood( clargs.mu0 ), splitT, 0.0] )
     print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
@@ -261,7 +261,7 @@ splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", sum(inputData[0][0:splitT])*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
 print("N_0 = ")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()
@@ -272,7 +272,7 @@ print("Total time ", t2-t1)
 sys.exit(0)
 
 inputData = migrationIO.ReadMS("4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.05 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, [1, 1], inputData[4], 1.0, enableOutput = False, smooth = False, correct = False, migStart = clargs.migstart, migEnd = clargs.migend)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, [1, 1], inputData[4], 1.0, enableOutput = False, smooth = False, unfolded = clargs.uf, correct = False, migStart = clargs.migstart, migEnd = clargs.migend)
 print(Migration.JAFSLikelyhood( [1.0, 1.0] ) )
 print(Migration.JAFSLikelyhood( [1.0036919845350205, 1.0035904582181976] ) )
 sys.exit(0)
