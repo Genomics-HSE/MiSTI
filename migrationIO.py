@@ -128,9 +128,10 @@ def OutputMigration(fout, mu, Migration):
     print("llh = ", llh)
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
     
-    outData = "#Migration ver 0.1\n"
+    outData = "#Migration ver 0.2\n"
     outData += "ST\t" + str(Migration.splitT) + "\n"#split times
     outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
+    outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     for i in range( len(times) ):
         outData += str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
     
@@ -150,13 +151,18 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
-        print("Format version: ", line[2])
+        version = float(line[2])
+        print("Format version: ", version)
         line = next(f).rstrip()
         line = line.split("\t")
         splitT = int(line[1])
         line = next(f).rstrip()
         line = line.split("\t")
         mu = [float(line[1]), float(line[2])]
+        if version > 0.1:
+            line = next(f).rstrip()
+            line = line.split("\t")
+            jaf = [float(line[1]), float(line[2]), float(line[3]), float(line[4]), float(line[5]), float(line[6]), float(line[7])]
         for line in f:
             line = line.split("\t")
             times.append( float(line[0])*scaleTime )
