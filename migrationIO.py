@@ -127,8 +127,7 @@ def OutputMigration(fout, mu, Migration):
     llh = Migration.JAFSLikelyhood( mu )
     print("llh = ", llh)
 #    print( vars(Migration) )
-    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
-    
+    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#Migration ver 0.2\n"
     outData += "ST\t" + str(Migration.splitT) + "\n"#split times
     outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
