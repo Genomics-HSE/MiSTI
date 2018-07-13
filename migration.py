@@ -54,10 +54,14 @@ parser.add_argument('-oml', action='store_true',
                     help='Optimisation of migration rates and lambdas')
 parser.add_argument('-ol', action='store_true',
                     help='Optimisation of lambdas')
+
 parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
 parser.add_argument('-llh', action='store_true',
                     help='Compute model llh')
+parser.add_argument('--smooth', action='store_true',
+                    help='Smooth (make constant on the psmc time intervals)')
+
 
 clargs = parser.parse_args()
 
@@ -81,6 +85,8 @@ if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 if isinstance(clargs.llh, list):
     clargs.llh = clargs.llh[0]
+if isinstance(clargs.smooth, list):
+    clargs.smooth = clargs.smooth[0]
 if isinstance(clargs.oml, list):
     clargs.oml = clargs.oml[0]
 if isinstance(clargs.ol, list):
@@ -165,7 +171,7 @@ def RunSolve(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.Solve(clargs.tol, args[4])
     muSol.append(args[3])
     muSol[1] = Migration.JAFSLikelyhood( muSol[0] )
@@ -180,7 +186,7 @@ def RunSolveMuLa(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], 1.0, enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.SolveMuLa(clargs.tol, args[4], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
@@ -193,7 +199,7 @@ def RunSolveLa(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], args[4][0:2], args[3], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], args[4][0:2], args[3], 1.0, enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.SolveLa(clargs.tol, args[4][2:], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
@@ -249,7 +255,7 @@ if mode == "optimize":
 elif mode == "llhmodel":
     res = []
     for splitT in range(clargs.sm, clargs.sM):
-        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
+        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, 1.0, enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
         res.append( [clargs.mu0, Migration.JAFSLikelyhood( clargs.mu0 ), splitT, 0.0] )
     print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
@@ -263,7 +269,7 @@ splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", sum(inputData[0][0:splitT])*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
 print("N_0 = ")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = True, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], 1.0, enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()

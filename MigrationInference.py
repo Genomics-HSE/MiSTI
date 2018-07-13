@@ -207,7 +207,7 @@ class MigrationInference:
     
     def SmoothConst(self, indiv):
         k = 0
-        lam = self.lh[indiv][0]
+        lam = self.lh[0][indiv]
         time = 0.0
         nc = 0.0
         while k < self.numT-1:#FIXME - last interval is not treated correctly
@@ -384,7 +384,6 @@ class MigrationInference:
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
                 llh += self.dataJAFS[i]*log(self.JAFS[i])
 #        print("full log llh=", llh)
-        print(self.lc)
         return( llh )
     
     def ObjectiveFunction(self, mu):
