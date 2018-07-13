@@ -384,6 +384,7 @@ class MigrationInference:
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
                 llh += self.dataJAFS[i]*log(self.JAFS[i])
 #        print("full log llh=", llh)
+        print(self.lc)
         return( llh )
     
     def ObjectiveFunction(self, mu):
