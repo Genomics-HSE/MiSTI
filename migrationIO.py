@@ -172,6 +172,9 @@ def OutputMigration(fout, mu, Migration):
         fw.close()
     
 def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
+    times = []
+    lc1 = []
+    lc2 = []
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
