@@ -162,7 +162,7 @@ def OutputMigration(fout, mu, Migration):
     outData += "TR\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
     outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     for i in range( len(times) ):
-        outData += "RS\t" + str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
+        outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\n"
     
     if fout == "":
         print(outData)
@@ -172,14 +172,6 @@ def OutputMigration(fout, mu, Migration):
         fw.close()
     
 def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
-    times = []
-    lc1 = []
-    lc2 = []
-    thrh = [1.0, 1.0]
-    splitT = None
-    mu = None
-    migStart = None
-    migEnd = None
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
@@ -189,35 +181,24 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
             PrintErr("File version is not supported anymore.")
             sys.exit(0)
         
-        line = next(f).rstrip()
-        line = line.split("\t")
-        splitT = int(line[1])
-        
-        line = next(f).rstrip()
-        line = line.split("\t")
-        migStart = int(line[1])
-        
-        line = next(f).rstrip()
-        line = line.split("\t")
-        migEnd = int(line[1])
-        
-        line = next(f).rstrip()
-        line = line.split("\t")
-        mu = [float(line[1]), float(line[2])]
-        
-        line = next(f).rstrip()
-        line = line.split("\t")
-        thrh = [float(line[1]), float(line[2])]
-        
-        line = next(f).rstrip()
-        line = line.split("\t")
-        jaf = [float(line[1]), float(line[2]), float(line[3]), float(line[4]), float(line[5]), float(line[6]), float(line[7])]
-        
         for line in f:
             line = line.split("\t")
-            times.append( float(line[0])*scaleTime )
-            lc1.append( float(line[1])/scaleEPS )
-            lc2.append( float(line[2])/scaleEPS )        
+            if line[0] == "ST":
+                splitT = int(line[1])
+            elif line[0] == "MS":
+                migStart = int(line[1])
+            elif line[0] == "ME":
+                migEnd = int(line[1])
+            elif line[0] == "MU":
+                mu = [float(line[1]), float(line[2])]
+            elif line[0] == "TR":
+                thrh = [float(line[1]), float(line[2])]
+            elif line[0] == "SFS":
+                jaf = map(float, line[1:])
+            elif line[0] == "RS":
+                times.append( float(line[1])*scaleTime )
+                lc1.append( 1.0/float(line[2])/scaleEPS )
+                lc2.append( 1.0/float(line[3])/scaleEPS )
     if doPlot:
         lc1 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc1]
         lc2 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc2]
@@ -227,7 +208,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         AddToPlot(times, lc2)
         splT=times[splitT]#sum(inputData[0][0:splitT])
         plt.axvline(splT, color='k', alpha=0.1)
-    data = [splitT, migStart, migEnd, times, lc1, lc2, thrh]
+    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh)
     return(data)
 
 def ReadJAFS(fn):
