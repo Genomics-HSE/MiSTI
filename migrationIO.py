@@ -7,7 +7,7 @@ from MigrationInference import MigrationInference
 import argparse
 
 class MigData:
-    def __init__():
+    def __init__(self):
         self.splitT = None
         self.migStart = None
         self.migEnd  = None
