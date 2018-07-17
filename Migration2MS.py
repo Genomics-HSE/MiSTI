@@ -17,7 +17,7 @@ parser = argparse.ArgumentParser(description='Migration inference from PSMC help
 parser.add_argument('fmigr',
                     help='migr file')
 clargs = parser.parse_args()
-fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
+#fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 
 data = migrationIO.ReadMigration(fmigr, False)
 #data = MigData(splitT = data[0], migStart = data[1], migEnd = data[2], times = data[3], lambda1 = data[4], lambda2 = data[5], thrh = data[6])
