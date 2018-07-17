@@ -158,11 +158,11 @@ def OutputMigration(fout, mu, Migration):
     outData += "ST\t" + str(Migration.splitT) + "\n"#split times
     outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
     outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
-    outData += "MU\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
-    outData += "TR\t" + str(theta) + "\t" + str(rho) + "\n"#migration
+    outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
+    outData += "TR\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
     outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     for i in range( len(times) ):
-        outData += str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
+        outData += "RS\t" + str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
     
     if fout == "":
         print(outData)

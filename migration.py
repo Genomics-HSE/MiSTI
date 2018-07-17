@@ -255,7 +255,6 @@ times = inputData[0]
 smin = min( clargs.sm, len(times) )
 smax = min( clargs.sM, len(times)+1 )
 smax = max( smax, smin )
-print("smax = ", smax, "\tsmin = ", smin)
 if clargs.sM == 0:
     smax = len(times)
 if smax == smin:
