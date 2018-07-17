@@ -19,7 +19,7 @@ parser.add_argument('fmigr',
 clargs = parser.parse_args()
 #fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 
-data = migrationIO.ReadMigration(fmigr, False)
+data = migrationIO.ReadMigration(clargs.fmigr, False)
 #data = MigData(splitT = data[0], migStart = data[1], migEnd = data[2], times = data[3], lambda1 = data[4], lambda2 = data[5], thrh = data[6])
 numT = len(data.times)
 
