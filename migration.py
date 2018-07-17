@@ -112,7 +112,9 @@ clargs.settings = {
 def Optimize(times, lambdas, dataJAFS):
     global clargs
     PrintErr("Number of processes: ", clargs.pr)
-    smin = min( clargs.sm, len(times) )
+    smin = clargs.sm
+    smax = clargs.sM
+    '''smin = min( clargs.sm, len(times) )
     smax = min( clargs.sM, len(times)+1 )
     smax = max( smax, smin )
     print("smax = ", smax, "\tsmin = ", smin)
@@ -120,10 +122,10 @@ def Optimize(times, lambdas, dataJAFS):
         smax = len(times)
     if smax == smin:
         print("-sm should be strictly smaller than -sM.")
-        sys.exit(0)
+        sys.exit(0)'''
     PrintErr("Optimizing for split time range from ", smin, " to ", smax)
     PrintErr("Optimization tolerance ", clargs.tol)
-#    splitTimes = list(range( smin, smax ))
+    splitTimes = list(range( smin, smax ))
 #    splitTimes = list( range(100, 102) )
     res = []
     if clargs.oml:
@@ -249,25 +251,30 @@ migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
 #migrUnit = (inputData[1][0][0]+inputData[1][1][0])/4.0
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
+times = inputData[0]
+smin = min( clargs.sm, len(times) )
+smax = min( clargs.sM, len(times)+1 )
+smax = max( smax, smin )
+print("smax = ", smax, "\tsmin = ", smin)
+if clargs.sM == 0:
+    smax = len(times)
+if smax == smin:
+    print("-sm should be strictly smaller than -sM.")
+    sys.exit(0)
+clargs.sm = smin
+clargs.sM = smax
+
+
 sol = [[], [], []]
 if mode == "optimize":
     sol = Optimize(inputData[0], inputData[1], dataJAFS)
     print(sol)
 elif mode == "llhmodel":
     res = []
-    smin = min( clargs.sm, len(times) )
-    smax = min( clargs.sM, len(times)+1 )
-    smax = max( smax, smin )
-    print("smax = ", smax, "\tsmin = ", smin)
-    if clargs.sM == 0:
-        smax = len(times)
-    if smax == smin:
-        print("-sm should be strictly smaller than -sM.")
-        sys.exit(0)
-    for splitT in range( smin, smax ):
+    for splitT in range( clargs.sm, clargs.sM ):
         Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, correct = True, migStart = clargs.migstart, migEnd = clargs.migend)
         llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
-        print("Likelihood = ", llh_tmp)
+        print("splitT = ", splitT, "\tlikelihood = ", llh_tmp)
         res.append( [clargs.mu0, llh_tmp, splitT, 0.0] )
     print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
