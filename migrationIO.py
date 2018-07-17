@@ -6,6 +6,30 @@ from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
 import argparse
 
+class MigData:
+    def __init__():
+        self.splitT = None
+        self.migStart = None
+        self.migEnd  = None
+        self.times = None
+        self.lambda1 = None
+        self.lambda2 = None
+        self.thrh = None
+        if "splitT" in kwargs:
+            self.splitT = kwargs["splitT"]
+        if "migStart" in kwargs:
+            self.migStart = kwargs["migStart"]
+        if "migEnd" in kwargs:
+            self.migEnd = kwargs["migEnd"]
+        if "times" in kwargs:
+            self.times = kwargs["times"]
+        if "lambda1" in kwargs:
+            self.lambda1 = kwargs["lambda1"]
+        if "lambda2" in kwargs:
+            self.lambda2 = kwargs["lambda2"]
+        if "thrh" in kwargs:
+            self.thrh = kwargs["thrh"]
+
 def SetScaling():
     mu = 1.1e-8#6.83e-8
     binsize = 100
@@ -24,6 +48,7 @@ def ReadPSMCFile(fn, RD = -1):
     Tk = []
     Lk = []
     th = 0
+    rh = 0
     
     with open(fn) as f:
         for line in f:
@@ -44,6 +69,7 @@ def ReadPSMCFile(fn, RD = -1):
             while line[0] != "RS":
                 if line[0] == "TR":
                     th = float(line[1])
+                    rh = float(line[2])
                 line = next(f)
                 line = line.split()
             while line[0] != "PA":
@@ -55,7 +81,7 @@ def ReadPSMCFile(fn, RD = -1):
                 line = next(f)
                 line = line.split()
             break
-    data = [Tk, Lk, RD, th]
+    data = [Tk, Lk, RD, th, rh]
     return( data )
 
 def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
@@ -116,7 +142,7 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
 #    sys.exit(0)
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scale, scale1] )
+    return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
     
 #    print(len(Tk))
 #    print(len(Lk1))
@@ -128,9 +154,12 @@ def OutputMigration(fout, mu, Migration):
     print("llh = ", llh)
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
-    outData = "#Migration ver 0.2\n"
+    outData = "#Migration ver 0.3\n"
     outData += "ST\t" + str(Migration.splitT) + "\n"#split times
-    outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
+    outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
+    outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
+    outData += "MU\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
+    outData += "TR\t" + str(theta) + "\t" + str(rho) + "\n"#migration
     outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     for i in range( len(times) ):
         outData += str(times[i]) + "\t" + str(Migration.lc[i][0]) + "\t" + str(Migration.lc[i][1]) + "\n"
@@ -146,28 +175,49 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     times = []
     lc1 = []
     lc2 = []
+    thrh = [1.0, 1.0]
     splitT = None
     mu = None
+    migStart = None
+    migEnd = None
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
         version = float(line[2])
         print("Format version: ", version)
+        if version < 0.3:
+            PrintErr("File version is not supported anymore.")
+            sys.exit(0)
+        
         line = next(f).rstrip()
         line = line.split("\t")
         splitT = int(line[1])
+        
+        line = next(f).rstrip()
+        line = line.split("\t")
+        migStart = int(line[1])
+        
+        line = next(f).rstrip()
+        line = line.split("\t")
+        migEnd = int(line[1])
+        
         line = next(f).rstrip()
         line = line.split("\t")
         mu = [float(line[1]), float(line[2])]
-        if version > 0.1:
-            line = next(f).rstrip()
-            line = line.split("\t")
-            jaf = [float(line[1]), float(line[2]), float(line[3]), float(line[4]), float(line[5]), float(line[6]), float(line[7])]
+        
+        line = next(f).rstrip()
+        line = line.split("\t")
+        thrh = [float(line[1]), float(line[2])]
+        
+        line = next(f).rstrip()
+        line = line.split("\t")
+        jaf = [float(line[1]), float(line[2]), float(line[3]), float(line[4]), float(line[5]), float(line[6]), float(line[7])]
+        
         for line in f:
             line = line.split("\t")
             times.append( float(line[0])*scaleTime )
             lc1.append( float(line[1])/scaleEPS )
-            lc2.append( float(line[2])/scaleEPS )
+            lc2.append( float(line[2])/scaleEPS )        
     if doPlot:
         lc1 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc1]
         lc2 = [1.0/max(v*scaleEPS,0.1)*scaleEPS for v in lc2]
@@ -177,6 +227,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         AddToPlot(times, lc2)
         splT=times[splitT]#sum(inputData[0][0:splitT])
         plt.axvline(splT, color='k', alpha=0.1)
+    data = [splitT, migStart, migEnd, times, lc1, lc2, thrh]
+    return(data)
 
 def ReadJAFS(fn):
     jafs = []

@@ -19,7 +19,7 @@ class MigrationInference:
     CORRECTION_CALLED = 0
     CORRECTION_FAILED = 0
     
-    def __init__(self, times, lambdas, dataJAFS, mu, splitT, theta, **kwargs):
+    def __init__(self, times, lambdas, dataJAFS, mu, splitT, **kwargs):#thrh for theta and rho
         self.debug = False
         self.enableOutput = False
         if "debug" in kwargs:
@@ -50,13 +50,18 @@ class MigrationInference:
         if "migStart" in kwargs:
             if kwargs["migStart"] < splitT:
                 self.migStart = kwargs["migStart"]
+        
         self.migEnd = splitT
         if "migEnd" in kwargs:
             if kwargs["migEnd"] > 0:
                 self.migEnd = kwargs["migEnd"]
         
+        self.thrh = [1.0, 1.0]#theta and rho from PSMC1
+        if "thrh" in kwargs:
+            if len(kwargs["thrh"]) == 2:
+                self.thrh = kwargs["thrh"]
+        
         #Model parameters
-        self.theta = theta#coalescent mutation rate theta/2
         self.splitT = splitT
         if self.migEnd > self.splitT:
             self.migEnd = self.splitT
@@ -122,8 +127,8 @@ class MigrationInference:
                     self.scaleEPS = float(kwargs[scaleEPS])
                 if "scaleT" in kwargs:
                     self.scaleT = float(kwargs[scaleT])
-        
-        print("MigrationInference class initialized. Class size", self.numT)
+        if self.debug:
+            print("MigrationInference class initialized. Class size", self.numT)
     
     def SetModel(self, params):
         for i in range(self.migStart):
@@ -210,7 +215,7 @@ class MigrationInference:
         lam = self.lh[0][indiv]
         time = 0.0
         nc = 0.0
-        while k < self.numT-1:#FIXME - last interval is not treated correctly
+        while k < self.splitT:
             j = k
             while abs(self.lh[j][indiv]-lam) < 1e-10 and j < self.numT-1:
                 nc += self.lc[j][indiv]*self.times[j]
