@@ -27,23 +27,25 @@ chromLen = 3000000
 chromNum = 1000
 binSize = 100
 
-theta = chromLen*data.thrh[0]/binSize
-rho = chromLen*data.thrh[1]/binSize
+theta = 2*chromLen*data.thrh[0]/binSize
+rho = 2*chromLen*data.thrh[1]/binSize
 
 mscl = " 4 " + str(chromNum) + " -t " + str(theta) + " -r " + str(rho) + " " + str(chromLen) + " -l -I 2 2 2 "
 for i in range(data.splitT):
-    mscl += " -en " + str(data.times[i]) + " 1 " + str(data.lambda1[i])
-    mscl += " -en " + str(data.times[i]) + " 2 " + str(data.lambda2[i])
+    mscl += " -en " + str(data.times[i]/2.0) + " 1 " + str(1.0/data.lambda1[i])
+    mscl += " -en " + str(data.times[i]/2.0) + " 2 " + str(1.0/data.lambda2[i])
 
-mscl += " -em " + str(data.times[ data.migStart ]) + " 1 2 " + mu[0]
-mscl += " -em " + str(data.times[ data.migStart ]) + " 2 1 " + mu[1]
-mscl += " -eM " + str(data.times[ data.migEnd ]) + " 0.0 "
+mscl += " -em " + str(data.times[ data.migStart ]/2.0) + " 1 2 " + str(2*data.mu[0])
+mscl += " -em " + str(data.times[ data.migStart ]/2.0) + " 2 1 " + str(2*data.mu[1])
+mscl += " -eM " + str(data.times[ data.migEnd ]/2.0) + " 0.0 "
 
-mscl += " -ej " + str(data.times[ data.splitT ]) + " 2 1 "
-mscl += " -eM " + str(data.times[ data.splitT ]) + " 0.0 "
+mscl += " -ej " + str(data.times[ data.splitT ]/2.0) + " 2 1 "
+mscl += " -eM " + str(data.times[ data.splitT ]/2.0) + " 0.0 "
 
 for i in range(data.splitT, numT):
-    mscl += " -eN " + str(data.times[i]) + " " + str(data.lambda1[i])
+    mscl += " -eN " + str(data.times[i]/2.0) + " " + str(1.0/data.lambda1[i])
+
+print(mscl)
 
 #migrationIO.PlotMS(fms)
 

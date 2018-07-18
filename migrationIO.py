@@ -7,7 +7,7 @@ from MigrationInference import MigrationInference
 import argparse
 
 class MigData:
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.splitT = None
         self.migStart = None
         self.migEnd  = None
@@ -15,6 +15,7 @@ class MigData:
         self.lambda1 = None
         self.lambda2 = None
         self.thrh = None
+        self.mu = None
         if "splitT" in kwargs:
             self.splitT = kwargs["splitT"]
         if "migStart" in kwargs:
@@ -29,6 +30,8 @@ class MigData:
             self.lambda2 = kwargs["lambda2"]
         if "thrh" in kwargs:
             self.thrh = kwargs["thrh"]
+        if "mu" in kwargs:
+            self.mu = kwargs["mu"]
 
 def SetScaling():
     mu = 1.1e-8#6.83e-8
@@ -142,7 +145,7 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
 #    sys.exit(0)
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
+    return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
     
 #    print(len(Tk))
 #    print(len(Lk1))
@@ -211,7 +214,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         AddToPlot(times, lc2)
         splT=times[splitT]#sum(inputData[0][0:splitT])
         plt.axvline(splT, color='k', alpha=0.1)
-    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh)
+    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu)
     return(data)
 
 def ReadJAFS(fn):
