@@ -35,9 +35,14 @@ theta = chromLen*data.thrh[0]/binSize*N0_rescale
 rho = chromLen*data.thrh[1]/binSize*N0_rescale
 
 mscl = " 4 " + str(chromNum) + " -t " + str(theta) + " -r " + str(rho) + " " + str(chromLen) + " -l -I 2 2 2 "
+lp = [0, 0]
 for i in range(data.splitT):
-    mscl += " -en " + str(data.times[i]/2.0/N0_rescale) + " 1 " + str(N0_rescale/data.lambda1[i])
-    mscl += " -en " + str(data.times[i]/2.0/N0_rescale) + " 2 " + str(N0_rescale/data.lambda2[i])
+    if lp[0] != data.lambda1[i]:
+        mscl += " -en " + str(data.times[i]/2.0/N0_rescale) + " 1 " + str(N0_rescale/data.lambda1[i])
+        lp[0] = data.lambda1[i]
+    if lp[1] != data.lambda2[i]:
+        mscl += " -en " + str(data.times[i]/2.0/N0_rescale) + " 2 " + str(N0_rescale/data.lambda2[i])
+        lp[1] = data.lambda2[i]
 
 mscl += " -em " + str(data.times[ data.migStart ]/2.0/N0_rescale) + " 1 2 " + str(2*data.mu[0]*N0_rescale)
 mscl += " -em " + str(data.times[ data.migStart ]/2.0/N0_rescale) + " 2 1 " + str(2*data.mu[1]*N0_rescale)
@@ -46,8 +51,11 @@ mscl += " -eM " + str(data.times[ data.migEnd ]/2.0/N0_rescale) + " 0.0 "
 mscl += " -ej " + str(data.times[ data.splitT ]/2.0/N0_rescale) + " 2 1 "
 mscl += " -eM " + str(data.times[ data.splitT ]/2.0/N0_rescale) + " 0.0 "
 
+lp = 0
 for i in range(data.splitT, numT):
-    mscl += " -eN " + str(data.times[i]/2.0/N0_rescale) + " " + str(N0_rescale/data.lambda1[i])
+    if lp != data.lambda1[i]:
+        mscl += " -eN " + str(data.times[i]/2.0/N0_rescale) + " " + str(N0_rescale/data.lambda1[i])
+        lp = data.lambda1[i]:
 
 print(mscl)
 
