@@ -55,7 +55,7 @@ lp = 0
 for i in range(data.splitT, numT):
     if lp != data.lambda1[i]:
         mscl += " -eN " + str(data.times[i]/2.0/N0_rescale) + " " + str(N0_rescale/data.lambda1[i])
-        lp = data.lambda1[i]:
+        lp = data.lambda1[i]
 
 print(mscl)
 
