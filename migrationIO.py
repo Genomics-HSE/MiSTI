@@ -212,10 +212,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         AddToPlot(times, lc1)
         AddToPlot(times, lc2)
-        splT=times[splitT]#sum(inputData[0][0:splitT])
-        print("DEBUG\n", times)
-        print("DEBUG\n", times/scaleTime)
-        print("scale = ", scaleTime)
+        splT=times[splitT]
         plt.axvline(splT, color='k', alpha=0.1)
     data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu)
     return(data)
