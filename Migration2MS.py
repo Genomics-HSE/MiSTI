@@ -20,7 +20,7 @@ clargs = parser.parse_args()
 #fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 
 data = migrationIO.ReadMigration(clargs.fmigr, False)
-scaling = MigrationIO.SetScaling()
+scaling = migrationIO.SetScaling()
 #data = MigData(splitT = data[0], migStart = data[1], migEnd = data[2], times = data[3], lambda1 = data[4], lambda2 = data[5], thrh = data[6])
 numT = len(data.times)
 
@@ -29,10 +29,10 @@ chromNum = 1000
 binSize = 100
 
 
-N0 = data.thrh[0]/(2*scaling[0]*scaling[1])
+N0 = data.thrh[0]/(4*scaling[0]*scaling[1])
 N0_rescale = 10000/N0
-theta = 2*chromLen*data.thrh[0]/binSize*N0_rescale
-rho = 2*chromLen*data.thrh[1]/binSize*N0_rescale
+theta = chromLen*data.thrh[0]/binSize*N0_rescale
+rho = chromLen*data.thrh[1]/binSize*N0_rescale
 
 mscl = " 4 " + str(chromNum) + " -t " + str(theta) + " -r " + str(rho) + " " + str(chromLen) + " -l -I 2 2 2 "
 for i in range(data.splitT):
