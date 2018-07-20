@@ -363,7 +363,7 @@ class MigrationInference:
         if not res:
             return float('-inf') # -10**(10)
         if self.enableOutput:
-            print("JAFSLikelyhood():   initial values of lambdas are ", self.lc)
+            print("JAFSLikelyhood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelyhood(): corrected values of lambdas are ", self.lc)
         self.JAFSpectrum()
         norm = sum(self.JAFS)
