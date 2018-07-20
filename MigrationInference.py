@@ -33,8 +33,8 @@ class MigrationInference:
             print("MigrationInference: output enabled.")
         
         self.correct = True
-        if "correct" in kwargs:
-            if not kwargs["correct"]:
+        if "trueEPS" in kwargs:
+            if kwargs["trueEPS"]:
                 self.correct = False
         self.smooth = False
         if "smooth" in kwargs:
