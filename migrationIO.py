@@ -169,6 +169,9 @@ def OutputMigration(fout, mu, Migration):
     outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     for i in range( len(times) ):
         outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\n"
+        
+    for i in range( len(times) ):
+        outData += "LH\t" + str(times[i]) + "\t" + str(1.0/Migration.lh[i][0]) + "\t" + str(1.0/Migration.lh[i][1]) + "\n"
     
     if fout == "":
         print(outData)
@@ -209,7 +212,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
                 lc1.append( 1.0/float(line[2])/scaleEPS )
                 lc2.append( 1.0/float(line[3])/scaleEPS )
     print([1/v for v in lc1])
-    print([1/v for v in lc1])
+    print([1/v for v in lc2])
     print("scale = ", scaleEPS)
     if doPlot:
         lc1 = [1.0/v for v in lc1]
