@@ -163,7 +163,8 @@ def OutputMigration(fout, mu, Migration):
     outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
     outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
     outData += "TR\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
-    outData += "SFS\t" + str(0) + "\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
+    outData += "SFS\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
+    outdata += "DSF\t" + "\t".join(map(str, Migration.dataJAFS)) + "\n"#empirical SFS
     for i in range( len(times) ):
         outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\n"
     
