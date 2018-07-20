@@ -124,6 +124,9 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
     scale1 = scale/2.0/1.0e4
     if doPlot:
 #    print("Here ready to plot")
+        print([1/v for v in Lk1])
+        print([1/v for v in Lk2])
+        print("scale = ", scale1)
         x = [v*scale for v in Tk]
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
@@ -205,6 +208,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
                 times.append( float(line[1])*scaleTime )
                 lc1.append( 1.0/float(line[2])/scaleEPS )
                 lc2.append( 1.0/float(line[3])/scaleEPS )
+    print([1/v for v in lc1])
+    print([1/v for v in lc1])
+    print("scale = ", scaleEPS)
     if doPlot:
         lc1 = [1.0/v for v in lc1]
         lc2 = [1.0/v for v in lc2]
