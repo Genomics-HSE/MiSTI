@@ -252,18 +252,17 @@ print(clargs)
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.rd)
 
-timesMS = [0, 0.0275, 0.0475, 0.175, 0.75, 3.75, 10]
-epsMS = [[13, 0.25], [0.5, 0.25], [0.5, 0.5], [3, 3], [2, 2], [3, 3], [6, 6]]
-inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
-inputData[1] = [[1/u[0], 1/u[1]] for u in epsMS]
+#timesMS = [0, 0.0275, 0.0475, 0.175, 0.75, 3.75, 10]
+#epsMS = [[13, 0.25], [0.5, 0.25], [0.5, 0.5], [3, 3], [2, 2], [3, 3], [6, 6]]
+#inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
+#inputData[1] = [[1/u[0], 1/u[1]] for u in epsMS]
 #-n 1 13 -n 2 0.25
 #-en 0.0275 1 0.5 -em 0.0275 2 1 12.5 -ej 0.0475 2 1 -eM 0.0475 0.0
 #-eN 0.175 3
 #-eN 0.75 2
 #-eN 3.75 3
 #-eN 10 6
-print(inputData)
-sys.exit(0)
+#print(inputData)
 migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
 #migrUnit = (inputData[1][0][0]+inputData[1][1][0])/4.0
 dataJAFS = migrationIO.ReadJAFS(fjafs)
