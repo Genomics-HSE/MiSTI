@@ -287,7 +287,7 @@ def AddToPlot(times, lambdas, id=1):
 #    times = times[1:]
     lambdas.insert(0, lambdas[0])
     times.append(2*times[-1])
-    ptint(times)
+    print(times)
     print(lambdas)
     plt.step(times, lambdas, alpha=0.7)
     
