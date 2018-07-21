@@ -285,8 +285,8 @@ def PlotInit(id=1):
 def AddToPlot(times, lambdas, id=1):
     plt.figure(id)
 #    times = times[1:]
-    lambdas.insert(0, lambdas[0])
-    times.append(2*times[-1])
+#    lambdas.insert(0, lambdas[0])
+#    times.append(2*times[-1])
     print(times)
     print(lambdas)
     plt.step(times, lambdas, alpha=0.7)
