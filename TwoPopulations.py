@@ -286,7 +286,7 @@ class TwoPopulations:
             state1 = list(state)
             self.UpdateLineagePop(state1, i, (state[i].pop+1)%2)
             ind2 = self.MapStateToInd(state1)
-            MM[ind2][ind] += self.mu[ state[i].pop ]
+            MM[ind2][ind] += self.mu[ 1-state[i].pop ]
             total += self.mu[ state[i].pop ]
             #Coalescence
             for j in range(i+1, len(state)):
