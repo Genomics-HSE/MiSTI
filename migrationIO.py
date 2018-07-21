@@ -127,6 +127,8 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
         x = [v*scale for v in Tk]
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
+        print(y1)
+        print(y2)
 #        plt.semilogx(x, y1, x, y2)
         AddToPlot(x, y1)
         AddToPlot(x, y2)
@@ -210,6 +212,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     if doPlot:
         lc1 = [1.0/v for v in lc1]
         lc2 = [1.0/v for v in lc2]
+        print(lc1)
+        print(lc2)
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         AddToPlot(times, lc1)
