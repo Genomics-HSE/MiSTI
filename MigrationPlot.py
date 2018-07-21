@@ -49,6 +49,8 @@ print("Output file: ", fout)
 migrationIO.PlotInit()
 
 data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, RD, True)
+data[2] = 40000
+data[3] = 1
 migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 
