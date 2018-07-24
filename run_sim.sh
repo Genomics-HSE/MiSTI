@@ -37,5 +37,5 @@ if [ $CLEAN -eq 1 ]; then
 	rm $DIR/ms2g1.ms
 	rm $DIR/ms2g2.ms
 fi
-./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR -tol 1e-4 -sm 70 -o solution.migr > $DIR/output.txt
-./MigrationPlot.py ms2g1.psmc ms2g2.psmc solution.migr -wd $DIR
+#./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR -tol 1e-4 -sm 70 -o solution.migr > $DIR/output.txt
+#./MigrationPlot.py ms2g1.psmc ms2g2.psmc solution.migr -wd $DIR
