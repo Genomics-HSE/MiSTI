@@ -258,7 +258,7 @@ class TwoPopulations:
         for i in range(matSize):
             for j in range(matSize):
                 el = format(self.MM.item(i,j), '.10g')
-                if int(el) == 0:
+                if float(el) == 0:
                     el = '.'
                 print( el, end = "\t" )
             print("")
@@ -284,10 +284,10 @@ class TwoPopulations:
         for i in range(len(state)):
             #Migration
             state1 = list(state)
-            self.UpdateLineagePop(state1, i, (state[i].pop+1)%2)
+            self.UpdateLineagePop(state1, i, 1-state[i].pop )
             ind2 = self.MapStateToInd(state1)
-            MM[ind2][ind] += self.mu[ 1-state[i].pop ]
-            total += self.mu[ 1-state[i].pop ]
+            MM[ind2][ind] += self.mu[ state[i].pop ]
+            total += self.mu[ state[i].pop ]
             #Coalescence
             for j in range(i+1, len(state)):
                 if state[j].pop != state[i].pop:
@@ -306,10 +306,13 @@ class TwoPopulations:
     def Test(self):
         return
         map_test_passed = True
-        for i in range(self.Msize):
-            st = self.MapIndToState(i)
-            if self.MapStateToInd(st) != i:
-                map_test_passed = False
+        if 0:
+            for i in range(self.Msize):
+                st = self.MapIndToState(i)
+                print(self.PrintState(st))
+                if self.MapStateToInd(st) != i:
+                    map_test_passed = False
+            return
         if map_test_passed:
             print("Map test passed succesfully, map is identity.")
         else:
@@ -318,9 +321,11 @@ class TwoPopulations:
            jaf = self.StateToJAF(i)
         #               j = '' + `int(jaf[0])` + `int(jaf[1])` + `int(jaf[2])` + `int(jaf[3])`
            print(self.PrintState(st), jaf)
-        if 0:
-           self.mu = [0, 0]
-           self.la = [1, 10]
+        if 1:
+           self.mu = [1, 10]
+           self.la = [0, 0]
            self.MM = self.SetMatrix()
            self.PrintMatrix()
            sys.exit(0)
+           
+#tp = TwoPopulations(0, 0, 1, 100)
