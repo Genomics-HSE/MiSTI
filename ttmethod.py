@@ -25,7 +25,7 @@ clargs = parser.parse_args()
 
 if isinstance(clargs.y, list):
     clargs.y = clargs.y[0]
-if isinstance(clargs.fout, list):
+if isinstance(clargs.mu, list):
     clargs.mu = clargs.mu[0]
 
 spectrum = ReadJAFS(clargs.jafs)
