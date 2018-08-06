@@ -19,9 +19,9 @@ parser.add_argument('haplen',
 clargs = parser.parse_args()
 
 spectrum = ReadJAFS(clargs.jafs)
-
+spectrum = spectrum[1:]
 #Converting to paper notations
-M = int(clargs.haplen)
+M = float(clargs.haplen)
 m1 = spectrum[0]
 m2 = spectrum[2]
 m3 = spectrum[1]
@@ -33,5 +33,10 @@ m7 = spectrum[6]
 T1 = (m1/2+m3-(2*m6+m5)*(6*m7+m5)/8/m5)/M
 T2 = (m2/2+m4-(2*m7+m5)*(6*m6+m5)/8/m5)/M
 
-print("T1 = ", T1)
-print("T2 = ", T2)
+mu = 1.25e-8
+Ygen = 30
+T1y = T1/mu*Ygen
+T2y = T2/mu*Ygen
+
+print("T1 = ", T1y)
+print("T2 = ", T2y)
