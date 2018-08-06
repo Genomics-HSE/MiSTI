@@ -48,6 +48,8 @@ parser.add_argument('-fil', nargs=1, type=int, default=0, #fil for first interva
                     help='first interval length')
 parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
+parser.add_argument('--discr', '-d' nargs=1, type=int, default=1,
+                    help='discritesation of intervals (default is 1 for no discritisation).')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 parser.add_argument('-oml', action='store_true',
@@ -83,6 +85,8 @@ if isinstance(clargs.sM, list):
     clargs.sd = clargs.sd[0]
 if isinstance(clargs.fil, list):
     clargs.fil = clargs.fil[0]
+if isinstance(clargs.discr, list):
+    clargs.discr = clargs.discr[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 if isinstance(clargs.llh, list):
@@ -308,7 +312,7 @@ if mode == "optimize":
 elif mode == "llhmodel":
     res = []
     for splitT in range( clargs.sm, clargs.sM ):
-        discr = 10
+        discr = cl.discr
         for ds in range(discr):
             sT = splitT + ds/discr
             Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
