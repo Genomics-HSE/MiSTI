@@ -35,6 +35,7 @@ class MigData:
 
 def SetScaling():
     mu = 1.1e-8#6.83e-8
+    mu = 1.25e-8
     binsize = 100
     scaling = [mu, binsize]
     return(scaling)
@@ -175,7 +176,7 @@ def OutputMigration(fout, mu, Migration):
         fw = open(fout, 'w')
         fw.write(outData)
         fw.close()
-    
+
 def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     times = []
     lc1 = []
