@@ -45,7 +45,25 @@ class MigrationInference:
         if "unfolded" in kwargs:
             if kwargs["unfolded"]:
                 self.unfolded = True
-                
+        
+        self.thrh = [1.0, 1.0]#theta and rho from PSMC1
+        if "thrh" in kwargs:
+            if len(kwargs["thrh"]) == 2:
+                self.thrh = kwargs["thrh"]
+        
+        #Model parameters
+        splitFraction = splitT%1
+        splitT = int(splitT)
+        if splitT - 1 > len(times):
+            self.PrintErr("__init__", "Invalid value for split time, cannot create Migration class instance.")
+        if splitFraction != 0.0:
+            t1 = splitFraction*times[splitT]
+            t2 = times[splitT] - t1
+            times[splitT] = t1
+            times.insert(splitT + 1, t2)
+            lambdas.insert(splitT + 1, lambdas[splitT])
+            splitT += 1
+        
         self.migStart = 0
         if "migStart" in kwargs:
             if kwargs["migStart"] < splitT:
@@ -55,16 +73,10 @@ class MigrationInference:
         if "migEnd" in kwargs:
             if kwargs["migEnd"] > 0:
                 self.migEnd = kwargs["migEnd"]
-        
-        self.thrh = [1.0, 1.0]#theta and rho from PSMC1
-        if "thrh" in kwargs:
-            if len(kwargs["thrh"]) == 2:
-                self.thrh = kwargs["thrh"]
-        
-        #Model parameters
         self.splitT = splitT
         if self.migEnd > self.splitT:
             self.migEnd = self.splitT
+        
         self.mu = list(lambdas)#initialize migration with the same size as lambdas
         self.SetModel(mu)#set values for mu
 #        self.mu = mu

@@ -252,17 +252,37 @@ print(clargs)
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.rd)
 
-if 1:
+if 0:
     timesMS = [0, 0.0275, 0.0475, 0.175, 0.75, 3.75, 10]
     epsMS = [[13.0, 0.25], [0.5, 0.4], [0.5, 0.5], [3, 3], [2, 2], [3, 3], [6, 6]]
     inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
     inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
-#-n 1 13 -n 2 0.25
-#-en 0.0275 1 0.5 -em 0.0275 2 1 12.5 -ej 0.0475 2 1 -eM 0.0475 0.0
-#-eN 0.175 3
-#-eN 0.75 2
-#-eN 3.75 3
-#-eN 10 6
+
+if 0:
+    timesMS = [0, 0.0075, 0.0225, 0.125, 0.5, 1.875]
+    epsMS = [[0.2, 0.2], [0.2, 0.45], [0.5, 0.5], [0.3, 0.3], [0.5, 0.5], [1.3, 1.3]]
+    discr = 50
+    timesTmp = [0]
+    epsTmp = []
+    for i in range(len(timesMS)-1):
+        maxTime = timesTmp[-1]
+        deltaT = timesMS[i+1] - timesMS[i]
+        timesTmp += [maxTime + (j+1)*deltaT/discr for j in range(discr)]
+        epsTmp += [epsMS[i] for j in range(discr)]
+    epsTmp.append(epsMS[-1])
+    timesMS = timesTmp
+    epsMS = epsTmp
+    #for u,v in zip(timesMS, epsMS):
+    #    print(u, "\t", v)
+    inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
+    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
+    inputData[2] = 20000
+    inputData[3] = 1
+
+#-n 1 0.2 -en 0.0075 1 0.20 -en 0.0225 1 0.5 -en 0.125 1 0.3 -en 0.5 1 0.5 -en 1.875 1 1.3
+#-n 2 0.2 -en 0.0075 2 0.45 -en 0.0225 2 0.5 -en 0.125 2 0.3 -en 0.5 2 0.5 -en 1.875 2 1.3
+#-ej 0.0475 2 1
+
 #print(inputData)
 migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
 #migrUnit = (inputData[1][0][0]+inputData[1][1][0])/4.0
@@ -288,10 +308,13 @@ if mode == "optimize":
 elif mode == "llhmodel":
     res = []
     for splitT in range( clargs.sm, clargs.sM ):
-        Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, splitT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
-        llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
-        print("splitT = ", splitT, "\tlikelihood = ", llh_tmp)
-        res.append( [clargs.mu0, llh_tmp, splitT, 0.0] )
+        discr = 10
+        for ds in range(discr):
+            sT = splitT + ds/discr
+            Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, sT+, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
+            llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
+            print("splitT = ", sT, "\tlikelihood = ", llh_tmp)
+            res.append( [clargs.mu0, llh_tmp, sT, 0.0] )
     print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
 else:
