@@ -48,7 +48,7 @@ parser.add_argument('-fil', nargs=1, type=int, default=0, #fil for first interva
                     help='first interval length')
 parser.add_argument('-sd', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)')
-parser.add_argument('--discr', '-d' nargs=1, type=int, default=1,
+parser.add_argument('--discr', '-d', nargs=1, type=int, default=1,
                     help='discritesation of intervals (default is 1 for no discritisation).')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
