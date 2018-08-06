@@ -311,7 +311,7 @@ elif mode == "llhmodel":
         discr = 10
         for ds in range(discr):
             sT = splitT + ds/discr
-            Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
+            Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
             llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
             print("splitT = ", sT, "\tlikelihood = ", llh_tmp)
             res.append( [clargs.mu0, llh_tmp, sT, 0.0] )
