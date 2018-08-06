@@ -21,7 +21,7 @@ clargs = parser.parse_args()
 spectrum = ReadJAFS(clargs.jafs)
 
 #Converting to paper notations
-M = clargs.haplen
+M = int(clargs.haplen)
 m1 = spectrum[0]
 m2 = spectrum[2]
 m3 = spectrum[1]
