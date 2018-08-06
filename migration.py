@@ -312,7 +312,7 @@ if mode == "optimize":
 elif mode == "llhmodel":
     res = []
     for splitT in range( clargs.sm, clargs.sM ):
-        discr = cl.discr
+        discr = clargs.discr
         for ds in range(discr):
             sT = splitT + ds/discr
             Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
