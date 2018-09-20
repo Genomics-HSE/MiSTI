@@ -1,4 +1,7 @@
 #!/bin/sh
+
+#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+
 if [ "$#" -lt 2 ]; then
   echo "Usage: $0 DIRECTORY \"ms arguments\"" >&2
   exit 1

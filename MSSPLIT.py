@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+
 import sys
 
 if len(sys.argv) < 3:

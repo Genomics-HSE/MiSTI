@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+
 import sys
 import os
 import collections
@@ -48,9 +50,7 @@ print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
-data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, RD, False)
-data[2] = 20000
-data[3] = 1
+data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, RD, True)
 migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 

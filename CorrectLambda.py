@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+
 from scipy import (optimize,linalg,integrate)
 from numpy import (dot,identity)
 import numpy

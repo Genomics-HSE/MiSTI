@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+
 import sys
 import os
 import collections
@@ -47,7 +49,7 @@ parser.add_argument('-sM', nargs=1, type=int, default=0,
 parser.add_argument('-fil', nargs=1, type=int, default=0, #fil for first interval length in case of optimisation of first lambdas
                     help='first interval length')
 parser.add_argument('-sd', nargs=1, type=float, default=0,
-                    help='dating of the second sample (for ancient genome)')
+                    help='dating of the second sample (for ancient genome)') 
 parser.add_argument('--discr', '-d', nargs=1, type=int, default=1,
                     help='discritesation of intervals (default is 1 for no discritisation).')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
@@ -61,8 +63,8 @@ parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
 parser.add_argument('-llh', action='store_true',
                     help='Compute model llh')
-parser.add_argument('--smooth', action='store_true',
-                    help='Smooth (make constant on the psmc time intervals)')
+parser.add_argument('--nosmooth', action='store_false',
+                    help='Don\'t smooth (make constant on the psmc time intervals)')
 parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
 
@@ -91,8 +93,8 @@ if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 if isinstance(clargs.llh, list):
     clargs.llh = clargs.llh[0]
-if isinstance(clargs.smooth, list):
-    clargs.smooth = clargs.smooth[0]
+if isinstance(clargs.nosmooth, list):
+    clargs.nosmooth = clargs.nosmooth[0]
 if isinstance(clargs.trueEPS, list):
     clargs.trueEPS = clargs.trueEPS[0]
 if isinstance(clargs.oml, list):
@@ -112,7 +114,7 @@ if clargs.llh:
 
 clargs.settings = {
     "enableOutput": False,
-    "smooth": True,
+    "nosmooth": False,
     "unfolded": clargs.uf,
     "sampleDate": clargs.sd
 }
@@ -182,7 +184,7 @@ def RunSolve(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.Solve(clargs.tol, args[4])
     muSol.append(args[3])
     muSol[1] = Migration.JAFSLikelyhood( muSol[0] )
@@ -197,7 +199,7 @@ def RunSolveMuLa(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], [0,0], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.SolveMuLa(clargs.tol, args[4], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
@@ -210,7 +212,7 @@ def RunSolveLa(args):
     global clargs
     t1 = time.process_time()
     PrintErr("Solving for split times ", args[3], ", initial conditions ", args[4])
-    Migration = MigrationInference(args[0], args[1], args[2], args[4][0:2], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
+    Migration = MigrationInference(args[0], args[1], args[2], args[4][0:2], args[3], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), trueEPS = clargs.trueEPS, unfolded = clargs.uf, sampleDate = clargs.sd, migStart = clargs.migstart, migEnd = clargs.migend)
     muSol = Migration.SolveLa(clargs.tol, args[4][2:], clargs.fil)
     muSol.append(args[3])
     print(Migration.JAFSLikelyhood( muSol[0] ) )
@@ -315,7 +317,7 @@ elif mode == "llhmodel":
         discr = clargs.discr
         for ds in range(discr):
             sT = splitT + ds/discr
-            Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
+            Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.smooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
             llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
             print("splitT = ", sT, "\tlikelihood = ", llh_tmp)
             res.append( [clargs.mu0, llh_tmp, sT, 0.0] )
@@ -331,7 +333,7 @@ splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
 print("N_0 = ")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = clargs.smooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.smooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()
