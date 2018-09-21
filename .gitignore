@@ -14,3 +14,6 @@ ms_*
 *temp*
 *delme*
 *.nb
+.DS_Store
+.Rapp.history
+.ipynb_checkpoints/TwoPop_to_HMM-checkpoint.ipynb
