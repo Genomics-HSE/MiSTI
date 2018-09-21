@@ -336,7 +336,7 @@ elif mode == "llhmodel":
     confInt = [deepcopy(val) for val in res if val[1] >= sol[1]-1.92]
     if clargs.debug:
         print(confInt)
-    confInt = sorted( res, key=lambda val: val[2])
+    confInt = sorted( confInt, key=lambda val: val[2])
     confInt = [confInt[0], confInt[-1]]
     if clargs.debug:
         print(confInt)
