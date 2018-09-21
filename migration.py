@@ -67,6 +67,9 @@ parser.add_argument('--nosmooth', action='store_false',
                     help='Don\'t smooth (make constant on the psmc time intervals)')
 parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
+                    
+parser.add_argument('--debug', action='store_true',
+                    help='Debug mode, more input enabled')
 
 
 clargs = parser.parse_args()
@@ -107,6 +110,9 @@ if isinstance(clargs.migstart, list):
     clargs.migstart = clargs.migstart[0]
 if isinstance(clargs.migend, list):
     clargs.migend = clargs.migend[0]
+
+if isinstance(clargs.debug, list):
+    clargs.debug = clargs.debug[0]
 
 mode = "optimize"
 if clargs.llh:
@@ -221,7 +227,6 @@ def RunSolveLa(args):
     muSol.append(t2-t1)
     return( muSol )
 
-
 print( " ".join(sys.argv) )
 #t1 = time.clock()
 t1 = time.time()
@@ -247,14 +252,16 @@ print(coalRates)
 sys.exit(0)'''
 
 
-PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
+if clargs.debug:
+    PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
 print("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
 
 fout   = clargs.fout
 if fout != "":
     fout  = os.path.join( clargs.wd, clargs.fout  )
-    
-print(clargs)
+
+if clargs.debug:
+    print(clargs)
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.rd)
 
@@ -321,8 +328,17 @@ elif mode == "llhmodel":
             llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
             print("splitT = ", sT, "\tlikelihood = ", llh_tmp)
             res.append( [clargs.mu0, llh_tmp, sT, 0.0] )
-    print(res)
+    if clargs.debug:
+        print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
+    confInt = [val for val in res if val[1] >= sol[1]-1.92]
+    if clargs.debug:
+        print(confInt)
+    confInt = sorted( res, key=lambda val: val[2])
+    confInt = [confInt[0], confInt[-1]]
+    if clargs.debug:
+        print(confInt)
+    
 else:
     PrintErr("Unknown mode")
     sys.exit(0)
@@ -333,7 +349,11 @@ splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
 print("N_0 = ")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.smooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
+
+print("Confidence interval:\t", (sum(inputData[0][0:int(confInt[0][2])])+inputData[0][int(confInt[0][2])]*(confInt[0][2]%1))*inputData[2], "\t", (sum(inputData[0][0:int(confInt[1][2])])+inputData[0][int(confInt[1][2])]*(confInt[1][2]%1))*inputData[2])
+print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
+
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()
