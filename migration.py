@@ -43,9 +43,9 @@ parser.add_argument('-ms', '--migstart', nargs=1, type=int, default=0,
 parser.add_argument('-me', '--migend', nargs=1, type=int, default=0,
                     help='time when migration ends (migration is zero in the distant past)')
 
-parser.add_argument('-sm', nargs=1, type=int, default=0,
+parser.add_argument('-sm', nargs=1, type=float, default=0,
                     help='minimal split time')
-parser.add_argument('-sM', nargs=1, type=int, default=0,
+parser.add_argument('-sM', nargs=1, type=float, default=0,
                     help='maximal split time')
 parser.add_argument('-fil', nargs=1, type=int, default=0, #fil for first interval length in case of optimisation of first lambdas
                     help='first interval length')
@@ -322,10 +322,12 @@ if mode == "optimize":
     print(sol)
 elif mode == "llhmodel":
     res = []
-    for splitT in range( clargs.sm, clargs.sM ):
+    for splitT in range( math.floor(clargs.sm), math.ceiling(clargs.sM) ):
         discr = clargs.discr
         for ds in range(discr):
             sT = splitT + ds/discr
+            if sT < clargs.sm or sT > clargs.sM:
+                next
             Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
             llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
             print("splitT = ", sT, "\tlikelihood = ", llh_tmp)
