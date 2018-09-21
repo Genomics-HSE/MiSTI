@@ -7,3 +7,10 @@ futils*
 run_sim_command.sh
 __pycache*
 paper_sim*
+african*
+*etud*
+ms_*
+*old*
+*temp*
+*delme*
+*.nb
