@@ -335,7 +335,7 @@ elif mode == "llhmodel":
     confInt = [deepcopy(val) for val in res if val[1] >= sol[1]-1.92]
     if clargs.debug:
         print(confInt)
-    confInt = sorted( confInt, key=lambda val: val[2])
+    confInt = sorted( res, key=lambda val: val[2])
     confInt = [confInt[0], confInt[-1]]
     if clargs.debug:
         print(confInt)
@@ -349,10 +349,7 @@ else:
 splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
-print("N_0 = ")
-
 print("Confidence interval:\t", (sum(inputData[0][0:int(confInt[0][2])])+inputData[0][int(confInt[0][2])]*(confInt[0][2]%1))*inputData[2], "\t", (sum(inputData[0][0:int(confInt[1][2])])+inputData[0][int(confInt[1][2])]*(confInt[1][2]%1))*inputData[2])
-print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
 
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
@@ -360,7 +357,8 @@ migrationIO.OutputMigration(fout, sol[0], Migration)
 #MigrationInference.Report()
 #t2 = time.clock()
 t2 = time.time()
-PrintErr("Total time ", t2-t1)
+if clargs.debug:
+    PrintErr("Total time ", t2-t1)
 print("Total time ", t2-t1)
 sys.exit(0)
 
