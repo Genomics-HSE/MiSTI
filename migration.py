@@ -326,7 +326,7 @@ elif mode == "llhmodel":
         discr = clargs.discr
         for ds in range(discr):
             sT = splitT + ds/discr
-            if sT < clargs.sm or sT > clargs.sM:
+            if sT < clargs.sm or sT >= clargs.sM:
                 continue
             Migration = MigrationInference(inputData[0][:], inputData[1][:], dataJAFS, clargs.mu0, sT, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
             llh_tmp = Migration.JAFSLikelyhood( clargs.mu0 )
