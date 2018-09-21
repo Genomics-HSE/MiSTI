@@ -1,0 +1,9 @@
+data*
+foreign*
+*.txt
+futils*
+*test*
+*plot*
+run_sim_command.sh
+__pycache*
+paper_sim*
