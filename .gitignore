@@ -7,3 +7,13 @@ futils*
 run_sim_command.sh
 __pycache*
 paper_sim*
+african*
+*etud*
+ms_*
+*old*
+*temp*
+*delme*
+*.nb
+.DS_Store
+.Rapp.history
+.ipynb_checkpoints/TwoPop_to_HMM-checkpoint.ipynb
