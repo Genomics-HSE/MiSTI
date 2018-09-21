@@ -233,7 +233,8 @@ print( " ".join(sys.argv) )
 t1 = time.time()
 
 startTime = time.strftime("Job run at %H:%M:%S on %d %b %Y")
-PrintErr(startTime)
+if clargs.debug:
+    PrintErr(startTime)
 print(startTime)
 
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
@@ -346,11 +347,15 @@ else:
 #sol[0] = [0.34646987, 0.32497276]
 #sol[2] = 110
 
+
+print("\n\nParameter estimates:")
+
 splitT = sol[2]
-print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmu = ", [sol[0][0]/migrUnit,sol[0][1]/migrUnit], "\tllh = ", sol[1])
-print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
+print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates = ", sol[0][0]/migrUnit, ", ", sol[0][1]/migrUnit, "\tllh = ", sol[1])
+#print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
 print("Confidence interval:\t", (sum(inputData[0][0:int(confInt[0][2])])+inputData[0][int(confInt[0][2])]*(confInt[0][2]%1))*inputData[2], "\t", (sum(inputData[0][0:int(confInt[1][2])])+inputData[0][int(confInt[1][2])]*(confInt[1][2]%1))*inputData[2])
 
+print("\n\n")
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
