@@ -140,7 +140,7 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
     return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
 
 def OutputMigration(fout, mu, Migration):
-    llh = Migration.JAFSLikelyhood( mu 
+    llh = Migration.JAFSLikelyhood( mu )
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#Migration ver 0.3\n"
