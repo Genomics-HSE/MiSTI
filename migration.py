@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 
-#Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+#    Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
+#
+#    This file is part of MiSTI.
+#
+#    MiSTI is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    MiSTI is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with MiSTI.  If not, see <https://www.gnu.org/licenses/>.
 
 import sys
 import os
@@ -131,19 +146,9 @@ def Optimize(times, lambdas, dataJAFS):
     PrintErr("Number of processes: ", clargs.pr)
     smin = clargs.sm
     smax = clargs.sM
-    '''smin = min( clargs.sm, len(times) )
-    smax = min( clargs.sM, len(times)+1 )
-    smax = max( smax, smin )
-    print("smax = ", smax, "\tsmin = ", smin)
-    if clargs.sM == 0:
-        smax = len(times)
-    if smax == smin:
-        print("-sm should be strictly smaller than -sM.")
-        sys.exit(0)'''
     PrintErr("Optimizing for split time range from ", smin, " to ", smax)
     PrintErr("Optimization tolerance ", clargs.tol)
     splitTimes = list(range( smin, smax ))
-#    splitTimes = list( range(100, 102) )
     res = []
     if clargs.oml:
         mu0 = clargs.mu0+[1.0, 1.0]
@@ -176,9 +181,6 @@ def Optimize(times, lambdas, dataJAFS):
             res = p.map(RunSolve, splitVals)
             p.close()
             p.join()
-        
-#    p.close()
-#    res = sorted( res, key=lambda val: val[2])
     print(res)
     ct = 0
     for el in res:
@@ -229,7 +231,6 @@ def RunSolveLa(args):
     return( muSol )
 
 print( " ".join(sys.argv) )
-#t1 = time.clock()
 t1 = time.time()
 
 startTime = time.strftime("Job run at %H:%M:%S on %d %b %Y")
@@ -240,19 +241,6 @@ print(startTime)
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
-
-'''cl = CorrectLambda()
-mu1=[1.0,1.0]
-inter1 = [0, 1, 1, mu1[0], mu1[1]]
-inter2 = [0.02, 0.05, 0.05, mu1[0], mu1[1]]
-inter3 = [0.075, 0.5, 0.5, mu1[0], mu1[1]]
-inter4 = [2.5, 1, 1, mu1[0], mu1[1]]
-splitT = 2.5
-intervals = [inter1, inter2, inter3, inter4]
-coalRates = cl.CoalRates(intervals, splitT, 100)
-print(coalRates)
-sys.exit(0)'''
-
 
 if clargs.debug:
     PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
@@ -267,40 +255,7 @@ if clargs.debug:
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.rd)
 
-if 0:
-    timesMS = [0, 0.0275, 0.0475, 0.175, 0.75, 3.75, 10]
-    epsMS = [[13.0, 0.25], [0.5, 0.4], [0.5, 0.5], [3, 3], [2, 2], [3, 3], [6, 6]]
-    inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
-    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
-
-if 0:
-    timesMS = [0, 0.0075, 0.0225, 0.125, 0.5, 1.875]
-    epsMS = [[0.2, 0.2], [0.2, 0.45], [0.5, 0.5], [0.3, 0.3], [0.5, 0.5], [1.3, 1.3]]
-    discr = 50
-    timesTmp = [0]
-    epsTmp = []
-    for i in range(len(timesMS)-1):
-        maxTime = timesTmp[-1]
-        deltaT = timesMS[i+1] - timesMS[i]
-        timesTmp += [maxTime + (j+1)*deltaT/discr for j in range(discr)]
-        epsTmp += [epsMS[i] for j in range(discr)]
-    epsTmp.append(epsMS[-1])
-    timesMS = timesTmp
-    epsMS = epsTmp
-    #for u,v in zip(timesMS, epsMS):
-    #    print(u, "\t", v)
-    inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
-    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
-    inputData[2] = 20000
-    inputData[3] = 1
-
-#-n 1 0.2 -en 0.0075 1 0.20 -en 0.0225 1 0.5 -en 0.125 1 0.3 -en 0.5 1 0.5 -en 1.875 1 1.3
-#-n 2 0.2 -en 0.0075 2 0.45 -en 0.0225 2 0.5 -en 0.125 2 0.3 -en 0.5 2 0.5 -en 1.875 2 1.3
-#-ej 0.0475 2 1
-
-#print(inputData)
 migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
-#migrUnit = (inputData[1][0][0]+inputData[1][1][0])/4.0
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
 times = inputData[0]
@@ -346,35 +301,21 @@ elif mode == "llhmodel":
 else:
     PrintErr("Unknown mode")
     sys.exit(0)
-#sol[0] = [0.34646987, 0.32497276]
-#sol[2] = 110
-
 
 print("\n\nParameter estimates:")
 
 splitT = sol[2]
 print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates = ", sol[0][0]/migrUnit, ", ", sol[0][1]/migrUnit, "\tllh = ", sol[1])
 #print("\tmigStart = ", clargs.migstart, "\tmigration start time = ", sum(inputData[0][0:clargs.migstart])*inputData[2])
-print("Confidence interval:\t", (sum(inputData[0][0:int(confInt[0][2])])+inputData[0][int(confInt[0][2])]*(confInt[0][2]%1))*inputData[2], "\t", (sum(inputData[0][0:int(confInt[1][2])])+inputData[0][int(confInt[1][2])]*(confInt[1][2]%1))*inputData[2])
+print("Confidence interval: ", confInt[0][2] , " ", confInt[1][2], "\t", (sum(inputData[0][0:int(confInt[0][2])])+inputData[0][int(confInt[0][2])]*(confInt[0][2]%1))*inputData[2], "\t", (sum(inputData[0][0:int(confInt[1][2])])+inputData[0][int(confInt[1][2])]*(confInt[1][2]%1))*inputData[2])
 
 print("\n")
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, sol[0], sol[2], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = (not clargs.nosmooth), unfolded = clargs.uf, trueEPS = clargs.trueEPS, migStart = clargs.migstart, migEnd = clargs.migend)
 migrationIO.OutputMigration(fout, sol[0], Migration)
 
 #MigrationInference.Report()
-#t2 = time.clock()
 t2 = time.time()
 if clargs.debug:
     PrintErr("Total time ", t2-t1)
 print("Total time ", t2-t1)
-sys.exit(0)
-
-inputData = migrationIO.ReadMS("4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.05 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0")
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, [1, 1], inputData[4], thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = False, unfolded = clargs.uf, correct = False, migStart = clargs.migstart, migEnd = clargs.migend)
-print(Migration.JAFSLikelyhood( [1.0, 1.0] ) )
-print(Migration.JAFSLikelyhood( [1.0036919845350205, 1.0035904582181976] ) )
-sys.exit(0)
-
-#DIR=
-#./migration.py $DIR/ms2g1.psmc $DIR/ms2g2.psmc $DIR/sim.jafs >> $DIR/output.txt
-#./migration.py ms2g1.psmc ms2g2.psmc sim.jafs -wd $DIR >> $DIR/output1.txt
+sys.exit(1)

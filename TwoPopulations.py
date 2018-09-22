@@ -10,9 +10,7 @@ from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 
-#lineage = collections.namedtuple('lineage', ['d0', 'd1', 'pop' ])#d0: number of descendents in population 0; d1: number of descendents in population 1; pop: current population of lineage
-
-class lineage:
+class lineage:#d0: number of descendents in population 0; d1: number of descendents in population 1; pop: current population of lineage
     def __init__(self, d0, d1, pop):
         self.d0 = d0
         self.d1 = d1

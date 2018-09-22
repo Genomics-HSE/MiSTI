@@ -18,7 +18,7 @@ class MigData:
         self.lambda1 = None
         self.lambda2 = None
         self.thrh = None
-        self.mu = None
+        self.mu = None#migration rate
         if "splitT" in kwargs:
             self.splitT = kwargs["splitT"]
         if "migStart" in kwargs:
@@ -37,10 +37,10 @@ class MigData:
             self.mu = kwargs["mu"]
 
 def SetScaling():
-    mu = 1.1e-8#6.83e-8
-    mu = 1.25e-8
+    #mu = 1.1e-8
+    mutRate = 1.25e-8
     binsize = 100
-    scaling = [mu, binsize]
+    scaling = [mutRate, binsize]
     return(scaling)
 
 def PrintErr(*args, sep="", endl="\n"):
@@ -122,42 +122,25 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
     scale = 1
     scale1 = 1
     scaling = SetScaling()
-    mu = scaling[0]
+    mutRate = scaling[0]
     binsize = scaling[1]
-    scale = d1[3]/(2.0*binsize*mu)
+    scale = d1[3]/(2.0*binsize*mutRate)
     scale1 = scale/2.0/1.0e4
     if doPlot:
-#    print("Here ready to plot")
         x = [v*scale for v in Tk]
         y1 = [scale1/v for v in Lk1]
         y2 = [scale1/v for v in Lk2]
-#        plt.semilogx(x, y1, x, y2)
         AddToPlot(x, y1)
         AddToPlot(x, y2)
     L1tmp = [Lk1[i]]
     L2tmp = [Lk1[i]]
     Ttmp = [Tk[0]]
-    '''    if True:
-        for i in range( 1, len(Lk1) ):
-            if Lk1[i] != Lk1[i-1] or Lk2[i] != Lk2[i-1]:
-                L1tmp.append(Lk1[i])
-                L2tmp.append(Lk1[i])
-                Ttmp.append()'''
-                
-#        plt.savefig("temp2.png")
-#    print("Here we are")
-#    sys.exit(0)
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
     return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
-    
-#    print(len(Tk))
-#    print(len(Lk1))
-#    for i in range(len(Tk)):
-#        print(1/Lk1[i], "\t", Tk[i])
 
 def OutputMigration(fout, mu, Migration):
-    llh = Migration.JAFSLikelyhood( mu )
+    llh = Migration.JAFSLikelyhood( mu 
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#Migration ver 0.3\n"
@@ -261,9 +244,9 @@ def ReadMS(argument_string):
     scale1 = 1
     theta = 1#FIXME
     scaling = SetScaling()
-    mu = scaling[0]
+    mutRate = scaling[0]
     binsize = scaling[1]
-    scale = theta/(2.0*binsize*mu)
+    scale = theta/(2.0*binsize*mutRate)
     scale1 = scale/2.0/1.0e4
     Tk, Lk1, Lk2 = [], [], []
     for el in sorted(genMS[0], key=lambda val: val[0]):
@@ -297,3 +280,32 @@ def PrintJAFSFile(jaf):
     jfn = ["0100", "1100", "0001", "0101", "1101", "0011", "0111"]
     for v in zip(jaf, jfn):
         print(v[1], "\t", v[0])
+
+
+
+
+#Example of using ms parameters to run tests for perfectly known data
+if 0:
+    timesMS = [0, 0.0275, 0.0475, 0.175, 0.75, 3.75, 10]
+    epsMS = [[13.0, 0.25], [0.5, 0.4], [0.5, 0.5], [3, 3], [2, 2], [3, 3], [6, 6]]
+    inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
+    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
+
+if 0:
+    timesMS = [0, 0.0075, 0.0225, 0.125, 0.5, 1.875]
+    epsMS = [[0.2, 0.2], [0.2, 0.45], [0.5, 0.5], [0.3, 0.3], [0.5, 0.5], [1.3, 1.3]]
+    discr = 50
+    timesTmp = [0]
+    epsTmp = []
+    for i in range(len(timesMS)-1):
+        maxTime = timesTmp[-1]
+        deltaT = timesMS[i+1] - timesMS[i]
+        timesTmp += [maxTime + (j+1)*deltaT/discr for j in range(discr)]
+        epsTmp += [epsMS[i] for j in range(discr)]
+    epsTmp.append(epsMS[-1])
+    timesMS = timesTmp
+    epsMS = epsTmp
+    inputData[0] = [2*(u-v) for u, v in zip(timesMS[1:], timesMS[:-1])]
+    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in epsMS]
+    inputData[2] = 20000
+    inputData[3] = 1
