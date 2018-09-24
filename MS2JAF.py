@@ -9,6 +9,19 @@ if len(sys.argv) < 2:
     print("./MS2JAF.py <INPUT FILE>")
     exit(0)
 
+h0 = 0
+h1 = 1
+h2 = 2
+h3 = 3
+if len(sys.argv) == 6:
+    h0 = int(sys.argv[2])
+    h1 = int(sys.argv[3])
+    h2 = int(sys.argv[4])
+    h3 = int(sys.argv[5])
+    if h0 + h1 + h2 + h3 != 6 or min(h0, h1, h2, h3) < 0:
+        print("Haplotype numbers should be a permutation of 0, 1, 2 and 3.")
+        sys.exit(0)
+
 fn = sys.argv[1]
 jaf = [0 for _ in range(7)]
 
@@ -29,8 +42,8 @@ with open(fn) as f:
             line = line.split("\t")
             fr = list(line[1][0:4])
             
-            s0 = int(fr[0]) + int(fr[1])
-            s1 = int(fr[2]) + int(fr[3])
+            s0 = int(fr[h0]) + int(fr[h1])
+            s1 = int(fr[h2]) + int(fr[h3])
             
             if s0 == 0:
                 if s1 == 1:
