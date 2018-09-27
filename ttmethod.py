@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+#tt-method is described in the paper "Southern African ancient genomes estimate modern human divergence to 350,000 to 260,000 years ago" by Schlebusch et al, Genetics 2017
+#implemented by Vladimir Shchur vlshchur@gmail.com
+#input file format is consistent with joint allele frequency spectrum format used in MiSTI (https://github.com/vlshchur/MiSTI)
+#haplotype size is specified by user
+
 import sys
 import os
 import argparse

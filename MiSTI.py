@@ -23,7 +23,6 @@ import collections
 import argparse
 import numpy
 import math
-from copy import deepcopy
 from math import (exp,log)
 import time
 import multiprocessing
@@ -290,11 +289,11 @@ elif mode == "llhmodel":
     if clargs.debug:
         print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
-    confInt = [deepcopy(val) for val in res if val[1] >= sol[1]-1.92]
-    if clargs.debug:
-        print(confInt)
-    confInt = sorted( confInt, key=lambda val: val[2])
-    confInt = [confInt[0], confInt[-1]]
+    conInt = [None, None]
+    confIntTmp = [val for val in res if val[1] <= sol[1]-1.92 and val[2] < sol[2]]
+    confInt[0] = sorted( confIntTmp, key=lambda val: val[2])[-1]
+    confIntTmp = [val for val in res if val[1] <= sol[1]-1.92 and val[2] > sol[2]]
+    confInt[1] = sorted( confIntTmp, key=lambda val: val[2])[0]
     if clargs.debug:
         print(confInt)
     
