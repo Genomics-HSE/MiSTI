@@ -291,9 +291,13 @@ elif mode == "llhmodel":
     sol = sorted( res, key=lambda val: val[1])[-1]
     conInt = [None, None]
     confIntTmp = [val for val in res if val[1] <= sol[1]-1.92 and val[2] < sol[2]]
+    if len(confIntTmp) == 0:
+        confInt[0] = sol
     confInt[0] = sorted( confIntTmp, key=lambda val: val[2])[-1]
     confIntTmp = [val for val in res if val[1] <= sol[1]-1.92 and val[2] > sol[2]]
     confInt[1] = sorted( confIntTmp, key=lambda val: val[2])[0]
+    if len(confIntTmp) == 0:
+        confInt[1] = sol
     if clargs.debug:
         print(confInt)
     
