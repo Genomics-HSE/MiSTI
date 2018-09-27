@@ -36,6 +36,8 @@ class MigrationInference:
     COUNT_LLH = 0
     CORRECTION_CALLED = 0
     CORRECTION_FAILED = 0
+    LLH_CONST = 0
+    
     
     def __init__(self, times, lambdas, dataJAFS, mu, splitT, **kwargs):#thrh for theta and rho
         self.debug = False
@@ -115,24 +117,24 @@ class MigrationInference:
         self.snps = dataJAFS[0]
         self.dataJAFS = [el for el in dataJAFS[1:]]
         
-        self.llhConst = 0
-        if self.unfolded:
-            for j in range(1, self.snps+1):
-                self.llhConst += log(j)
-            for i in range(7):
-                for j in range(1, self.dataJAFS[i]+1):
-                    self.llhConst -= log(j)
-        else:
-            for j in range(1, self.snps+1):
-                self.llhConst += log(j)
-            for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
-                self.llhConst -= log(j)
-            for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
-                self.llhConst -= log(j)
-            for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
-                self.llhConst -= log(j)
-            for j in range(1, self.dataJAFS[3]+1):
-                self.llhConst -= log(j)
+        if LLH_CONST == 0:
+            if self.unfolded:
+                for j in range(1, self.snps+1):
+                    LLH_CONST += log(j)
+                for i in range(7):
+                    for j in range(1, self.dataJAFS[i]+1):
+                        LLH_CONST -= log(j)
+            else:
+                for j in range(1, self.snps+1):
+                    LLH_CONST += log(j)
+                for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
+                    LLH_CONST -= log(j)
+                for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
+                    LLH_CONST -= log(j)
+                for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
+                    LLH_CONST -= log(j)
+                for j in range(1, self.dataJAFS[3]+1):
+                    LLH_CONST -= log(j)
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -409,7 +411,7 @@ class MigrationInference:
             print("JAFS = ", self.JAFS)
 #        return 0
 #        return self.Likelihood()
-        llh = self.llhConst
+        llh = LLH_CONST
         if not self.unfolded:
             llh += (self.dataJAFS[0]+self.dataJAFS[6])*log(self.JAFS[0]+self.JAFS[6])
             llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(self.JAFS[1]+self.JAFS[5])
