@@ -289,7 +289,7 @@ elif mode == "llhmodel":
     if clargs.debug:
         print(res)
     sol = sorted( res, key=lambda val: val[1])[-1]
-    conInt = [None, None]
+    confInt = [None, None]
     confIntTmp = [val for val in res if val[1] <= sol[1]-1.92 and val[2] < sol[2]]
     if len(confIntTmp) == 0:
         confInt[0] = sol
