@@ -129,6 +129,15 @@ if isinstance(clargs.migend, list):
 if isinstance(clargs.debug, list):
     clargs.debug = clargs.debug[0]
 
+if clargs.debug:
+    try:
+        from guppy import hpy
+        loaded_guppy = True
+        h = hpy()
+    except ImportError:
+        loaded_guppy = False
+        PrintErr("Cannot import hpy from guppy module. Profiling is disabled.")
+
 mode = "optimize"
 if clargs.llh:
     mode = "llhmodel"
@@ -244,6 +253,7 @@ fjafs  = os.path.join( clargs.wd, clargs.fjafs  )
 if clargs.debug:
     PrintErr("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
 print("Reading from files: ", fpsmc1, ", ", fpsmc2, ", ", fjafs)
+print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc file are supplied in the same order as populations appear in the joint allele frequency spectrum.")
 
 fout   = clargs.fout
 if fout != "":
@@ -323,4 +333,7 @@ t2 = time.time()
 if clargs.debug:
     PrintErr("Total time ", t2-t1)
 print("Total time ", t2-t1)
+if clargs.debug:
+    if loaded_guppy:
+        print(h.heap())
 sys.exit(1)

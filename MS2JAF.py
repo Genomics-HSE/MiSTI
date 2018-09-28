@@ -22,8 +22,14 @@ import sys
 from migrationIO import PrintJAFSFile
 
 if len(sys.argv) < 2:
-    print("./MS2JAF.py <INPUT FILE>")
+    print("./MS2JAF.py <INPUT FILE> [pop1] [pop2]")
     exit(0)
+
+pop1, pop2 = False, False
+
+if len(sys.argv) == 4:
+    pop1 = sys.argv[2]
+    pop2 = sys.argv[3]
 
 h0 = 0
 h1 = 1
@@ -79,4 +85,4 @@ with open(fn) as f:
                 elif s1 == 1:
                     jaf[4] += 1
 
-PrintJAFSFile(jaf)
+PrintJAFSFile(jaf, pop1, pop2)

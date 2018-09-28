@@ -159,7 +159,7 @@ def OutputMigration(fout, mu, Migration):
     llh = Migration.JAFSLikelyhood( mu )
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
-    outData = "#Migration ver 0.3\n"
+    outData = "#MiSTI ver 0.3\n"
     outData += "ST\t" + str(Migration.splitT) + "\n"#split times
     outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
     outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
@@ -225,13 +225,37 @@ def ReadJAFS(fn):
     jafs = []
     with open(fn) as f:
         line = next(f).rstrip()
-        line = line.split(" ")
-        print("Format version: ", line[2])
-        line = next(f).rstrip()
+        while line[0] == "#":
+            if line[1:10] == "MiSTI_JAF" or line[1:14] == "Migration_JAF":
+                line = line.split(" ")
+                if len(line) < 3:
+                    PrintErr("Corrupted JAF file header.")
+                    sys.exit(0)
+                print("JAFS format version:", line[2])
+            elif line[1:5] == "pop1":
+                line = line.split(" ")
+                if len(line) != 2:
+                    PrintErr("Corrupted JAF file header.")
+                    sys.exit(0)
+                print("pop1 is", line[1])
+            elif line[1:5] == "pop2":
+                line = line.split(" ")
+                if len(line) != 2:
+                    PrintErr("Corrupted JAF file header.")
+                    sys.exit(0)
+                print("pop2 is", line[1])
+            line = next(f).rstrip()
+
         line = line.split("\t")
+        if len(line) != 2:
+            PrintErr("Unexpected line. Expected an entry for JAFS with two TAB-separated columns.")
+            sys.exit(0)
         jafs.append( int(line[1]) )
         for line in f:
             line = line.split("\t")
+            if len(line) != 2:
+                PrintErr("Unexpected line. Expected an entry for JAFS with two TAB-separated columns.")
+                sys.exit(0)
             jafs.append( int(line[1]) )
     if len(jafs) != 8:
         print("Unexpected number of lines in the JAFS file.")
@@ -288,8 +312,14 @@ def SavePlot(fout, id=1):
     plt.figure(id)
     plt.savefig(fout)
     
-def PrintJAFSFile(jaf):
-    print("#Migration_JAFS version 0.1")
+def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
+    print("#MiSTI_JAFS version 0.2")
+    if pop1:
+        pop1 = pop1.strip("\n\r")
+        print("#pop1", pop1)
+    if pop2:
+        pop2 = pop2.strip("\n\r")
+        print("#pop2", pop2)
     norm = sum(jaf)
     print("total\t", norm)
     #jaf = [v/norm for v in jaf]
