@@ -69,6 +69,8 @@ parser.add_argument('--discr', '-d', nargs=1, type=int, default=1,
                     help='discritesation of intervals (default is 1 for no discritisation).')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
+parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
+                    help='File name with units to be used to rescale times and EPS.')
 parser.add_argument('-oml', action='store_true',
                     help='Optimisation of migration rates and lambdas')
 parser.add_argument('-ol', action='store_true',
@@ -82,7 +84,8 @@ parser.add_argument('--nosmooth', action='store_false',
                     help='Don\'t smooth (make constant on the psmc time intervals)')
 parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
-                    
+
+
 parser.add_argument('--debug', action='store_true',
                     help='Debug mode, more input enabled')
 
@@ -125,6 +128,8 @@ if isinstance(clargs.migstart, list):
     clargs.migstart = clargs.migstart[0]
 if isinstance(clargs.migend, list):
     clargs.migend = clargs.migend[0]
+if isinstance(clargs.funits, list):
+    clargs.funits = clargs.funits[0]
 
 if isinstance(clargs.debug, list):
     clargs.debug = clargs.debug[0]
@@ -148,6 +153,9 @@ clargs.settings = {
     "unfolded": clargs.uf,
     "sampleDate": clargs.sdate
 }
+
+units = migrationIO.Units()
+units.SetUnitsFromFile(clargs.funits)
 
 def Optimize(times, lambdas, dataJAFS):
     global clargs

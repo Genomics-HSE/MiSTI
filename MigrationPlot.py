@@ -30,7 +30,7 @@ parser.add_argument('-o', nargs=1, default='plot.pdf',
                     help='output filename')
                     
 parser.add_argument('--sdate', nargs=1, type=float, default=0,
-                    help='dating of the second sample (for ancient genome)') 
+                    help='dating of the second sample (for ancient genome, in years - units should be set properly)') 
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 

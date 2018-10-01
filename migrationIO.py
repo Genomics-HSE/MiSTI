@@ -79,7 +79,7 @@ class Units:#This is a class of static variables
         try:
             with open(fn) as f:
                 for line in f:
-                    line = line.split("\t")
+                    line = line.split("=")
                     if line[0] == "mutRate" and len(line) == 2:
                         try:#
                             Units.mutRate = float(line[1])
