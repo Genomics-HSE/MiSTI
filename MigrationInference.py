@@ -71,11 +71,18 @@ class MigrationInference:
             if len(kwargs["thrh"]) == 2:
                 self.thrh = kwargs["thrh"]
         
+        self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
+        if "sampleDate" in kwargs:
+            self.sampleDate = kwargs["sampleDate"]#time in generation units
+        
+        if splitT < self.sampleDate:
+            self.PrintError("__init__", "cannot initialise class with split time being more recent than sample date.")
+        
         #Model parameters
         splitFraction = splitT%1
         splitT = int(splitT)
         if splitT - 1 > len(times):
-            self.PrintErr("__init__", "Invalid value for split time, cannot create Migration class instance.")
+            self.PrintError("__init__", "Invalid value for split time, cannot create Migration class instance.")
         if splitFraction != 0.0:
             t1 = splitFraction*times[splitT]
             t2 = times[splitT] - t1
@@ -89,6 +96,9 @@ class MigrationInference:
             if kwargs["migStart"] < splitT:
                 self.migStart = kwargs["migStart"]
         
+        if self.sampleDate > self.migStart:
+            self.migStart = self.sampleDate
+        
         self.migEnd = splitT
         if "migEnd" in kwargs:
             if kwargs["migEnd"] > 0:
@@ -100,9 +110,7 @@ class MigrationInference:
         self.mu = list(lambdas)#initialize migration with the same size as lambdas
         self.SetModel(mu)#set values for mu
 #        self.mu = mu
-        self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
-        if "sampleDate" in kwargs:
-            self.sampleDate = kwargs["sampleDate"]
+            
         
         #PSMC parameters
         self.lh = list(lambdas)#pairs of PSMC lambda_0 and lambda_1
@@ -326,19 +334,14 @@ class MigrationInference:
         self.P0[2] = 1.0
         pnc = 1#used from present time to ancient genome time
         for interval in range(self.numT):
-            if interval < self.sampleDate:
-                pnc_i = exp(-self.lc[interval][0]*self.times[interval])
-                integral_pnc = pnc*(1-pnc_i)/self.lc[interval][0]
-                self.JAFS[0] += 2*integral_pnc
-                self.JAFS[1] += self.times[interval] - integral_pnc
-                pnc = pnc*pnc_i
-                continue
-            elif interval < self.splitT:
+            if interval < self.splitT:
                 if interval == self.numT - 1 and self.mu[interval][0] + self.mu[interval][1] == 0.0:
                     self.PrintError("JAFSpectrum", "Infinite coalescent time. No migration.")
                 model = TwoPopulations(self.lc[interval][0], self.lc[interval][1], self.mu[interval][0], self.mu[interval][1])
             else:
                 model = OnePopulation(self.lc[interval][0])
+            if interval == self.sampleDate:
+                self.P0 = model.AncientSampleP0(self.P0)
             if interval == self.splitT:
                 self.CollapsePops()
             self.M = model.SetMatrix()
@@ -349,6 +352,9 @@ class MigrationInference:
                 self.integralP = model.UpdateIntegral(self.integralP, self.times[interval])
             for i in range( model.StateNum() ):
                 jaf = model.StateToJAF(i)
+                if interval < self.sampleDate:
+                    for i in range(2, len(jaf)):
+                        jaf[i] = 0
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
     
     def PrintMatrix(self):

@@ -28,7 +28,9 @@ parser.add_argument('-wd', nargs=1, default='',
                     help='working directory (path to data files)')
 parser.add_argument('-o', nargs=1, default='plot.pdf',
                     help='output filename')
-
+                    
+parser.add_argument('--sdate', nargs=1, type=float, default=0,
+                    help='dating of the second sample (for ancient genome)') 
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 
@@ -39,8 +41,9 @@ if isinstance(clargs.o, list):
     clargs.o = clargs.o[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
+if isinstance(clargs.sdate, list):
+    clargs.sdate = clargs.sdate[0]
 
-RD = clargs.rd
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
@@ -50,7 +53,7 @@ print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
-data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, RD, True)
+data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True)
 migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 

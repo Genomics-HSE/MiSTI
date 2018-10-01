@@ -222,6 +222,24 @@ class TwoPopulations:
             P0 = numpy.delete(P0, self.stationary)
         return( P0 )
     
+    def AncientSampleP0(self, P0):
+        newP0 = [0.0 for v in P0]
+        for i in range(self.Msize):
+            st = self.MapIndToState(i)
+            check = 0
+            for state in st:
+                if state.d0 == 1 and state.d1 == 0 and state.pop == 0:
+                    check += 1
+            if check == 2:
+                newP0[2] += P0[i]
+            check = 0
+            for state in st:
+                if state.d0 == 2 and state.d1 == 0 and state.pop == 0:
+                    check += 1
+            if check == 1:
+                newP0[11] += P0[i]
+        return(newP0)
+    
     def UpdateInitialConditions( self , P0):
         if len(P0) == self.Msize:
             return( P0 )

@@ -35,6 +35,7 @@ class MigData:
         self.lambda2 = None
         self.thrh = None
         self.mu = None#migration rate
+        self.sampleDate = None
         if "splitT" in kwargs:
             self.splitT = kwargs["splitT"]
         if "migStart" in kwargs:
@@ -51,9 +52,65 @@ class MigData:
             self.thrh = kwargs["thrh"]
         if "mu" in kwargs:
             self.mu = kwargs["mu"]
+        if "sampleDate" in kwargs:
+            self.sampleDate = kwargs["sampleDate"]
+
+class Units:#This is a class of static variables
+    mutRate = 1.25e-8
+    binsize = 100
+    N0 = 10000
+    genTime = 1
+    firstCall = True
+    def __init__(self, **kwargs):
+        if "mutRate" in kwargs:
+            Units.muRate = kwargs["mutRate"]
+        if "binsize" in kwargs:
+            Units.binsize = kwargs["binsize"]
+        if "N0" in kwargs:
+            Units.N0 = kwargs["N0"]
+        if "inpFile" in kwargs:
+            Units.SetUnitsFromFile(kwargs["inpFile"])
+        if Units.firstCall or len(kwargs) > 0:
+            print("Units")
+            print("mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
+            Units.firstCall = False
+
+    def SetUnitsFromFile(self, fn):
+        try:
+            with open(fn) as f:
+                for line in f:
+                    line = line.split("\t")
+                    if line[0] == "mutRate" and len(line) == 2:
+                        try:#
+                            Units.mutRate = float(line[1])
+                        except:
+                            print("Cannot read mutation rate entry from file, using default or previous values")
+                            pass
+                    elif line[0] == "binsize" and len(line) == 2:
+                        try:
+                            Units.binsize = float(line[1])
+                        except:
+                            print("Cannot read bin size entry from file, using default or previous values")
+                            pass
+                    elif line[0] == "N0" and len(line) == 2:
+                        try:
+                            Units.N0 = float(line[1])
+                        except:
+                            print("Cannot read N0 entry from file, using default or previous values")
+                            pass
+                    elif line[0] == "genTime" and len(line) == 2:
+                        try:
+                            Units.genTime = float(line[1])
+                        except:
+                            print("Cannot read generation time entry from file, using default values")
+                            pass
+        except:
+            print("Units input file not found, using default values.")
 
 def SetScaling():
     #mu = 1.1e-8
+    print("\t\t\t\tPLEASE REMOVE ME!\n\t\t\tSINCERELY, SETSCALING()")
+    u = Units()
     mutRate = 1.25e-8
     binsize = 100
     scaling = [mutRate, binsize]
@@ -107,18 +164,36 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th, rh]
     return( data )
 
-def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
+def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
-    if d1[2] != d2[2]:
-        print("Different RDs for input files 1 and 2.")
-        sys.exit(0)
+#    if d1[2] != d2[2]:
+#        print("Different RDs for input files 1 and 2.")
+#        sys.exit(0)
+    u = Units()
+    scaleTime = d1[3]/(2.0*u.binsize*u.mutRate)*u.genTime
+    scaleEPS = d1[3]/(2.0*u.binsize*u.mutRate)/2.0/u.N0
+    
     d2[0] = [v*d2[3]/d1[3] for v in d2[0]]#rescale   time       by th1/th2
     d2[1] = [v*d2[3]/d1[3] for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
+    
+    sdResc = sampleDate/scaleTime
+    if sdResc > 0:
+        d2[0] = [v + sdResc for v in d2[0]]
+        d2[0].insert(0, 0.0)
+        d2[1].insert(0, 1.0)
+    
     Tk = []
     Lk1 = []
     Lk2 = []
     Tk = sorted( d1[0] + d2[0][1:] )
+    try:
+        sampleDateDiscr = Tk.index(sdResc)
+    except:
+        print(Tk)
+        print(sdResc)
+        PrintErr("Unexpected error in ReadPSMC(). Get in touch with the author.")
+        sys.exit(0)
     
     j = 0
     for i in range( len(d1[0]) - 1 ):
@@ -135,32 +210,27 @@ def ReadPSMC(fn1, fn2, RD = -1, doPlot = False):
             j += 1
     while len(Lk2) < len(Tk):
         Lk2.append(1.0/d2[1][-1])
-    scale = 1
-    scale1 = 1
-    scaling = SetScaling()
-    mutRate = scaling[0]
-    binsize = scaling[1]
-    scale = d1[3]/(2.0*binsize*mutRate)
-    scale1 = scale/2.0/1.0e4
+    
     if doPlot:
-        x = [v*scale for v in Tk]
-        y1 = [scale1/v for v in Lk1]
-        y2 = [scale1/v for v in Lk2]
+        x = [v*scaleTime for v in Tk]
+        y1 = [scaleEPS/v for v in Lk1]
+        y2 = [scaleEPS/v for v in Lk2]
         AddToPlot(x, y1)
-        AddToPlot(x, y2)
+        AddToPlot(x[sampleDateDiscr:], y2[sampleDateDiscr:])
     L1tmp = [Lk1[i]]
     L2tmp = [Lk1[i]]
     Ttmp = [Tk[0]]
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scale, scale1, d1[3], d1[4]] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC)
+    return( [Tk, Lk, scaleTime, scaleEPS, d1[3], d1[4], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
 
 def OutputMigration(fout, mu, Migration):
     llh = Migration.JAFSLikelyhood( mu )
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#MiSTI ver 0.3\n"
-    outData += "ST\t" + str(Migration.splitT) + "\n"#split times
+    outData += "ST\t" + str(Migration.splitT) + "\n"#split time
+    outData += "SD\t" + str(Migration.sampleDate) + "\n"#second sample date
     outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
     outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
     outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
@@ -182,6 +252,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     times = []
     lc1 = []
     lc2 = []
+    sampleDate = 0
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
@@ -195,6 +266,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
             line = line.split("\t")
             if line[0] == "ST":
                 splitT = int(line[1])
+            if line[0] == "SD":
+                sampleDate = int(line[1])
             elif line[0] == "MS":
                 migStart = int(line[1])
             elif line[0] == "ME":
@@ -215,10 +288,10 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         AddToPlot(times, lc1)
-        AddToPlot(times, lc2)
+        AddToPlot(times[sampleDate:], lc2[sampleDate:])
         splT=times[splitT]
         plt.axvline(splT, color='k', alpha=0.1)
-    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu)
+    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate)
     return(data)
 
 def ReadJAFS(fn):
@@ -237,13 +310,13 @@ def ReadJAFS(fn):
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
-                print("pop1 is", line[1])
+                print("pop1\t", line[1])
             elif line[1:5] == "pop2":
                 line = line.split(" ")
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
-                print("pop2 is", line[1])
+                print("pop2\t", line[1])
             line = next(f).rstrip()
 
         line = line.split("\t")
