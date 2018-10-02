@@ -341,7 +341,8 @@ class MigrationInference:
             else:
                 model = OnePopulation(self.lc[interval][0])
             if interval == self.sampleDate:
-                self.P0 = model.AncientSampleP0(self.P0)
+                model_tmp = TwoPopulations(1, 1, 0, 0)
+                self.P0 = model_tmp.AncientSampleP0(self.P0)
             if interval == self.splitT:
                 self.CollapsePops()
             self.M = model.SetMatrix()
