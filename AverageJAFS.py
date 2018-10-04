@@ -20,7 +20,7 @@
 
 import sys
 import os
-from migrationIO import PrintJAFSFile, ReadJAFS
+from migrationIO import PrintJAFSFile
 
 if len(sys.argv) < 2:
     print("./MS2JAF.py <ANY NUMBER OF INPUT FILES OR DIRECTORIES>")
@@ -34,13 +34,13 @@ for fn in sys.argv[1:]:
     if os.path.isdir(fn):
         for fn1 in os.listdir(fn):
             if fn1[0] != ".":
-                jafs = ReadJAFS( os.path.join( fn, fn1 ) )
+                jafs = migrationIO.ReadJAFS( os.path.join( fn, fn1 ) )[1:]
                 jaf = [u + v for u, v in zip(jaf, jafs)]
                 tf += 1
     else:
-        jafs = ReadJAFS(fn)
+        jafs = migrationIO.ReadJAFS(fn)
         jaf = [u + v for u, v in zip(jaf, jafs)]
         tf += 1
-jaf = [v/tf for v in jaf]
+jaf = [int(v/tf) for v in jaf]
 
 PrintJAFSFile(jaf, pop1, pop2)
