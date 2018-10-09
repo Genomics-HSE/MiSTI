@@ -38,7 +38,7 @@ for fn in sys.argv[1:]:
                 jaf = [u + v for u, v in zip(jaf, jafs)]
                 tf += 1
     else:
-        jafs = ReadJAFS(fn)
+        jafs = ReadJAFS(fn)[1:]
         jaf = [u + v for u, v in zip(jaf, jafs)]
         tf += 1
 jaf = [int(v/tf) for v in jaf]
