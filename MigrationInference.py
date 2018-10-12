@@ -261,6 +261,8 @@ class MigrationInference:
                 nc += self.lc[j][indiv]*self.times[j]
                 time += self.times[j]
                 j += 1
+                if j == self.splitT:
+                    break
             for i in range(k, j):
                 self.lc[i][indiv] = nc/time
             lam = self.lh[j][indiv]
@@ -429,6 +431,8 @@ class MigrationInference:
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
                 llh += self.dataJAFS[i]*log(self.JAFS[i])
 #        print("full log llh=", llh)
+#        for i in range(self.numT):
+#            print(i, "\t", self.lc[i][0], "\t", self.lc[i][1])
         return( llh )
     
     def ObjectiveFunction(self, mu):
