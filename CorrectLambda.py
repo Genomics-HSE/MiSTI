@@ -157,7 +157,26 @@ class CorrectLambda:
         p1 = dot(self.MET,self.P0[1])
         return [x,[p0,p1]]
 
+    def SolveNoMigration(self):
+        lc = [None, None]
+        A1 = self.P0[0][0]/sum(self.P0[0])
+        A2 = self.P0[0][1]/sum(self.P0[0])
+        A3 = self.P0[1][0]/sum(self.P0[1])
+        A4 = self.P0[1][1]/sum(self.P0[1])
+        D  =  A1*A4-A2*A3
+        B1 =  A4/D
+        B2 = -A3/D
+        B3 = -A2/D
+        B4 =  A1/D
+        lc[0] = -log(B1*exp(-self.lh[0]*self.T)+B2*exp(-self.lh[1]*self.T))/self.T
+        lc[1] = -log(B3*exp(-self.lh[0]*self.T)+B4*exp(-self.lh[1]*self.T))/self.T
+        p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
+        p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
+        return [lc,[p0,p1]]
+
     def SolveLambdaSystem(self, prec = 1e-10, normEps=0.02):
+        if self.mu[0] + self.mu[1] < prec:
+            return self.SolveNoMigration()
         normV0 = 0
         normV1 = 0
         normD = 0
