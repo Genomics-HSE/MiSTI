@@ -215,8 +215,8 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
         x = [v*scaleTime for v in Tk]
         y1 = [scaleEPS/v for v in Lk1]
         y2 = [scaleEPS/v for v in Lk2]
-        AddToPlot(x, y1)
-        AddToPlot(x[sampleDateDiscr:], y2[sampleDateDiscr:])
+        AddToPlot(x, y1, "psmc1")
+        AddToPlot(x[sampleDateDiscr:], y2[sampleDateDiscr:], "psmc2")
     L1tmp = [Lk1[i]]
     L2tmp = [Lk1[i]]
     Ttmp = [Tk[0]]
@@ -287,8 +287,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
-        AddToPlot(times, lc1)
-        AddToPlot(times[sampleDate:], lc2[sampleDate:])
+        AddToPlot(times, lc1, "misti1")
+        AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
         splT=times[splitT]
         plt.axvline(splT, color='k', alpha=0.1)
     data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate)
@@ -377,9 +377,9 @@ def PlotInit(id=1):
     plt.figure(id)
     plt.semilogx()
     
-def AddToPlot(times, lambdas, id=1):
+def AddToPlot(times, lambdas, lbl = "", id=1):
     plt.figure(id)
-    plt.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7)
+    plt.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7, label=lbl)
     
 def SavePlot(fout, id=1):
     plt.figure(id)
