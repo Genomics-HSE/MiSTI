@@ -27,6 +27,7 @@ import argparse
 
 class MigData:
     def __init__(self, **kwargs):
+        self.llh = None
         self.splitT = None
         self.migStart = None
         self.migEnd  = None
@@ -36,6 +37,8 @@ class MigData:
         self.thrh = None
         self.mu = None#migration rate
         self.sampleDate = None
+        if "llh" in kwargs:
+            self.llh = kwargs["llh"]
         if "splitT" in kwargs:
             self.splitT = kwargs["splitT"]
         if "migStart" in kwargs:
@@ -229,6 +232,7 @@ def OutputMigration(fout, mu, Migration):
 #    print( vars(Migration) )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#MiSTI ver 0.3\n"
+    outData += "LK\t" + str(llh) + "\n"#split time
     outData += "ST\t" + str(Migration.splitT) + "\n"#split time
     outData += "SD\t" + str(Migration.sampleDate) + "\n"#second sample date
     outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
@@ -264,9 +268,11 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         
         for line in f:
             line = line.split("\t")
-            if line[0] == "ST":
+            if line[0] == "LK":
+                llh = int(line[1])
+            elif line[0] == "ST":
                 splitT = int(line[1])
-            if line[0] == "SD":
+            elif line[0] == "SD":
                 sampleDate = int(line[1])
             elif line[0] == "MS":
                 migStart = int(line[1])
@@ -287,11 +293,16 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
+        title = "llh = " + str(llh) + ", migration 1->2 " + str(mu[1]) + ", migration 2->1 " + str(mu[1])
+        AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
         splT=times[splitT]
+        ms = times[migStart]
+        ms = times[migEnd]
         plt.axvline(splT, color='k', alpha=0.1)
-    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate)
+        plt.axvspan(splT, color='k', alpha=0.05)
+    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
     return(data)
 
 def ReadJAFS(fn):
@@ -377,6 +388,9 @@ def PlotInit(id=1):
     plt.figure(id)
     plt.semilogx()
     
+def AddTitle(title, id=1):
+    plt.set_title(title)
+
 def AddToPlot(times, lambdas, lbl = "", id=1):
     plt.figure(id)
     plt.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7, label=lbl)
