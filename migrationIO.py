@@ -25,6 +25,10 @@ from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
 import argparse
 
+class MiPlot:#This is a class of static variables
+    fig = None
+    ax = None
+
 class MigData:
     def __init__(self, **kwargs):
         self.llh = None
@@ -270,7 +274,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         for line in f:
             line = line.split("\t")
             if line[0] == "LK":
-                data.llh = int(line[1])
+                data.llh = float(line[1])
             elif line[0] == "ST":
                 data.splitT = int(line[1])
             elif line[0] == "SD":
@@ -294,15 +298,15 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
-        title = "llh = " + str(data.llh) + ", migration 1->2 " + str(data.mu[1]) + ", migration 2->1 " + str(data.mu[0])
+        title = "llh = " + str(round(data.llh,1)) + ", migr (1->2) = " + str(data.mu[1]) + ", migr (2->1) " + str(data.mu[0])
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
         splT=times[data.splitT]
         ms = times[data.migStart]
         me = times[data.migEnd]
-        plt.axvline(splT, color='k', alpha=0.1)
-        plt.axvspan(ms, me, color='k', alpha=0.05)
+        MiPlot.ax.axvline(splT, color='k', alpha=0.1)
+        MiPlot.ax.axvspan(ms, me, color='k', alpha=0.05)
 #    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
     data.times = times
     data.lambda1 = lc1
@@ -389,20 +393,20 @@ def ReadMS(argument_string):
 #4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.05 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0
 
 def PlotInit(id=1):
-    plt.figure(id)
-    plt.semilogx()
+#    plt.figure(id)
+    MiPlot.fig, MiPlot.ax = plt.subplots()
+    MiPlot.ax.semilogx()
     
 def AddTitle(title, id=1):
-    plt.legend(title=title)
-    #plt.Axes.set_title("title")
+    MiPlot.ax.set_title(title)
 
 def AddToPlot(times, lambdas, lbl = "", id=1):
-    plt.figure(id)
-    plt.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7, label=lbl)
+    #plt.figure(id)
+    MiPlot.ax.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7, label=lbl)
     
 def SavePlot(fout, id=1):
-    plt.figure(id)
-    plt.savefig(fout)
+    #plt.figure(id)
+    MiPlot.fig.savefig(fout)
     
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
     print("#MiSTI_JAFS version 0.2")
