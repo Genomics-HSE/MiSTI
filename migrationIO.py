@@ -294,15 +294,15 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
-        title = "llh = " + str(llh) + ", migration 1->2 " + str(mu[1]) + ", migration 2->1 " + str(mu[1])
+        title = "llh = " + str(data.llh) + ", migration 1->2 " + str(data.mu[1]) + ", migration 2->1 " + str(data.mu[0])
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
-        splT=times[splitT]
-        ms = times[migStart]
-        ms = times[migEnd]
+        splT=times[data.splitT]
+        ms = times[data.migStart]
+        me = times[data.migEnd]
         plt.axvline(splT, color='k', alpha=0.1)
-        plt.axvspan(splT, color='k', alpha=0.05)
+        plt.axvspan(ms, me, color='k', alpha=0.05)
 #    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
     data.times = times
     data.lambda1 = lc1
@@ -393,7 +393,8 @@ def PlotInit(id=1):
     plt.semilogx()
     
 def AddTitle(title, id=1):
-    plt.set_title(title)
+    plt.legend(title=title)
+    #plt.Axes.set_title("title")
 
 def AddToPlot(times, lambdas, lbl = "", id=1):
     plt.figure(id)
