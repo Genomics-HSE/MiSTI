@@ -198,7 +198,7 @@ class MigrationInference:
 #            print(self.times[t])
 #            print(p0)
             self.cl.SetMu(self.mu[t][0], self.mu[t][1])
-            if not self.correct or self.mu[t][0] + self.mu[t][1] == 0:
+            if not self.correct:# or self.mu[t][0] + self.mu[t][1] == 0:
                 self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
             else:
                 self.cl.SetInterval(self.lh[t], self.times[t], p0)

@@ -163,11 +163,16 @@ class CorrectLambda:
         A2 = self.P0[0][1]/sum(self.P0[0])
         A3 = self.P0[1][0]/sum(self.P0[1])
         A4 = self.P0[1][1]/sum(self.P0[1])
+        #print(A1, "\t", A2, "\n", A3, "\t", A4, sep="")
         D  =  A1*A4-A2*A3
         B1 =  A4/D
-        B2 = -A3/D
-        B3 = -A2/D
+        B2 = -A2/D
+        B3 = -A3/D
         B4 =  A1/D
+        #print(B1, "\t", B2, "\n", B3, "\t", B4, sep="")
+        #print(B1*exp(-self.lh[0]*self.T)+B2*exp(-self.lh[1]*self.T))
+        #print(B3*exp(-self.lh[0]*self.T)+B4*exp(-self.lh[1]*self.T))
+        #print("lh[0] = ", self.lh[0], "\tlh[1] = ", self.lh[1], "\tself.T = ", self.T)
         lc[0] = -log(B1*exp(-self.lh[0]*self.T)+B2*exp(-self.lh[1]*self.T))/self.T
         lc[1] = -log(B3*exp(-self.lh[0]*self.T)+B4*exp(-self.lh[1]*self.T))/self.T
         p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
