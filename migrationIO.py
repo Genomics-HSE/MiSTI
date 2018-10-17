@@ -257,6 +257,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     lc1 = []
     lc2 = []
     sampleDate = 0
+    data = MigData()
     with open(fmigr) as f:
         line = next(f).rstrip()
         line = line.split(" ")
@@ -269,21 +270,21 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         for line in f:
             line = line.split("\t")
             if line[0] == "LK":
-                llh = int(line[1])
+                data.llh = int(line[1])
             elif line[0] == "ST":
-                splitT = int(line[1])
+                data.splitT = int(line[1])
             elif line[0] == "SD":
-                sampleDate = int(line[1])
+                data.sampleDate = int(line[1])
             elif line[0] == "MS":
-                migStart = int(line[1])
+                data.migStart = int(line[1])
             elif line[0] == "ME":
-                migEnd = int(line[1])
+                data.migEnd = int(line[1])
             elif line[0] == "MU":
-                mu = [float(line[1]), float(line[2])]
+                data.mu = [float(line[1]), float(line[2])]
             elif line[0] == "TR":
-                thrh = [float(line[1]), float(line[2])]
+                data.thrh = [float(line[1]), float(line[2])]
             elif line[0] == "SFS":
-                jaf = map(float, line[1:])
+                data.jaf = map(float, line[1:])
             elif line[0] == "RS":
                 times.append( float(line[1])*scaleTime )
                 lc1.append( 1.0/float(line[2])/scaleEPS )
@@ -302,7 +303,10 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         ms = times[migEnd]
         plt.axvline(splT, color='k', alpha=0.1)
         plt.axvspan(splT, color='k', alpha=0.05)
-    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
+#    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
+    data.times = times
+    data.lambda1 = lc1
+    data.lambda2 = lc2
     return(data)
 
 def ReadJAFS(fn):
