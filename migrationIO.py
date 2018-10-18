@@ -298,7 +298,19 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
-        title = "llh = " + str(round(data.llh,1)) + ", migr (1->2) = " + str(data.mu[1]) + ", migr (2->1) " + str(data.mu[0])
+        if data.llh == None:
+            llh_title = "-"
+        else:
+            llh_title = str(round(data.llh,1))
+        if data.mu[0] == None:
+            mu0_title = "-"
+        else:
+            mu0_title = str(round(data.mu[0],1))
+        if data.mu[1] == None:
+            mu1_title = "-"
+        else:
+            mu1_title = str(round(data.mu[1],1))
+        title = "llh = " + llh_title + ", migr (1->2) = " + mu1_title + ", migr (2->1) " + mu0_title + "\ninput file " + fmigr
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
