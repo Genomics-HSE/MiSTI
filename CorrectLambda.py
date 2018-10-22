@@ -27,7 +27,8 @@ from math import (exp,log,sqrt)
 
 
 class CorrectLambda:
-#    def __init__(self):
+    def __init__(self):
+        self.mixtureTH = 0.02
 #        self.doBroyden1 = True
 #        self.lh = [lh0, lh1]#PSMC inferred lambda
 #        self.mu = [mu0, mu1]
@@ -39,6 +40,9 @@ class CorrectLambda:
         func = func + "():"
         print("MigrationInference class error in function", func, text)
         sys.exit(0)
+    
+    def SetMixtureTH(self, th):
+        self.mixtureTH = th
     
     def SetMu(self, mu0, mu1):
         self.mu = [mu0, mu1]
@@ -186,7 +190,7 @@ class CorrectLambda:
         for i in range(3):
             mixture += (self.P0[0][i]/sum(self.P0[0])-self.P0[1][i]/sum(self.P0[1]))**2
         mixture = sqrt(mixture)
-        if mixture < 0.02:
+        if mixture < self.mixtureTH:
             return [[-1, -1], self.P0]
         if self.mu[0] + self.mu[1] < prec:
             return self.SolveNoMigration()

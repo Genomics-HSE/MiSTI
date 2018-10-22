@@ -55,6 +55,8 @@ parser.add_argument('-pr', nargs=1, type=int, default=1,
                     help='number of processes for multiprocessing optimisation (default is 1)')
 parser.add_argument('-tol', nargs=1, type=float, default=1e-4,
                     help='optimisation precision (default is 1e-4)')
+parser.add_argument('-mth', nargs=1, type=float, default=0.02,
+                    help='mixture treshhold (default is 0.02)', mixtureTH = clargs.mth)
                     
 parser.add_argument('-mi', nargs=5, action = 'append',
                     help='initial values for mu0 in the optimisation')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
@@ -93,6 +95,8 @@ if isinstance(clargs.pr, list):
     clargs.pr = clargs.pr[0]
 if isinstance(clargs.tol, list):
     clargs.tol = clargs.tol[0]
+if isinstance(clargs.mth, list):
+    clargs.mth = clargs.mth[0]
 if isinstance(clargs.st, list):
     clargs.st = clargs.st[0]
 if isinstance(clargs.sdate, list):
@@ -128,8 +132,6 @@ clargs.settings = {
     "unfolded": clargs.uf,
     "sampleDate": clargs.sdate
 }
-
-print(clargs)
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -177,7 +179,7 @@ times = inputData[0]
 
 sol = [[], [], []]
 if mode == "optimize":
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = True, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6])
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = True, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth)
     sol = Migration.Solve(clargs.tol)
     print(sol)
 elif mode == "llhmodel":

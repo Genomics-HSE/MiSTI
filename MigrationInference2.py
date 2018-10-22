@@ -148,6 +148,8 @@ class MigrationInference:
         
         #Class for EP size correction
         self.cl = CorrectLambda()
+        if "mixtureTH" in kwargs:
+            cl.SetMixtureTH(kwargs["mixtureTH"])
 #        self.cl.SetMu(mu[0], mu[1])
         
         #Plotting options - TODO
