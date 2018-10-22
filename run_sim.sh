@@ -30,7 +30,7 @@ if [ ! -d "$DIR" ]; then
   exit 1
 fi
 $MSHOT_PATH/msHOT-lite $MSARG | gzip > $DIR/sim.ms.gz
-./MSSPLIT.py <(gunzip -c $DIR/sim.ms.gz) $DIR
+./utils/MSSPLIT.py <(gunzip -c $DIR/sim.ms.gz) $DIR
 gzip $DIR/ms2g1.ms
 gzip $DIR/ms2g2.ms
 $PSMC_PATH/utils/ms2psmcfa.pl <(gunzip -c $DIR/ms2g1.ms.gz) | gzip > $DIR/ms2g1.psmc.fa.gz
@@ -40,7 +40,7 @@ $PSMC_PATH/utils/ms2psmcfa.pl <(gunzip -c $DIR/ms2g2.ms.gz) | gzip > $DIR/ms2g2.
 parallel $PSMC_PATH/psmc "-p 1*4+25*2+1*4+1*6 <(gunzip -c $DIR/ms2g{}.psmc.fa.gz) > $DIR/ms2g{}.psmc" ::: 1 2
 #parallel echo "-p 1*4+25*2+1*4+1*6 $DIR/ms2g{}.psmc.fa" ::: 1 2 > $DIR/ms2g{}.psmc
 $PSMC_PATH/utils/psmc_plot.pl -n30 -u 1.25e-8 -g1 -x1 -X1000000 -L -M genome1,genome2, $DIR/plot_sim $DIR/ms2g1.psmc $DIR/ms2g2.psmc
-./MS2JAF.py <(gunzip -c $DIR/sim.ms.gz) ms2g1 ms2g2 > $DIR/sim.jafs
+./utils/MS2JAF.py <(gunzip -c $DIR/sim.ms.gz) ms2g1 ms2g2 > $DIR/sim.jafs
 if [ $CLEAN -eq 1 ]; then
 #	head -n1 $DIR/sim.ms > $DIR/command.ms
 	rm $DIR/sim.ms.gz
