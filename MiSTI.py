@@ -139,6 +139,10 @@ if isinstance(clargs.funits, list):
 if isinstance(clargs.debug, list):
     clargs.debug = clargs.debug[0]
 
+if clargs.migend > clargs.sm:
+    PrintErr("--migend should be smaller or equal to -sm. Aborted.")
+    sys.exit(0)
+
 if clargs.migstart >= clargs.migend and clargs.migend > 0:
     PrintErr("--migend should be larger than --migstart. Aborted.")
     sys.exit(0)

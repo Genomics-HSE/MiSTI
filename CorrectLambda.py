@@ -172,14 +172,23 @@ class CorrectLambda:
         B4 =  A1/D
         X1 = exp(-self.lh[0]*self.T)-C1
         X2 = exp(-self.lh[1]*self.T)-C2
-        lc[0] = -log(B1*X1+B2*X2)/self.T
-        lc[1] = -log(B3*X1+B4*X2)/self.T
+        if B1*X1+B2*X2 > 0 and B3*X1+B4*X2 > 0:
+            lc[0] = -log(B1*X1+B2*X2)/self.T
+            lc[1] = -log(B3*X1+B4*X2)/self.T
+        else:
+            lc = [-1, -1]
         p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
         p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
         return [lc,[p0,p1]]
 
     def SolveLambdaSystem(self, prec = 1e-10, normEps=0.02):
-        print(self.P0[0], "\t\t", self.P0[1], "\t\t", self.P0[0][0]/sum(self.P0[0])-self.P0[1][0]/sum(self.P0[1]), self.P0[0][1]/sum(self.P0[0])-self.P0[1][1]/sum(self.P0[1]), self.P0[0][2]/sum(self.P0[0])-self.P0[1][2]/sum(self.P0[1]))
+        #print(self.P0[0], "\t\t", self.P0[1], "\t\t", self.P0[0][0]/sum(self.P0[0])-self.P0[1][0]/sum(self.P0[1]), self.P0[0][1]/sum(self.P0[0])-self.P0[1][1]/sum(self.P0[1]), self.P0[0][2]/sum(self.P0[0])-self.P0[1][2]/sum(self.P0[1]))
+        mixture = 0
+        for i in range(3):
+            mixture += (self.P0[0][i]/sum(self.P0[0])-self.P0[1][i]/sum(self.P0[1]))**2
+        mixture = sqrt(mixture)
+        if mixture < 0.02:
+            return [[-1, -1], self.P0]
         if self.mu[0] + self.mu[1] < prec:
             return self.SolveNoMigration()
         normV0 = 0
