@@ -256,10 +256,32 @@ def OutputMigration(fout, mu, Migration):
         fw.write(outData)
         fw.close()
 
+def OutputMigration2(fout, mu, Migration):
+    llh = Migration.JAFSLikelyhood( mu )
+    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
+    outData = "#MiSTI2 ver 0.3\n"
+    outData += "LK\t" + str(llh) + "\n"#split time
+    outData += "ST\t" + str(Migration.splitT) + "\n"#split time
+    outData += "SD\t" + str(Migration.sampleDate) + "\n"#second sample date
+    outData += "TR\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"
+    outData += "SFS\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
+    dataJAFS = [v/sum(Migration.dataJAFS) for v in Migration.dataJAFS]
+    outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
+    for i in range( len(times) ):
+        outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\t" + str(Migration.mu[i][0]) + "\t" + str(Migration.mu[i][1]) + "\n"
+    if fout == "":
+        print(outData)
+    else:
+        fw = open(fout, 'w')
+        fw.write(outData)
+        fw.close()
+
 def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     times = []
     lc1 = []
     lc2 = []
+    mu1 = []
+    mu2 = []
     sampleDate = 0
     data = MigData()
     with open(fmigr) as f:
@@ -270,29 +292,48 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         if version < 0.3:
             PrintErr("File version is not supported anymore.")
             sys.exit(0)
-        
-        for line in f:
-            line = line.split("\t")
-            if line[0] == "LK":
-                data.llh = float(line[1])
-            elif line[0] == "ST":
-                data.splitT = int(line[1])
-            elif line[0] == "SD":
-                data.sampleDate = int(line[1])
-            elif line[0] == "MS":
-                data.migStart = int(line[1])
-            elif line[0] == "ME":
-                data.migEnd = int(line[1])
-            elif line[0] == "MU":
-                data.mu = [float(line[1]), float(line[2])]
-            elif line[0] == "TR":
-                data.thrh = [float(line[1]), float(line[2])]
-            elif line[0] == "SFS":
-                data.jaf = map(float, line[1:])
-            elif line[0] == "RS":
-                times.append( float(line[1])*scaleTime )
-                lc1.append( 1.0/float(line[2])/scaleEPS )
-                lc2.append( 1.0/float(line[3])/scaleEPS )
+        if line[0] == "#MiSTI2":
+            for line in f:
+                line = line.split("\t")
+                if line[0] == "LK":
+                    data.llh = float(line[1])
+                elif line[0] == "ST":
+                    data.splitT = int(line[1])
+                elif line[0] == "SD":
+                    data.sampleDate = int(line[1])
+                elif line[0] == "TR":
+                    data.thrh = [float(line[1]), float(line[2])]
+                elif line[0] == "SFS":
+                    data.jaf = map(float, line[1:])
+                elif line[0] == "RS":
+                    times.append( float(line[1])*scaleTime )
+                    lc1.append( 1.0/float(line[2])/scaleEPS )
+                    lc2.append( 1.0/float(line[3])/scaleEPS )
+                    mu1.append( float(line[4]) )
+                    mu2.append( float(line[5]) )
+        else:
+            for line in f:
+                line = line.split("\t")
+                if line[0] == "LK":
+                    data.llh = float(line[1])
+                elif line[0] == "ST":
+                    data.splitT = int(line[1])
+                elif line[0] == "SD":
+                    data.sampleDate = int(line[1])
+                elif line[0] == "MS":
+                    data.migStart = int(line[1])
+                elif line[0] == "ME":
+                    data.migEnd = int(line[1])
+                elif line[0] == "MU":
+                    data.mu = [float(line[1]), float(line[2])]
+                elif line[0] == "TR":
+                    data.thrh = [float(line[1]), float(line[2])]
+                elif line[0] == "SFS":
+                    data.jaf = map(float, line[1:])
+                elif line[0] == "RS":
+                    times.append( float(line[1])*scaleTime )
+                    lc1.append( 1.0/float(line[2])/scaleEPS )
+                    lc2.append( 1.0/float(line[3])/scaleEPS )
     if doPlot:
         lc1 = [1.0/v for v in lc1]
         lc2 = [1.0/v for v in lc2]
@@ -302,23 +343,22 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
             llh_title = "-"
         else:
             llh_title = str(round(data.llh,1))
-        if data.mu[0] == None:
+        if data.mu is None:
             mu0_title = "-"
-        else:
-            mu0_title = str(round(data.mu[0],1))
-        if data.mu[1] == None:
             mu1_title = "-"
         else:
+            mu0_title = str(round(data.mu[0],1))
             mu1_title = str(round(data.mu[1],1))
         title = "llh = " + llh_title + ", migr (1->2) = " + mu1_title + ", migr (2->1) " + mu0_title + "\ninput file " + fmigr
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
         splT=times[data.splitT]
-        ms = times[data.migStart]
-        me = times[data.migEnd]
+        if data.migStart != None and data.migEnd != None:
+            ms = times[data.migStart]
+            me = times[data.migEnd]
+            MiPlot.ax.axvspan(ms, me, color='k', alpha=0.05)
         MiPlot.ax.axvline(splT, color='k', alpha=0.1)
-        MiPlot.ax.axvspan(ms, me, color='k', alpha=0.05)
 #    data = MigData(splitT = splitT, migStart = migStart, migEnd = migEnd, times = times, lambda1 = lc1, lambda2 = lc2, thrh = thrh, mu = mu, sampleDate = sampleDate, llh = llh)
     data.times = times
     data.lambda1 = lc1

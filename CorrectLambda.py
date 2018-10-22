@@ -182,7 +182,6 @@ class CorrectLambda:
         return [lc,[p0,p1]]
 
     def SolveLambdaSystem(self, prec = 1e-10, normEps=0.02):
-        #print(self.P0[0], "\t\t", self.P0[1], "\t\t", self.P0[0][0]/sum(self.P0[0])-self.P0[1][0]/sum(self.P0[1]), self.P0[0][1]/sum(self.P0[0])-self.P0[1][1]/sum(self.P0[1]), self.P0[0][2]/sum(self.P0[0])-self.P0[1][2]/sum(self.P0[1]))
         mixture = 0
         for i in range(3):
             mixture += (self.P0[0][i]/sum(self.P0[0])-self.P0[1][i]/sum(self.P0[1]))**2
