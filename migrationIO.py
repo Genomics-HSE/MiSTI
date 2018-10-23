@@ -491,9 +491,9 @@ def AddProb(pr11, pr22, pr12, times):
     nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
     nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
     for i in [0,1]:
-        pr11[i] = [u/v for u, v in zip(pr11[i], nc[i])]
-        pr22[i] = [u/v for u, v in zip(pr22[i], nc[i])]
-        pr12[i] = [u/v for u, v in zip(pr12[i], nc[i])]
+        pr11[i] = [u/(v if v > 0 else 1) for u, v in zip(pr11[i], nc[i])]
+        pr22[i] = [u/(v if v > 0 else 1) for u, v in zip(pr22[i], nc[i])]
+        pr12[i] = [u/(v if v > 0 else 1) for u, v in zip(pr12[i], nc[i])]
     
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
