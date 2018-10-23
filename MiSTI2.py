@@ -56,7 +56,7 @@ parser.add_argument('-pr', nargs=1, type=int, default=1,
 parser.add_argument('-tol', nargs=1, type=float, default=1e-4,
                     help='optimisation precision (default is 1e-4)')
 parser.add_argument('-mth', nargs=1, type=float, default=0.02,
-                    help='mixture treshhold (default is 0.02)', mixtureTH = clargs.mth)
+                    help='mixture treshhold (default is 0.02)')
                     
 parser.add_argument('-mi', nargs=5, action = 'append',
                     help='initial values for mu0 in the optimisation')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]

@@ -149,7 +149,7 @@ class MigrationInference:
         #Class for EP size correction
         self.cl = CorrectLambda()
         if "mixtureTH" in kwargs:
-            cl.SetMixtureTH(kwargs["mixtureTH"])
+            self.cl.SetMixtureTH(kwargs["mixtureTH"])
 #        self.cl.SetMu(mu[0], mu[1])
         
         #Plotting options - TODO
@@ -201,6 +201,7 @@ class MigrationInference:
     def CorrectLambdas(self):
         MigrationInference.CORRECTION_CALLED += 1
         p0 = [[1,0,0],[0,1,0]]
+        self.Pr = [[[1.0,0.0],[0.0,1.0],[0.0,0.0]]]
         nc = [0, 0]#Probability for not coalescing
         for t in range(self.splitT):
 #            print(self.lh[t])
@@ -232,6 +233,7 @@ class MigrationInference:
                     MigrationInference.CORRECTION_FAILED += 1
                     return False
                 p0 = sol[1]
+            self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
             nc[0] += -self.times[t]*self.lh[t][0]
             nc[1] += -self.times[t]*self.lh[t][1]
         for t in range(self.splitT,self.numT - 1):
@@ -407,12 +409,12 @@ class MigrationInference:
         MigrationInference.COUNT_LLH += 1
         for v in mu:
             if v < 0:
-                return float('-inf')
+                return -10*9#float('-inf')
 #        self.mu[0],self.mu[1]=mu[0],mu[1]
         self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
-            return float('-inf') # -10**(10)
+            return -10*9#float('-inf') # -10**(10)
         if self.enableOutput:
             print("JAFSLikelyhood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelyhood(): corrected values of lambdas are ", self.lc)

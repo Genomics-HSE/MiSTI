@@ -268,7 +268,12 @@ def OutputMigration2(fout, mu, Migration):
     dataJAFS = [v/sum(Migration.dataJAFS) for v in Migration.dataJAFS]
     outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
     for i in range( len(times) ):
-        outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\t" + str(Migration.mu[i][0]) + "\t" + str(Migration.mu[i][1]) + "\n"
+        outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1])
+        outData += "\t" + str(Migration.mu[i][0]) + "\t" + str(Migration.mu[i][1])
+        if i < Migration.splitT:
+            for val in Migration.Pr[i]:
+                outData += "\t" + str(val[0]) + "\t" + str(val[1])
+        outData += "\n"
     if fout == "":
         print(outData)
     else:
@@ -282,6 +287,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     lc2 = []
     mu1 = []
     mu2 = []
+    pr11 = [[],[]]
+    pr22 = [[],[]]
+    pr12 = [[],[]]
     sampleDate = 0
     data = MigData()
     with open(fmigr) as f:
@@ -311,6 +319,20 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
                     lc2.append( 1.0/float(line[3])/scaleEPS )
                     mu1.append( float(line[4]) )
                     mu2.append( float(line[5]) )
+                    if len(line) > 6:
+                        pr11[0].append(float(line[6]))
+                        pr11[1].append(float(line[7]))
+                        pr22[0].append(float(line[8]))
+                        pr22[1].append(float(line[9]))
+                        pr12[0].append(float(line[10]))
+                        pr12[1].append(float(line[11]))
+                    else:
+                        pr11[0].append(0)
+                        pr11[1].append(0)
+                        pr22[0].append(0)
+                        pr22[1].append(0)
+                        pr12[0].append(0)
+                        pr12[1].append(0)
         else:
             for line in f:
                 line = line.split("\t")
@@ -353,6 +375,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
+        if len(pr11[0]) > 0:
+            AddProb(pr11, pr22, pr12, times)
         splT=times[data.splitT]
         if data.migStart != None and data.migEnd != None:
             ms = times[data.migStart]
@@ -446,8 +470,12 @@ def ReadMS(argument_string):
 
 def PlotInit(id=1):
 #    plt.figure(id)
-    MiPlot.fig, MiPlot.ax = plt.subplots()
+    MiPlot.fig, (MiPlot.ax, MiPlot.pr11, MiPlot.pr22, MiPlot.pr12, MiPlot.nc) = plt.subplots(5, 1)
     MiPlot.ax.semilogx()
+    MiPlot.pr11.semilogx()
+    MiPlot.pr22.semilogx()
+    MiPlot.pr12.semilogx()
+    MiPlot.nc.semilogx()
     
 def AddTitle(title, id=1):
     MiPlot.ax.set_title(title)
@@ -455,7 +483,25 @@ def AddTitle(title, id=1):
 def AddToPlot(times, lambdas, lbl = "", id=1):
     #plt.figure(id)
     MiPlot.ax.step(times+[2*times[-1]], [lambdas[0]]+lambdas, alpha=0.7, label=lbl)
+
+def AddProb(pr11, pr22, pr12, times):
+#    MiPlot.pr11 = plt.subplot(212)#, sharex = True)
+    #, MiPlot.pr22, MiPlot.pr12, MiPlot.nc)
+    MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
+    MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
     
+    MiPlot.pr22.step(times+[2*times[-1]], [pr22[0][0]]+pr22[0], alpha=0.7, label="1")
+    MiPlot.pr22.step(times+[2*times[-1]], [pr22[1][0]]+pr22[1], alpha=0.7, label="2")
+    
+    MiPlot.pr12.step(times+[2*times[-1]], [pr12[0][0]]+pr12[0], alpha=0.7, label="1")
+    MiPlot.pr12.step(times+[2*times[-1]], [pr12[1][0]]+pr12[1], alpha=0.7, label="2")
+    
+    nc = [None, None]
+    nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
+    nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
+    MiPlot.nc.step(times+[2*times[-1]], [nc[0][0]]+nc[0], alpha=0.7, label="1")
+    MiPlot.nc.step(times+[2*times[-1]], [nc[1][0]]+nc[1], alpha=0.7, label="2")
+
 def SavePlot(fout, id=1):
     #plt.figure(id)
     MiPlot.fig.savefig(fout)
