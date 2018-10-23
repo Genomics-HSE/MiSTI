@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 import sys
+import os
+cur_dir = os.path.dirname(os.path.abspath(__file__))
+mig_dir = os.path.join(cur_dir, '..')
+sys.path.append(mig_dir)
 from migrationIO import PrintJAFSFile, PrintErr
 
 if len(sys.argv) < 2:
