@@ -487,6 +487,14 @@ def AddToPlot(times, lambdas, lbl = "", id=1):
 def AddProb(pr11, pr22, pr12, times):
 #    MiPlot.pr11 = plt.subplot(212)#, sharex = True)
     #, MiPlot.pr22, MiPlot.pr12, MiPlot.nc)
+    nc = [None, None]
+    nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
+    nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
+    for i in [0,1]:
+        pr11[i] = [u/v for u, v in zip(pr11[i], nc[i])]
+        pr22[i] = [u/v for u, v in zip(pr22[i], nc[i])]
+        pr12[i] = [u/v for u, v in zip(pr12[i], nc[i])]
+    
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
     
@@ -496,9 +504,6 @@ def AddProb(pr11, pr22, pr12, times):
     MiPlot.pr12.step(times+[2*times[-1]], [pr12[0][0]]+pr12[0], alpha=0.7, label="1")
     MiPlot.pr12.step(times+[2*times[-1]], [pr12[1][0]]+pr12[1], alpha=0.7, label="2")
     
-    nc = [None, None]
-    nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
-    nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
     MiPlot.nc.step(times+[2*times[-1]], [nc[0][0]]+nc[0], alpha=0.7, label="1")
     MiPlot.nc.step(times+[2*times[-1]], [nc[1][0]]+nc[1], alpha=0.7, label="2")
 
