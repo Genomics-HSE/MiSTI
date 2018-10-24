@@ -51,6 +51,10 @@ class MigrationInference:
                 self.enableOutput = True
         if self.enableOutput:
             print("MigrationInference: output enabled.")
+        self.cpfit = False
+        if "cpfit" in kwargs:
+            if kwargs["cpfit"]:
+                self.cpfit = True
         
         self.correct = True
         if "trueEPS" in kwargs:
@@ -213,7 +217,7 @@ class MigrationInference:
             else:
                 self.cl.SetInterval(self.lh[t], self.times[t], p0)
                 try:
-                    sol = self.cl.SolveLambdaSystem()
+                    sol = self.cl.SolveLambdaSystem(self.cpfit)
                 except optimize.nonlin.NoConvergence:
                     print("lh=", self.lh[t])
                     print("t=", self.times[t])
@@ -243,10 +247,15 @@ class MigrationInference:
             if self.times[t] == 0:
                 self.lc[t][0], self.lc[t][1] = 1, 1
                 continue
-            self.cl.SetInterval(self.lh[t], self.times[t], [[exp(nc[0]), 0, 0], [exp(nc[1]), 0, 0]])
-            lam = self.cl.FitSinglePop()[0]
-            self.lc[t][0] = lam
-            self.lc[t][1] = lam
+            if not self.cpfit:
+                self.cl.SetInterval(self.lh[t], self.times[t], [[exp(nc[0]), 0, 0], [exp(nc[1]), 0, 0]])
+                lam = self.cl.FitSinglePop()[0]
+                self.lc[t][0] = lam
+                self.lc[t][1] = lam
+            else:
+                pnc = ( exp(-self.times[t]*self.lh[t][0]) + exp(nc[1] - nc[0] - self.times[t]*self.lh[t][1]) )/( 1 + exp( nc[1] - nc[0] ) )
+                self.lc[t][0] = -log(pnc)/self.times[t]
+                self.lc[t][1] = -log(pnc)/self.times[t]
             nc[0] += -self.times[t]*self.lc[t][0]
             nc[1] += -self.times[t]*self.lc[t][1]
         t = self.numT - 1

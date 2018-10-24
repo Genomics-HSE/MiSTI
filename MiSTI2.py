@@ -75,10 +75,12 @@ parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
 parser.add_argument('-llh', action='store_true',
                     help='Compute model llh')
-parser.add_argument('--nosmooth', action='store_false',
-                    help='Don\'t smooth (make constant on the psmc time intervals)')
+parser.add_argument('--nosmooth', action='store_true',
+                    help='Don\'t smooth (don\'t make constant on the psmc time intervals)')
 parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
+parser.add_argument('--cpfit', action='store_true',
+                    help='Approximate EPS by fitting probabilities to coalesce within each interval (default is fitting expected coalescence time within each interval)')
 
 
 parser.add_argument('--debug', action='store_true',
@@ -111,6 +113,8 @@ if isinstance(clargs.nosmooth, list):
     clargs.nosmooth = clargs.nosmooth[0]
 if isinstance(clargs.trueEPS, list):
     clargs.trueEPS = clargs.trueEPS[0]
+if isinstance(clargs.cpfit, list):
+    clargs.cpfit = clargs.cpfit[0]
 if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
 if clargs.mi == None:
@@ -128,7 +132,6 @@ if clargs.llh:
 
 clargs.settings = {
     "enableOutput": False,
-    "nosmooth": False,
     "unfolded": clargs.uf,
     "sampleDate": clargs.sdate
 }
@@ -179,7 +182,7 @@ times = inputData[0]
 
 sol = [[], [], []]
 if mode == "optimize":
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = True, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth)
+    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
     sol = Migration.Solve(clargs.tol)
     print(sol)
 elif mode == "llhmodel":

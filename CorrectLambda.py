@@ -127,7 +127,7 @@ class CorrectLambda:
         coalT = self.ExpectedCoalTimeTwoPop()
         return( coalT[0]- self.ExpectedCoalTimeOnePop(self.lh[0]), coalT[1]- self.ExpectedCoalTimeOnePop(self.lh[1]) )
     
-    def LambdaSystemOld(self,l):
+    def LambdaSystem1(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
         self.MatrixExponent()
@@ -224,7 +224,7 @@ class CorrectLambda:
         p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
         return [lc,[p0,p1]]
 
-    def SolveLambdaSystem(self, prec = 1e-10, normEps=0.02):
+    def SolveLambdaSystem(self, cpfit = True, prec = 1e-10, normEps=0.02):
         mixture = 0
         for i in range(3):
             mixture += (self.P0[0][i]/sum(self.P0[0])-self.P0[1][i]/sum(self.P0[1]))**2
@@ -232,7 +232,10 @@ class CorrectLambda:
         if mixture < self.mixtureTH:
             return [[-1, -1], self.P0]
         if self.mu[0] + self.mu[1] < prec:
-            return self.SolveNoMigration()
+            if not cpfit:
+                return self.SolveNoMigration()
+            else:
+                return self.SolveNoMigration1()
         normV0 = 0
         normV1 = 0
         normD = 0
@@ -250,7 +253,10 @@ class CorrectLambda:
 #        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
         upperLimit = numpy.inf#10*self.lh[0]
         lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
-        x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+        if not cpfit:
+            x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+        else:
+            x1 = optimize.least_squares(self.LambdaSystem1, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
         '''        if False:
             try:
