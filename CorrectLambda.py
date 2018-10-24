@@ -64,6 +64,40 @@ class CorrectLambda:
     def ComputeExpectation(self, npop):
         self.Pexp = dot(linalg.inv(self.M), dot(self.MET-identity(3),self.P0[npop]))
     
+    def ExpectedCoalTimeOnePop(self, lam):
+        return 1.0/lam-self.T/(exp(lam*self.T)-1)
+    
+    def ExpectedCoalTimeOnePopNonConditional(self, lam):
+        return (1-exp(-lam*self.T)*(1+lam*self.T))/lam
+    
+    def EPSFromExpectedCoalTime(self, Te, x0 = 1, prec = 1e-10):
+        upperLimit = numpy.inf#10*self.lh[0]
+        lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
+        x1 = optimize.least_squares(lambda lam: self.ExpectedCoalTimeOnePop(lam) - Te, x0, bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+        return x1.x
+        
+    def FitSinglePop(self):
+        pnc = [sum(self.P0[0]),sum(self.P0[1])]
+        pnc = [pnc[0]/sum(pnc), pnc[1]/sum(pnc)]
+        Te = pnc[0]*self.ExpectedCoalTimeOnePop(self.lh[0]) + pnc[1]*self.ExpectedCoalTimeOnePop(self.lh[1])
+        return self.EPSFromExpectedCoalTime(Te, pnc[0]*self.lh[0] + pnc[1]*self.lh[1])
+    
+    def ExpectedCoalTimeTwoPop(self):
+        Pnormed = [None, None]
+        coalT = [None, None]
+        for i in [0,1]:
+            Pnormed[i] = [v/sum(self.P0[i]) for v in self.P0[i]]
+        Minv = linalg.inv(self.M)
+        for i in [0,1]:
+            mat = self.MET-identity(3)
+            vec1 = dot(mat, Pnormed[i])
+            vec1 = dot(Minv, dot(Minv, vec1))
+            vec2 = dot(self.MET, Pnormed[i])
+            vec2 = dot(self.T, dot(Minv, vec2))
+            vec = vec2 - vec1
+            coalT[i] = (self.l[0]*vec[0] + self.l[1]*vec[1])/(1-sum(dot(self.MET,Pnormed[i])))
+        return coalT
+    
     def LambdaEquation1(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
@@ -87,6 +121,13 @@ class CorrectLambda:
         return nc-nch
     
     def LambdaSystem(self,l):
+        self.l = [l[0],l[1]]
+        self.SetMatrix()
+        self.MatrixExponent()
+        coalT = self.ExpectedCoalTimeTwoPop()
+        return( coalT[0]- self.ExpectedCoalTimeOnePop(self.lh[0]), coalT[1]- self.ExpectedCoalTimeOnePop(self.lh[1]) )
+    
+    def LambdaSystemOld(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
         self.MatrixExponent()
@@ -130,38 +171,7 @@ class CorrectLambda:
         eq2 = 2*self.mu[0]*self.a[0] + 2*self.mu[1]*self.a[1] - (self.mu[0]+self.mu[1])
         return([eq0-eq2, eq1-eq2])
 
-    def SolveLambdaSystemExperimental(self, prec = 1e-10, normEps=0.02):#computes lambdas from stationary distribution when |self.P0[0]-self.P0[1]| < eps. The issue: how to capture changes in ef. pop. sizes?
-        normV0 = 0
-        normV1 = 0
-        normD = 0
-        for i in range(3):
-            normV0 += ( self.P0[0][i] )**2
-            normV1 += ( self.P0[1][i] )**2
-            normD += (self.P0[0][i] - self.P0[1][i])**2
-        normV0 = sqrt(normV0)
-        normV1 = sqrt(normV1)
-        normD = sqrt(normD)
-        x = None
-        if normD < normEps*min(normV0, normV1):
-            statV = [(el1+el2)/2.0 for el1, el2 in zip(self.P0[0], self.P0[1])]
-            upperLimit = numpy.inf
-            lowerLimit = 0
-            self.a = [statV[0]/statV[2], statV[1]/statV[2]]
-            x1 = optimize.least_squares(self.StationarySystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
-            x = x1.x
-        else:
-            upperLimit = numpy.inf#10*self.lh[0]
-            lowerLimit = 0#0.1*self.lh[0]
-            x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
-            x = x1.x
-        self.l = x
-        self.SetMatrix()
-        self.MatrixExponent()
-        p0 = dot(self.MET,self.P0[0])
-        p1 = dot(self.MET,self.P0[1])
-        return [x,[p0,p1]]
-
-    def SolveNoMigration(self):
+    def SolveNoMigration1(self):
         lc = [None, None]
         A1 = self.P0[0][0]/sum(self.P0[0])
         A2 = self.P0[0][1]/sum(self.P0[0])
@@ -181,6 +191,35 @@ class CorrectLambda:
             lc[1] = -log(B3*X1+B4*X2)/self.T
         else:
             lc = [-1, -1]
+        p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
+        p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
+        return [lc,[p0,p1]]
+    
+    def LambdaSystemNoMigration(self,l):
+        coalT = [None, None]
+        for i in [0,1]:
+            pnc = self.pr0[i][0]*exp(-l[0]*self.T)+self.pr0[i][1]*exp(-l[1]*self.T)+self.pr0[i][2]
+            #            print("pnc[",i,"]=",pnc)
+            coalT[i] = (self.pr0[i][0]*self.ExpectedCoalTimeOnePopNonConditional(l[0])+self.pr0[i][1]*self.ExpectedCoalTimeOnePopNonConditional(l[1]))/(1-pnc)
+            '''        print("l=",l)
+        print("lh=",self.lh)
+        print("time int=",self.T)
+        print("coalT=",coalT)
+        print("exptT=",[self.ExpectedCoalTimeOnePop(self.lh[0]),self.ExpectedCoalTimeOnePop(self.lh[1])])
+        print(self.pr0[0])
+        print(self.pr0[1])
+        sys.exit(0)'''
+        return( coalT[0]- self.ExpectedCoalTimeOnePop(self.lh[0]), coalT[1]- self.ExpectedCoalTimeOnePop(self.lh[1]) )
+    
+    def SolveNoMigration(self):
+        self.pr0 = [None, None]
+        for i in [0,1]:
+            self.pr0[i] = [v/sum(self.P0[i]) for v in self.P0[i]]
+        upperLimit = numpy.inf#10*self.lh[0]
+        lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
+        prec = 1e-10
+        x1 = optimize.least_squares(self.LambdaSystemNoMigration, self.lh, bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
+        lc = x1.x
         p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
         p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
         return [lc,[p0,p1]]
@@ -210,7 +249,7 @@ class CorrectLambda:
         x = None
 #        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
         upperLimit = numpy.inf#10*self.lh[0]
-        lowerLimit = 0.1*min(self.lh[0], self.lh[1])#0
+        lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
         x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
         '''        if False:
@@ -242,7 +281,9 @@ class CorrectLambda:
         print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
         return [x,[p0,p1]]
         
-        
+#if __name__ == "__main__":
+    
+    
 '''
 cl = CorrectLambda()
 inter1 = [0, 1, 1, 1, 1]

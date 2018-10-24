@@ -223,8 +223,10 @@ class MigrationInference:
                     MigrationInference.CORRECTION_FAILED += 1
                     return False
                 p0 = sol[1]
-            nc[0] += -self.times[t]*self.lh[t][0]
-            nc[1] += -self.times[t]*self.lh[t][1]
+            #nc[0] += -self.times[t]*self.lh[t][0]
+            #nc[1] += -self.times[t]*self.lh[t][1]
+            nc[0] = sum(p0[0])
+            nc[1] = sum(p0[1])
         for t in range(self.splitT,self.numT - 1):
 #            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
             if self.times[t] == 0:
@@ -413,6 +415,10 @@ class MigrationInference:
             print("----------",self.JAFS[0],self.JAFS[1],sep="\t\t")
             print(self.JAFS[2],self.JAFS[3],self.JAFS[4],sep="\t\t")
             print(self.JAFS[5],self.JAFS[6],"----------",sep="\t\t")
+            
+            print("----------",self.dataJAFS[0]/sum(self.dataJAFS),self.dataJAFS[1]/sum(self.dataJAFS),sep="\t\t")
+            print(self.dataJAFS[2]/sum(self.dataJAFS),self.dataJAFS[3]/sum(self.dataJAFS),self.dataJAFS[4]/sum(self.dataJAFS),sep="\t\t")
+            print(self.dataJAFS[5]/sum(self.dataJAFS),self.dataJAFS[6]/sum(self.dataJAFS),"----------",sep="\t\t")
             n = 1+1/2+1/3
             print("singletons", (self.JAFS[0]+self.JAFS[2]), 1/n)
             print("doubletons", (self.JAFS[1]+self.JAFS[3]+self.JAFS[5]), 1/(2*n))

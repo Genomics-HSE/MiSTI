@@ -234,23 +234,27 @@ class MigrationInference:
                     return False
                 p0 = sol[1]
             self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
-            nc[0] += -self.times[t]*self.lh[t][0]
-            nc[1] += -self.times[t]*self.lh[t][1]
+#            nc[0] += -self.times[t]*self.lh[t][0]
+#            nc[1] += -self.times[t]*self.lh[t][1]
+            nc[0] = sum(p0[0])
+            nc[1] = sum(p0[1])
         for t in range(self.splitT,self.numT - 1):
 #            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
             if self.times[t] == 0:
                 self.lc[t][0], self.lc[t][1] = 1, 1
                 continue
-            pnc = ( exp(-self.times[t]*self.lh[t][0]) + exp(nc[1] - nc[0] - self.times[t]*self.lh[t][1]) )/( 1 + exp( nc[1] - nc[0] ) )
-            self.lc[t][0] = -log(pnc)/self.times[t]
-            self.lc[t][1] = -log(pnc)/self.times[t]
-            if self.times[t] == 0:
-                continue
+            self.cl.SetInterval(self.lh[t], self.times[t], [[exp(nc[0]), 0, 0], [exp(nc[1]), 0, 0]])
+            lam = self.cl.FitSinglePop()[0]
+            self.lc[t][0] = lam
+            self.lc[t][1] = lam
             nc[0] += -self.times[t]*self.lc[t][0]
             nc[1] += -self.times[t]*self.lc[t][1]
         t = self.numT - 1
-        self.lc[t][0] = (self.lh[t][0]+self.lh[t][1])/2
-        self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2
+        pr0 = exp(nc[0])
+        pr1 = exp(nc[1])
+        lam = (pr0+pr1)/(pr0/self.lh[t][0]+pr1/self.lh[t][1])
+        self.lc[t][0] = lam
+        self.lc[t][1] = lam
         self.Smooth()
         return True
     
