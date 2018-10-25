@@ -470,7 +470,7 @@ def ReadMS(argument_string):
 
 def PlotInit(id=1):
 #    plt.figure(id)
-    MiPlot.fig, (MiPlot.ax, MiPlot.pr11, MiPlot.pr22, MiPlot.pr12, MiPlot.nc) = plt.subplots(5, 1)
+    MiPlot.fig, (MiPlot.ax, MiPlot.pr11, MiPlot.pr22, MiPlot.pr12, MiPlot.nc) = plt.subplots(5, 1, gridspec_kw=dict(hspace=0.5, height_ratios=[3, 1, 1, 1, 1]))
     MiPlot.ax.semilogx()
     MiPlot.pr11.semilogx()
     MiPlot.pr22.semilogx()
@@ -497,18 +497,23 @@ def AddProb(pr11, pr22, pr12, times):
     
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
     MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
+    MiPlot.pr11.legend(loc="upper right", prop=dict(size=6))
     
     MiPlot.pr22.step(times+[2*times[-1]], [pr22[0][0]]+pr22[0], alpha=0.7, label="1")
     MiPlot.pr22.step(times+[2*times[-1]], [pr22[1][0]]+pr22[1], alpha=0.7, label="2")
-    
+    MiPlot.pr22.legend(loc="upper right", prop=dict(size=6))
+
     MiPlot.pr12.step(times+[2*times[-1]], [pr12[0][0]]+pr12[0], alpha=0.7, label="1")
     MiPlot.pr12.step(times+[2*times[-1]], [pr12[1][0]]+pr12[1], alpha=0.7, label="2")
-    
+    MiPlot.pr12.legend(loc="upper right", prop=dict(size=6))
+
     MiPlot.nc.step(times+[2*times[-1]], [nc[0][0]]+nc[0], alpha=0.7, label="1")
     MiPlot.nc.step(times+[2*times[-1]], [nc[1][0]]+nc[1], alpha=0.7, label="2")
+    MiPlot.nc.legend(loc="upper right", prop=dict(size=6))
 
 def SavePlot(fout, id=1):
     #plt.figure(id)
+    MiPlot.ax.legend()
     MiPlot.fig.savefig(fout)
     
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):

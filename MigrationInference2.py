@@ -422,12 +422,12 @@ class MigrationInference:
         MigrationInference.COUNT_LLH += 1
         for v in mu:
             if v < 0:
-                return -10*9#float('-inf')
+                return -10**9#float('-inf')
 #        self.mu[0],self.mu[1]=mu[0],mu[1]
         self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
-            return -10*9#float('-inf') # -10**(10)
+            return -10**9#float('-inf') # -10**(10)
         if self.enableOutput:
             print("JAFSLikelyhood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelyhood(): corrected values of lambdas are ", self.lc)
