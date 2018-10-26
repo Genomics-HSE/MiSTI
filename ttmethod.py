@@ -31,7 +31,7 @@ if isinstance(clargs.y, list):
 if isinstance(clargs.mu, list):
     clargs.mu = clargs.mu[0]
 
-spectrum = ReadJAFS(clargs.jafs)
+spectrum = ReadJAFS(clargs.jafs).jafs
 spectrum = spectrum[1:]
 #Converting to paper notations
 M = float(clargs.haplen)

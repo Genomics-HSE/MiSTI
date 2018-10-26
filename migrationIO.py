@@ -28,6 +28,10 @@ import argparse
 class MiPlot:#This is a class of static variables
     fig = None
     ax = None
+    
+class JAFS:#This is a class of static variables
+    __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None):
+        pass
 
 class MigData:
     def __init__(self, **kwargs):
@@ -390,6 +394,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     return(data)
 
 def ReadJAFS(fn):
+    Jafs = JAFS()
     jafs = []
     with open(fn) as f:
         line = next(f).rstrip()
@@ -412,6 +417,18 @@ def ReadJAFS(fn):
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
                 print("pop2\t", line[1])
+            elif line[1:11] == "ufLLHConst":
+                line = line.split(" ")
+                if len(line) != 2:
+                    PrintErr("Corrupted JAF file header.")
+                    sys.exit(0)
+                Jafs.ufLLHConst = float(line[1])
+            elif line[1:10] == "fLLHConst":
+                line = line.split(" ")
+                if len(line) != 2:
+                    PrintErr("Corrupted JAF file header.")
+                    sys.exit(0)
+                Jafs.fLLHConst = float(line[1])
             line = next(f).rstrip()
 
         line = line.split("\t")
@@ -428,6 +445,7 @@ def ReadJAFS(fn):
     if len(jafs) != 8:
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
+    Jafs.jafs = jafs
     return(jafs)
 
 def ReadMS(argument_string):
@@ -524,7 +542,31 @@ def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
     if pop2:
         pop2 = pop2.strip("\n\r")
         print("#pop2", pop2)
+    
     norm = sum(jaf)
+    
+    ufLLHConst = 0.0
+    for j in range(1, norm+1):
+        ufLLHConst += log(j)
+    for i in range(7):
+        for j in range(1, jaf[i]+1):
+            ufLLHConst -= log(j)
+    
+    fLLHConst = 0.0
+    for j in range(1, norm+1):
+        fLLHConst += log(j)
+    for j in range(1, jaf[0]+jaf[6]+1):
+        fLLHConst -= log(j)
+    for j in range(1, jaf[1]+jaf[5]+1):
+        fLLHConst -= log(j)
+    for j in range(1, jaf[2]+jaf[4]+1):
+        fLLHConst -= log(j)
+    for j in range(1, jaf[3]+1):
+        fLLHConst -= log(j)
+    
+    print("#ufLLHConst\t", ufLLHConst)
+    print("#fLLHConst\t", fLLHConst)
+    
     print("total\t", norm)
     #jaf = [v/norm for v in jaf]
     jfn = ["0100", "1100", "0001", "0101", "1101", "0011", "0111"]

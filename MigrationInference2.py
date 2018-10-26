@@ -125,22 +125,28 @@ class MigrationInference:
         
         if MigrationInference.LLH_CONST == 0:
             if self.unfolded:
-                for j in range(1, self.snps+1):
-                    MigrationInference.LLH_CONST += log(j)
-                for i in range(7):
-                    for j in range(1, self.dataJAFS[i]+1):
-                        MigrationInference.LLH_CONST -= log(j)
+                if self.dataJAFS.ufLLHConst == None:
+                    for j in range(1, self.snps+1):
+                        MigrationInference.LLH_CONST += log(j)
+                    for i in range(7):
+                        for j in range(1, self.dataJAFS[i]+1):
+                            MigrationInference.LLH_CONST -= log(j)
+                else:
+                    MigrationInference.LLH_CONST = self.dataJAFS.ufLLHConst
             else:
-                for j in range(1, self.snps+1):
-                    MigrationInference.LLH_CONST += log(j)
-                for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[3]+1):
-                    MigrationInference.LLH_CONST -= log(j)
+                if self.dataJAFS.fLLHConst == None:
+                    for j in range(1, self.snps+1):
+                        MigrationInference.LLH_CONST += log(j)
+                    for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[3]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                else:
+                    MigrationInference.LLH_CONST = self.dataJAFS.fLLHConst
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas

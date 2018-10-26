@@ -277,7 +277,7 @@ print("Reading from files:")
 print("pop1\t", fpsmc1)
 print("pop2\t", fpsmc2)
 print("jafs\t", fjafs)
-dataJAFS = migrationIO.ReadJAFS(fjafs)
+dataJAFS = migrationIO.ReadJAFS(fjafs).jafs
 print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc file are supplied in the same order as populations appear in the joint allele frequency spectrum.")
 
 fout   = clargs.fout
