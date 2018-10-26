@@ -31,7 +31,9 @@ class MiPlot:#This is a class of static variables
     
 class JAFS:#This is a class of static variables
     def __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None):
-        pass
+        self.jafs = jafs
+        self.ufLLHConst = ufLLHConst
+        self.fLLHConst = fLLHConst
 
 class MigData:
     def __init__(self, **kwargs):
