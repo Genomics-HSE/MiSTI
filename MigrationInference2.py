@@ -120,21 +120,21 @@ class MigrationInference:
         
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
-        self.snps = dataJAFS[0]
-        self.dataJAFS = [el for el in dataJAFS[1:]]
+        self.snps = dataJAFS.jafs[0]
+        self.dataJAFS = [el for el in dataJAFS.jafs[1:]]
         
         if MigrationInference.LLH_CONST == 0:
             if self.unfolded:
-                if self.dataJAFS.ufLLHConst == None:
+                if dataJAFS.ufLLHConst == None:
                     for j in range(1, self.snps+1):
                         MigrationInference.LLH_CONST += log(j)
                     for i in range(7):
                         for j in range(1, self.dataJAFS[i]+1):
                             MigrationInference.LLH_CONST -= log(j)
                 else:
-                    MigrationInference.LLH_CONST = self.dataJAFS.ufLLHConst
+                    MigrationInference.LLH_CONST = dataJAFS.ufLLHConst
             else:
-                if self.dataJAFS.fLLHConst == None:
+                if dataJAFS.fLLHConst == None:
                     for j in range(1, self.snps+1):
                         MigrationInference.LLH_CONST += log(j)
                     for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
@@ -146,7 +146,7 @@ class MigrationInference:
                     for j in range(1, self.dataJAFS[3]+1):
                         MigrationInference.LLH_CONST -= log(j)
                 else:
-                    MigrationInference.LLH_CONST = self.dataJAFS.fLLHConst
+                    MigrationInference.LLH_CONST = dataJAFS.fLLHConst
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
