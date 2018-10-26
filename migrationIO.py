@@ -564,8 +564,8 @@ def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
     for j in range(1, jaf[3]+1):
         fLLHConst -= log(j)
     
-    print("#ufLLHConst\t", ufLLHConst)
-    print("#fLLHConst\t", fLLHConst)
+    print("#ufLLHConst", ufLLHConst)
+    print("#fLLHConst", fLLHConst)
     
     print("total\t", norm)
     #jaf = [v/norm for v in jaf]
