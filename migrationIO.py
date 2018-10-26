@@ -30,7 +30,7 @@ class MiPlot:#This is a class of static variables
     ax = None
     
 class JAFS:#This is a class of static variables
-    __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None):
+    def __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None):
         pass
 
 class MigData:
@@ -446,7 +446,7 @@ def ReadJAFS(fn):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     Jafs.jafs = jafs
-    return(jafs)
+    return(Jafs.jafs)
 
 def ReadMS(argument_string):
     PrintErr("WARNING: ReadMS() is not safe to use, the function has many assumptions on the ms command line")
