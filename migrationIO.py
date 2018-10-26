@@ -446,7 +446,7 @@ def ReadJAFS(fn):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     Jafs.jafs = jafs
-    return(Jafs.jafs)
+    return(Jafs)
 
 def ReadMS(argument_string):
     PrintErr("WARNING: ReadMS() is not safe to use, the function has many assumptions on the ms command line")
