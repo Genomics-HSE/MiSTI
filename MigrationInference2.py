@@ -78,8 +78,9 @@ class MigrationInference:
         self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]#time in generation units
-            print("Sample date needs to be fixed in this version.")
-            sys.exit(0)
+            if self.sampleDate > 0:
+                print("Sample date needs to be fixed in this version.")
+                sys.exit(0)
         
         if splitT < self.sampleDate:
             self.PrintError("__init__", "cannot initialise class with split time being more recent than sample date.")
@@ -490,10 +491,10 @@ class MigrationInference:
     def ObjectiveFunction(self, mu):
         return( -self.JAFSLikelyhood( mu ) )
     
-    def Solve(self, tol=1e-4, global = False):
+    def Solve(self, tol=1e-4, globalOpt = False):
         if self.optParsSize > 0:
             mu0 = [val[3] for val in self.optPars]
-            if global:
+            if globalOpt:
                 res = optimize.basinhopping(self.ObjectiveFunction, mu0, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
             else:
                 res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
