@@ -276,17 +276,20 @@ class CorrectLambda:
 #        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
         upperLimit = numpy.inf#10*self.lh[0]
         lowerLimit = 0.001*min(self.lh[0], self.lh[1])#0
-#        timeTmp = self.T
-#        self.T = self.T/timeTmp
-#        self.mu = [self.mu[0]*timeTmp, self.mu[1]*timeTmp]
-#        self.lh = [self.lh[0]*timeTmp,self.lh[1]*timeTmp]
+        timeTmp = self.T
+        self.T = self.T/timeTmp
+        self.mu = [self.mu[0]*timeTmp, self.mu[1]*timeTmp]
+        self.lh = [self.lh[0]*timeTmp, self.lh[1]*timeTmp]
         if not cpfit:
             x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         else:
             x1 = optimize.least_squares(self.LambdaSystem1, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
-
         self.l = x
+        self.T = timeTmp
+        self.mu = [self.mu[0]/timeTmp, self.mu[1]/timeTmp]
+        self.lh = [self.lh[0]/timeTmp, self.lh[1]/timeTmp]
+        self.l =  [self.l[0]/timeTmp,  self.l[1]/timeTmp]
         self.SetMatrix()
         self.MatrixExponent()
         p0 = dot(self.MET,self.P0[0])
