@@ -78,6 +78,8 @@ class MigrationInference:
         self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]#time in generation units
+            print("Sample date needs to be fixed in this version.")
+            sys.exit(0)
         
         if splitT < self.sampleDate:
             self.PrintError("__init__", "cannot initialise class with split time being more recent than sample date.")
@@ -95,21 +97,6 @@ class MigrationInference:
             lambdas.insert(splitT + 1, lambdas[splitT])
             splitT += 1
         
-        self.migStart = 0
-        if "migStart" in kwargs:
-            if kwargs["migStart"] < splitT:
-                self.migStart = kwargs["migStart"]
-        
-        if self.sampleDate > self.migStart:
-            self.migStart = self.sampleDate
-        
-
-        self.splitT = splitT
-        self.mu = list(lambdas)#initialize migration with the same size as lambdas
-        self.SetModel(mu)#set values for mu
-#        self.mu = mu
-            
-        
         #PSMC parameters
         self.lh = list(lambdas)#pairs of PSMC lambda_0 and lambda_1
         self.times = times
@@ -117,6 +104,35 @@ class MigrationInference:
         if len(self.times) != self.numT - 1:
             print("Unexpected number of time intervals")
             sys.exit(0)
+        
+        self.discr = 1
+        if self.discr > 1:
+            timesTmp = []
+            lhTmp = []
+            discr = self.discr
+            splitT = splitT*discr
+            if False:
+                for i in range(len(self.times)):
+                    self.times[i] = self.times[i]*discr
+                for i in range(len(self.lh)):
+                    self.lh[i] = [self.lh[i][0]/discr,self.lh[i][1]/discr]
+            for i in range( self.numT - 1 ):
+                timesTmp += [self.times[i]/discr for j in range(discr)]
+                lhTmp += [self.lh[i] for j in range(discr)]
+            lhTmp.append(self.lh[-1])
+            self.times = timesTmp
+            self.lh = lhTmp
+            self.numT = len(self.lh)
+
+            for i in range(len(mu)):
+                mu[i][1] = int(mu[i][1])*discr
+                mu[i][2] = int(mu[i][2])*discr
+                if False:
+                    mu[i][3] = float(mu[i][3])/discr
+
+        self.splitT = splitT
+        self.mu = list(self.lh)#initialize migration with the same size as lambdas
+        self.SetModel(mu)
         
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
@@ -468,15 +484,19 @@ class MigrationInference:
 #        print("full log llh=", llh)
 #        for i in range(self.numT):
 #            print(i, "\t", self.lc[i][0], "\t", self.lc[i][1])
+        self.llh = llh
         return( llh )
     
     def ObjectiveFunction(self, mu):
         return( -self.JAFSLikelyhood( mu ) )
     
-    def Solve(self, tol=1e-4):
+    def Solve(self, tol=1e-4, global = False):
         if self.optParsSize > 0:
             mu0 = [val[3] for val in self.optPars]
-            res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
+            if global:
+                res = optimize.basinhopping(self.ObjectiveFunction, mu0, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
+            else:
+                res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
         #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
             return([res.x, -res.fun])
         else:
@@ -484,6 +504,6 @@ class MigrationInference:
         
     def Report():
 #        print("Split time ", self.splitT)
-        print("Total number of likelihood function calls is ", MigrationInference.COUNT_LLH)
-        print("Lambda correction called ", MigrationInference.CORRECTION_CALLED, " times.")
-        print("Lambda correction failed ", MigrationInference.CORRECTION_FAILED, " times.")
+        print("Total number of likelihood function calls is", MigrationInference.COUNT_LLH)
+        print("Lambda correction called", MigrationInference.CORRECTION_CALLED, "times.")
+        print("Lambda correction failed", MigrationInference.CORRECTION_FAILED, "times.")

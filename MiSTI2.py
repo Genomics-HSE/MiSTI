@@ -36,6 +36,8 @@ from CorrectLambda import CorrectLambda
 import migrationIO
 from migrationIO import PrintErr
 
+t0 = time.time()
+
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
 parser.add_argument('fpsmc1',
@@ -73,8 +75,6 @@ parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
 
 parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
-parser.add_argument('-llh', action='store_true',
-                    help='Compute model llh')
 parser.add_argument('--nosmooth', action='store_true',
                     help='Don\'t smooth (don\'t make constant on the psmc time intervals)')
 parser.add_argument('--trueEPS', action='store_true',
@@ -107,8 +107,6 @@ if isinstance(clargs.discr, list):
     clargs.discr = clargs.discr[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
-if isinstance(clargs.llh, list):
-    clargs.llh = clargs.llh[0]
 if isinstance(clargs.nosmooth, list):
     clargs.nosmooth = clargs.nosmooth[0]
 if isinstance(clargs.trueEPS, list):
@@ -126,10 +124,6 @@ if isinstance(clargs.funits, list):
 if isinstance(clargs.debug, list):
     clargs.debug = clargs.debug[0]
 
-mode = "optimize"
-if clargs.llh:
-    mode = "llhmodel"
-
 clargs.settings = {
     "enableOutput": False,
     "unfolded": clargs.uf,
@@ -140,7 +134,6 @@ units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
 
 print( " ".join(sys.argv) )
-t1 = time.time()
 
 startTime = time.strftime("Job run at %H:%M:%S on %d %b %Y")
 if clargs.debug:
@@ -181,30 +174,32 @@ times = inputData[0]
 
 
 sol = [[], [], []]
-if mode == "optimize":
-    Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
-    sol = Migration.Solve(clargs.tol)
-    print(sol)
-elif mode == "llhmodel":
-    print("Not in this version...")
-    sys.exit(0)
-    
-else:
-    PrintErr("Unknown mode")
-    sys.exit(0)
 
-print("\n\nParameter estimates:")
+t1 = time.time()
+
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
+sol = Migration.Solve(clargs.tol)
+print(sol)
+
+
+print("\nParameter estimates:")
 
 splitT = clargs.st
 
-print("splitT = ", splitT, "\ttime = ", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates = ", [v/migrUnit for v in sol[0]], "\tllh = ", sol[1])
+print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
 print("\n")
+
+t2 = time.time()
 
 migrationIO.OutputMigration2(fout, sol[0], Migration)
 
-#MigrationInference.Report()
-t2 = time.time()
+t3 = time.time()
+
+MigrationInference.Report()
 if clargs.debug:
-    PrintErr("Total time ", t2-t1)
-print("Total time ", t2-t1)
+    PrintErr("Runtime:   optimisation ", t2-t1)
+    PrintErr("           total        ", t3-t0)
+
+print("Runtime:   optimisation", t2-t1)
+print("           total       ", t3-t0)
 sys.exit(1)

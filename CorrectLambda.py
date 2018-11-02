@@ -66,6 +66,11 @@ class CorrectLambda:
     
     def ExpectedCoalTimeOnePop(self, lam):
         return 1.0/lam-self.T/(exp(lam*self.T)-1)
+        
+    def ExpectedCoalTimeOnePopTmp(self, lam):
+        pnc = exp(-lam*self.T)
+        Tc = 1.0/lam-self.T/(1.0/pnc-1.0)
+        return [Tc, pnc]
     
     def ExpectedCoalTimeOnePopNonConditional(self, lam):
         return (1-exp(-lam*self.T)*(1+lam*self.T))/lam
@@ -84,7 +89,7 @@ class CorrectLambda:
     
     def ExpectedCoalTimeTwoPop(self):
         Pnormed = [None, None]
-        coalT = [None, None]
+        coalT = [[None, None], [None, None]]
         for i in [0,1]:
             Pnormed[i] = [v/sum(self.P0[i]) for v in self.P0[i]]
         Minv = linalg.inv(self.M)
@@ -93,9 +98,11 @@ class CorrectLambda:
             vec1 = dot(mat, Pnormed[i])
             vec1 = dot(Minv, dot(Minv, vec1))
             vec2 = dot(self.MET, Pnormed[i])
+            pnc = sum(vec2)
             vec2 = dot(self.T, dot(Minv, vec2))
             vec = vec2 - vec1
-            coalT[i] = (self.l[0]*vec[0] + self.l[1]*vec[1])/(1-sum(dot(self.MET,Pnormed[i])))
+            coalT[i][0] = (self.l[0]*vec[0] + self.l[1]*vec[1])/(1-pnc)
+            coalT[i][1] = pnc
         return coalT
     
     def LambdaEquation1(self, npop):
@@ -120,12 +127,20 @@ class CorrectLambda:
         nc = sum(p0)
         return nc-nch
     
+    def VariantRatio(self, Tc, pnc):
+        singletons = pnc*2*self.T+(1.0-pnc)*2*Tc
+        doubletons = (1.0-pnc)*(self.T-Tc)
+        return singletons/doubletons
+    
     def LambdaSystem(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
         self.MatrixExponent()
         coalT = self.ExpectedCoalTimeTwoPop()
-        return( coalT[0]- self.ExpectedCoalTimeOnePop(self.lh[0]), coalT[1]- self.ExpectedCoalTimeOnePop(self.lh[1]) )
+        coalT1 = [self.ExpectedCoalTimeOnePopTmp(self.lh[0]), self.ExpectedCoalTimeOnePopTmp(self.lh[1])]
+        varRatio1pop = [self.VariantRatio(coalT1[0][0], coalT1[0][1]), self.VariantRatio(coalT1[1][0], coalT1[1][1])]
+        varRatio2pop = [self.VariantRatio(coalT[0][0], coalT[0][1]), self.VariantRatio(coalT[1][0], coalT[1][1])]
+        return( varRatio1pop[0]-varRatio2pop[0], varRatio1pop[1]-varRatio2pop[1])
     
     def LambdaSystem1(self,l):
         self.l = [l[0],l[1]]
@@ -252,39 +267,22 @@ class CorrectLambda:
         x = None
 #        x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
         upperLimit = numpy.inf#10*self.lh[0]
-        lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
+        lowerLimit = 0.001*min(self.lh[0], self.lh[1])#0
+#        timeTmp = self.T
+#        self.T = self.T/timeTmp
+#        self.mu = [self.mu[0]*timeTmp, self.mu[1]*timeTmp]
+#        self.lh = [self.lh[0]*timeTmp,self.lh[1]*timeTmp]
         if not cpfit:
             x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         else:
             x1 = optimize.least_squares(self.LambdaSystem1, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         x = x1.x
-        '''        if False:
-            try:
-                x = optimize.broyden1(self.LambdaSystem, [self.lh[0],self.lh[1]], f_tol=prec)
-            except:
-                self.doBroyden1 = False
-                upperLimit = numpy.inf#10*self.lh[0]
-                lowerLimit = 0.1*self.lh[0]#0
-                x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
-                x = x1.x
-        if False:
-            upperLimit = numpy.inf#10*self.lh[0]
-            lowerLimit = 0.1*self.lh[0]#0
-            x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
-            x = x1.x'''
+
         self.l = x
         self.SetMatrix()
         self.MatrixExponent()
         p0 = dot(self.MET,self.P0[0])
         p1 = dot(self.MET,self.P0[1])
-        '''        print("\tmatrix=\n",self.MET)
-        print(self.P0[0])
-        print(self.P0[1])
-        print("\tlc=", x)
-        print("\tlh=", self.lh)
-        print("\tmu=", self.mu)
-        print("\tt=", self.T)
-        print("\t\tLambdaSystemSolution=", self.LambdaSystem(x))'''
         return [x,[p0,p1]]
         
 #if __name__ == "__main__":

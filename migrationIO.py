@@ -263,7 +263,10 @@ def OutputMigration(fout, mu, Migration):
         fw.close()
 
 def OutputMigration2(fout, mu, Migration):
-    llh = Migration.JAFSLikelyhood( mu )
+    if len(mu) == 0:
+        llh = Migration.llh
+    else:
+        llh = Migration.JAFSLikelyhood( mu )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#MiSTI2 ver 0.3\n"
     outData += "LK\t" + str(llh) + "\n"#split time
