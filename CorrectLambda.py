@@ -138,10 +138,18 @@ class CorrectLambda:
         self.MatrixExponent()
         coalT = self.ExpectedCoalTimeTwoPop()
         coalT1 = [self.ExpectedCoalTimeOnePopTmp(self.lh[0]), self.ExpectedCoalTimeOnePopTmp(self.lh[1])]
+        return( coalT[0][0]-coalT1[0][0], coalT[1][0]-coalT1[1][0])
+        
+    def LambdaSystemRatio(self,l):#fit singletons to doubletons ratio
+        self.l = [l[0],l[1]]
+        self.SetMatrix()
+        self.MatrixExponent()
+        coalT = self.ExpectedCoalTimeTwoPop()
+        coalT1 = [self.ExpectedCoalTimeOnePopTmp(self.lh[0]), self.ExpectedCoalTimeOnePopTmp(self.lh[1])]
         varRatio1pop = [self.VariantRatio(coalT1[0][0], coalT1[0][1]), self.VariantRatio(coalT1[1][0], coalT1[1][1])]
         varRatio2pop = [self.VariantRatio(coalT[0][0], coalT[0][1]), self.VariantRatio(coalT[1][0], coalT[1][1])]
         return( varRatio1pop[0]-varRatio2pop[0], varRatio1pop[1]-varRatio2pop[1])
-    
+ 
     def LambdaSystem1(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
