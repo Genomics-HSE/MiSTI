@@ -105,8 +105,35 @@ class MigrationInference:
         if len(self.times) != self.numT - 1:
             print("Unexpected number of time intervals")
             sys.exit(0)
-        
-        self.discr = 1
+        '''discr_step = 0.0001 
+        self.discr = 200
+        timeMap = [0]
+        if discr_step > 0:
+            timesTmp = []
+            lhTmp = []
+            discr = self.discr
+            newST = self.discr*splitT
+            splitT = 120
+            for i in range( splitT ):
+                discr = math.ceil(self.times[i]/discr_step)
+                discr = self.discr
+                timeMap.append(discr+timeMap[-1])
+                timesTmp += [self.times[i]/discr for j in range(discr)]
+                lhTmp += [self.lh[i] for j in range(discr)]
+            timeMap += list(range(len(timesTmp),len(timesTmp)+len(self.times[splitT:])))
+            #newST = len(timesTmp)
+            lhTmp += list(self.lh[splitT:])
+            timesTmp += list(self.times[splitT:])
+            #lhTmp.append(self.lh[-1])
+            self.times = timesTmp
+            self.lh = lhTmp
+            self.numT = len(self.lh)
+            splitT = newST
+            for i in range(len(mu)):
+                mu[i][1] = timeMap[int(mu[i][1])]
+                mu[i][2] = timeMap[int(mu[i][2])]'''
+
+        self.discr = 100
         if self.discr > 1:
             timesTmp = []
             lhTmp = []
@@ -443,14 +470,15 @@ class MigrationInference:
         
     def JAFSLikelyhood(self, mu):
         MigrationInference.COUNT_LLH += 1
+        self.llh = -10**9
         for v in mu:
             if v < 0:
-                return -10**9#float('-inf')
+                return self.llh#float('-inf')
 #        self.mu[0],self.mu[1]=mu[0],mu[1]
         self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
-            return -10**9#float('-inf') # -10**(10)
+            return self.llh#float('-inf') # -10**(10)
         if self.enableOutput:
             print("JAFSLikelyhood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelyhood(): corrected values of lambdas are ", self.lc)
