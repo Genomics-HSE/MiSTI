@@ -78,9 +78,6 @@ class MigrationInference:
         self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]#time in generation units
-            if self.sampleDate > 0:
-                print("Sample date needs to be fixed in this version.")
-                sys.exit(0)
         
         if splitT < self.sampleDate:
             self.PrintError("__init__", "cannot initialise class with split time being more recent than sample date.")
@@ -133,7 +130,7 @@ class MigrationInference:
                 mu[i][1] = timeMap[int(mu[i][1])]
                 mu[i][2] = timeMap[int(mu[i][2])]'''
 
-        self.discr = 100
+        self.discr = 1
         if self.discr > 1:
             timesTmp = []
             lhTmp = []
@@ -229,7 +226,13 @@ class MigrationInference:
             if popInd != 0 and popInd != 1:
                 self.PrintError("SetModel", "Population index should be 1 or 2.")
             migStart = int(el[1])
+            if migStart < self.sampleDate:
+                text = "Migration start (" + str(migStart) + ") should be larger or equal than sample date (" + str(self.sampleDate) + ")."
+                self.PrintError("SetModel", text)
             migEnd = int(el[2])
+            if migEnd <= migStart:
+                text = "Migration start (" + str(migStart) + ") should be strictly less than migration end (" + str(migEnd) + ")."
+                self.PrintError("SetModel", text)
             migVal = float(el[3])
             migVar = int(el[4])
             for i in range(migStart, migEnd):
@@ -430,8 +433,8 @@ class MigrationInference:
             for i in range( model.StateNum() ):
                 jaf = model.StateToJAF(i)
                 if interval < self.sampleDate:
-                    for i in range(2, len(jaf)):
-                        jaf[i] = 0
+                    for j in range(2, len(jaf)):
+                        jaf[j] = 0
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
     
     def PrintMatrix(self):

@@ -358,8 +358,8 @@ class MigrationInference:
             for i in range( model.StateNum() ):
                 jaf = model.StateToJAF(i)
                 if interval < self.sampleDate:
-                    for i in range(2, len(jaf)):
-                        jaf[i] = 0
+                    for j in range(2, len(jaf)):
+                        jaf[j] = 0
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
     
     def PrintMatrix(self):
