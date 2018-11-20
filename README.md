@@ -11,7 +11,7 @@ Example:
 For simulated data use the scripts utils/MS2JAF.py (msHOT-lite with -l format) or utils/SCRM2JAF.py (regular ms of scrm output format) to calculate joint SFS from simulated chromosomes.
  * If one of the genomes is ancient, it should be the _second_ genome in SFS.
 
-## On the time scale
+## About the time scale
 The time scale used in MiSTI command line is based on the PSMC time discretisation. Usually the time discretisation for different genomes does not coinside, so MiSTI merges the time points from two psmc files. Hence, on each time interval the coalescence rates for both genomes are constant. All the times in MiSTI command line (except for the sample date in case of ancient genome) are the indices of the corresponding time intervals. Use utils/calc_time.py to convert indices to generations/years. Example:
 ./utils/calc_time.py genome1.psmc genome2.psmc
 >0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0  
