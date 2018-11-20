@@ -66,4 +66,4 @@ fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 
 inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, False)
 for splitT in range(len(inputData[0])):
-    print("splitT = ", splitT, "\ttime = ", int(sum(inputData[0][0:int(splitT)])*inputData[2]))
+    print(splitT, "\t", int(sum(inputData[0][0:int(splitT)])*inputData[2]))
