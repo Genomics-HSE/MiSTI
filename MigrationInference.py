@@ -51,6 +51,10 @@ class MigrationInference:
                 self.enableOutput = True
         if self.enableOutput:
             print("MigrationInference: output enabled.")
+        self.cpfit = False
+        if "cpfit" in kwargs:
+            if kwargs["cpfit"]:
+                self.cpfit = True
         
         self.correct = True
         if "trueEPS" in kwargs:
@@ -91,27 +95,6 @@ class MigrationInference:
             lambdas.insert(splitT + 1, lambdas[splitT])
             splitT += 1
         
-        self.migStart = 0
-        if "migStart" in kwargs:
-            if kwargs["migStart"] < splitT:
-                self.migStart = kwargs["migStart"]
-        
-        if self.sampleDate > self.migStart:
-            self.migStart = self.sampleDate
-        
-        self.migEnd = splitT
-        if "migEnd" in kwargs:
-            if kwargs["migEnd"] > 0:
-                self.migEnd = kwargs["migEnd"]
-        self.splitT = splitT
-        if self.migEnd > self.splitT:
-            self.migEnd = self.splitT
-        
-        self.mu = list(lambdas)#initialize migration with the same size as lambdas
-        self.SetModel(mu)#set values for mu
-#        self.mu = mu
-            
-        
         #PSMC parameters
         self.lh = list(lambdas)#pairs of PSMC lambda_0 and lambda_1
         self.times = times
@@ -119,30 +102,92 @@ class MigrationInference:
         if len(self.times) != self.numT - 1:
             print("Unexpected number of time intervals")
             sys.exit(0)
+        '''discr_step = 0.0001 
+        self.discr = 200
+        timeMap = [0]
+        if discr_step > 0:
+            timesTmp = []
+            lhTmp = []
+            discr = self.discr
+            newST = self.discr*splitT
+            splitT = 120
+            for i in range( splitT ):
+                discr = math.ceil(self.times[i]/discr_step)
+                discr = self.discr
+                timeMap.append(discr+timeMap[-1])
+                timesTmp += [self.times[i]/discr for j in range(discr)]
+                lhTmp += [self.lh[i] for j in range(discr)]
+            timeMap += list(range(len(timesTmp),len(timesTmp)+len(self.times[splitT:])))
+            #newST = len(timesTmp)
+            lhTmp += list(self.lh[splitT:])
+            timesTmp += list(self.times[splitT:])
+            #lhTmp.append(self.lh[-1])
+            self.times = timesTmp
+            self.lh = lhTmp
+            self.numT = len(self.lh)
+            splitT = newST
+            for i in range(len(mu)):
+                mu[i][1] = timeMap[int(mu[i][1])]
+                mu[i][2] = timeMap[int(mu[i][2])]'''
+
+        self.discr = 1
+        if self.discr > 1:
+            timesTmp = []
+            lhTmp = []
+            discr = self.discr
+            splitT = splitT*discr
+            if False:
+                for i in range(len(self.times)):
+                    self.times[i] = self.times[i]*discr
+                for i in range(len(self.lh)):
+                    self.lh[i] = [self.lh[i][0]/discr,self.lh[i][1]/discr]
+            for i in range( self.numT - 1 ):
+                timesTmp += [self.times[i]/discr for j in range(discr)]
+                lhTmp += [self.lh[i] for j in range(discr)]
+            lhTmp.append(self.lh[-1])
+            self.times = timesTmp
+            self.lh = lhTmp
+            self.numT = len(self.lh)
+
+            for i in range(len(mu)):
+                mu[i][1] = int(mu[i][1])*discr
+                mu[i][2] = int(mu[i][2])*discr
+                if False:
+                    mu[i][3] = float(mu[i][3])/discr
+
+        self.splitT = splitT
+        self.mu = list(self.lh)#initialize migration with the same size as lambdas
+        self.SetModel(mu)
         
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
-        self.snps = dataJAFS[0]
-        self.dataJAFS = [el for el in dataJAFS[1:]]
+        self.snps = dataJAFS.jafs[0]
+        self.dataJAFS = [el for el in dataJAFS.jafs[1:]]
         
         if MigrationInference.LLH_CONST == 0:
             if self.unfolded:
-                for j in range(1, self.snps+1):
-                    MigrationInference.LLH_CONST += log(j)
-                for i in range(7):
-                    for j in range(1, self.dataJAFS[i]+1):
-                        MigrationInference.LLH_CONST -= log(j)
+                if dataJAFS.ufLLHConst == None:
+                    for j in range(1, self.snps+1):
+                        MigrationInference.LLH_CONST += log(j)
+                    for i in range(7):
+                        for j in range(1, self.dataJAFS[i]+1):
+                            MigrationInference.LLH_CONST -= log(j)
+                else:
+                    MigrationInference.LLH_CONST = dataJAFS.ufLLHConst
             else:
-                for j in range(1, self.snps+1):
-                    MigrationInference.LLH_CONST += log(j)
-                for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
-                    MigrationInference.LLH_CONST -= log(j)
-                for j in range(1, self.dataJAFS[3]+1):
-                    MigrationInference.LLH_CONST -= log(j)
+                if dataJAFS.fLLHConst == None:
+                    for j in range(1, self.snps+1):
+                        MigrationInference.LLH_CONST += log(j)
+                    for j in range(1, self.dataJAFS[0]+self.dataJAFS[6]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[1]+self.dataJAFS[5]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[2]+self.dataJAFS[4]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                    for j in range(1, self.dataJAFS[3]+1):
+                        MigrationInference.LLH_CONST -= log(j)
+                else:
+                    MigrationInference.LLH_CONST = dataJAFS.fLLHConst
         
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -154,7 +199,9 @@ class MigrationInference:
         
         #Class for EP size correction
         self.cl = CorrectLambda()
-        self.cl.SetMu(mu[0], mu[1])
+        if "mixtureTH" in kwargs:
+            self.cl.SetMixtureTH(kwargs["mixtureTH"])
+#        self.cl.SetMu(mu[0], mu[1])
         
         #Plotting options - TODO
         self.doPlot = False
@@ -171,18 +218,37 @@ class MigrationInference:
             print("MigrationInference class initialized. Class size", self.numT)
     
     def SetModel(self, params):
-        for i in range(self.migStart):
+        self.optPars = []
+        for i in range(len(self.mu)):
             self.mu[i] = [0.0,0.0]
-        for i in range(self.migStart, self.migEnd):
-            self.mu[i] = [params[0], params[1]]
-        for i in range(self.migEnd, self.splitT):
-            self.mu[i] = [0.0,0.0]
-        for i in range(self.splitT, len(self.mu)):
-            self.mu[i] = [0.0,0.0]
+        for el in params:
+            popInd = int(el[0]) - 1
+            if popInd != 0 and popInd != 1:
+                self.PrintError("SetModel", "Population index should be 1 or 2.")
+            migStart = int(el[1])
+            if migStart < self.sampleDate:
+                text = "Migration start (" + str(migStart) + ") should be larger or equal than sample date (" + str(self.sampleDate) + ")."
+                self.PrintError("SetModel", text)
+            migEnd = int(el[2])
+            if migEnd <= migStart:
+                text = "Migration start (" + str(migStart) + ") should be strictly less than migration end (" + str(migEnd) + ")."
+                self.PrintError("SetModel", text)
+            migVal = float(el[3])
+            migVar = int(el[4])
+            for i in range(migStart, migEnd):
+                if self.mu[i][popInd] != 0:
+                    self.PrintError("SetModel", "Migration rate intervals should not overlap.")
+                self.mu[i][popInd] = migVal
+            if migVar == 1:
+                self.optPars.append([popInd, migStart, migEnd, migVal])
+        self.optParsSize = len(self.optPars)
     
     def MapParameters(self, params):
-        for i in range(self.migStart, self.migEnd):
-            self.mu[i] = [params[0], params[1]]
+        if len(params) != self.optParsSize:
+            self.PrintError("MapParameters", "Incorrect number of parameters.")
+        for i in range(self.optParsSize):
+            for j in range(self.optPars[i][1], self.optPars[i][2]):
+                self.mu[j][self.optPars[i][0]] = params[i]
     
     def PrintError(self, func, text):
         func = func + "():"
@@ -192,6 +258,7 @@ class MigrationInference:
     def CorrectLambdas(self):
         MigrationInference.CORRECTION_CALLED += 1
         p0 = [[1,0,0],[0,1,0]]
+        self.Pr = [[[1.0,0.0],[0.0,1.0],[0.0,0.0]]]
         nc = [0, 0]#Probability for not coalescing
         for t in range(self.splitT):
 #            print(self.lh[t])
@@ -203,7 +270,7 @@ class MigrationInference:
             else:
                 self.cl.SetInterval(self.lh[t], self.times[t], p0)
                 try:
-                    sol = self.cl.SolveLambdaSystem()
+                    sol = self.cl.SolveLambdaSystem(self.cpfit)
                 except optimize.nonlin.NoConvergence:
                     print("lh=", self.lh[t])
                     print("t=", self.times[t])
@@ -223,8 +290,9 @@ class MigrationInference:
                     MigrationInference.CORRECTION_FAILED += 1
                     return False
                 p0 = sol[1]
-            #nc[0] += -self.times[t]*self.lh[t][0]
-            #nc[1] += -self.times[t]*self.lh[t][1]
+            self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
+#            nc[0] += -self.times[t]*self.lh[t][0]
+#            nc[1] += -self.times[t]*self.lh[t][1]
             nc[0] = sum(p0[0])
             nc[1] = sum(p0[1])
         for t in range(self.splitT,self.numT - 1):
@@ -232,16 +300,23 @@ class MigrationInference:
             if self.times[t] == 0:
                 self.lc[t][0], self.lc[t][1] = 1, 1
                 continue
-            pnc = ( exp(-self.times[t]*self.lh[t][0]) + exp(nc[1] - nc[0] - self.times[t]*self.lh[t][1]) )/( 1 + exp( nc[1] - nc[0] ) )
-            self.lc[t][0] = -log(pnc)/self.times[t]
-            self.lc[t][1] = -log(pnc)/self.times[t]
-            if self.times[t] == 0:
-                continue
+            if not self.cpfit:
+                self.cl.SetInterval(self.lh[t], self.times[t], [[exp(nc[0]), 0, 0], [exp(nc[1]), 0, 0]])
+                lam = self.cl.FitSinglePop()[0]
+                self.lc[t][0] = lam
+                self.lc[t][1] = lam
+            else:
+                pnc = ( exp(-self.times[t]*self.lh[t][0]) + exp(nc[1] - nc[0] - self.times[t]*self.lh[t][1]) )/( 1 + exp( nc[1] - nc[0] ) )
+                self.lc[t][0] = -log(pnc)/self.times[t]
+                self.lc[t][1] = -log(pnc)/self.times[t]
             nc[0] += -self.times[t]*self.lc[t][0]
             nc[1] += -self.times[t]*self.lc[t][1]
         t = self.numT - 1
-        self.lc[t][0] = (self.lh[t][0]+self.lh[t][1])/2
-        self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2
+        pr0 = exp(nc[0])
+        pr1 = exp(nc[1])
+        lam = (pr0+pr1)/(pr0/self.lh[t][0]+pr1/self.lh[t][1])
+        self.lc[t][0] = lam
+        self.lc[t][1] = lam
         self.Smooth()
         return True
     
@@ -398,13 +473,15 @@ class MigrationInference:
         
     def JAFSLikelyhood(self, mu):
         MigrationInference.COUNT_LLH += 1
-        if mu[0] < 0 or mu[1] < 0:
-            return float('-inf')
+        self.llh = -10**9
+        for v in mu:
+            if v < 0:
+                return self.llh#float('-inf')
 #        self.mu[0],self.mu[1]=mu[0],mu[1]
         self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
-            return float('-inf') # -10**(10)
+            return self.llh#float('-inf') # -10**(10)
         if self.enableOutput:
             print("JAFSLikelyhood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelyhood(): corrected values of lambdas are ", self.lc)
@@ -439,51 +516,26 @@ class MigrationInference:
 #        print("full log llh=", llh)
 #        for i in range(self.numT):
 #            print(i, "\t", self.lc[i][0], "\t", self.lc[i][1])
+        self.llh = llh
         return( llh )
     
     def ObjectiveFunction(self, mu):
         return( -self.JAFSLikelyhood( mu ) )
-        
-    def ObjectiveFunctionMuLa(self, params):
-        self.PrintError("ObjectiveFunctionMuLa", "this function was experemental and not supported in the current version")
-        if params[2] < 0.000001 or params[3] < 0.000001:
-            return float('inf')
-        for i in range(self.numOfInts):
-            self.lh[i][0] = params[2]
-            self.lh[i][1] = params[3]
-        return( -self.JAFSLikelyhood( params[0:2] ) )
-        
-    def ObjectiveFunctionLa(self, lambdas):
-        self.PrintError("ObjectiveFunctionLa", "this function was experemental and not supported in the current version")
-        if lambdas[0] < 0.00001 or lambdas[1] < 0.00001:
-            return float('inf')
-        for i in range(self.numOfInts):
-            self.lh[i][0] = lambdas[0]
-            self.lh[i][1] = lambdas[1]
-        return( -self.JAFSLikelyhood( self.mu ) )
     
-    def Solve(self, tol=1e-4, mu0 = [0.0, 0.0]):
-        maxVal = 2*self.lh[0][0]
-        res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
+    def Solve(self, tol=1e-4, globalOpt = False):
+        if self.optParsSize > 0:
+            mu0 = [val[3] for val in self.optPars]
+            if globalOpt:
+                res = optimize.basinhopping(self.ObjectiveFunction, mu0, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
+            else:
+                res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
         #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
-        return([res.x, -res.fun])
-        
-    def SolveMuLa(self, tol=1e-4, initVal = [0.0, 0.0, 1.0, 1.0], numOfInts = 5):
-        maxVal = 2*self.lh[0][0]
-        self.numOfInts = numOfInts
-        res = optimize.minimize(self.ObjectiveFunctionMuLa, initVal, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
-        #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
-        return([res.x, -res.fun])
-    
-    def SolveLa(self, tol=1e-4, initVal = [1.0, 1.0], numOfInts = 5):
-        maxVal = 2*self.lh[0][0]
-        self.numOfInts = numOfInts
-        res = optimize.minimize(self.ObjectiveFunctionLa, initVal, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
-        #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
-        return([res.x, -res.fun])
+            return([res.x, -res.fun])
+        else:
+            return([[], self.JAFSLikelyhood([])])
         
     def Report():
 #        print("Split time ", self.splitT)
-        print("Total number of likelihood function calls is ", MigrationInference.COUNT_LLH)
-        print("Lambda correction called ", MigrationInference.CORRECTION_CALLED, " times.")
-        print("Lambda correction failed ", MigrationInference.CORRECTION_FAILED, " times.")
+        print("Total number of likelihood function calls is", MigrationInference.COUNT_LLH)
+        print("Lambda correction called", MigrationInference.CORRECTION_CALLED, "times.")
+        print("Lambda correction failed", MigrationInference.CORRECTION_FAILED, "times.")
