@@ -27,7 +27,7 @@ For example, setting split time to 3 in the command line means that it is 492 ge
 ## MiSTI command line
 
 The minimal command line is
-./MiSTI2.py genome1.psmc genome2.psmc mi.sfs split_time
+./MiSTI.py genome1.psmc genome2.psmc mi.sfs split_time
 where genome1.psmc and genome2.psmc are files with psmc output for two genomes and mi.sfs is the joint site frequency spectrum for these files in the special format used by MiSTI (see section _Data preparation - item 2_ above). split_time is the split time index (see section _On the time scale_ above).  
 _NB: psmc files should be supplied in the same order as genomes appear in the sfs!_
 
@@ -65,11 +65,11 @@ In coalescence models, which are used by PSMC and MiSTI, all the parametes inclu
 To run the simulations the shell script _run_sim.sh_ is provided. You need to install msHOT_lite simulator (Heng Li [github](https://github.com/lh3/foreign/tree/master/msHOT-lite)). On the lines 10 and 11 set the paths to msHOT-lite and PSMC on your machine. Gnu parallel is also used in the script (line 40) to run PSMC on two genomes in parallel. The following command will run the ms simulation, generate PSMC and sfs files and put them into the folder _simulated_scenario_  
 _./run_sim.sh simulated_scenario "4 100 -t 15000 -r 1920 30000000 -l -I 2 2 2 -n 1 10 -n 2 4.5 -eN 0.025 0.2 -ej 0.045 2 1 -eN 0.175 3 -eN 0.625 1.8 -eN 3 3.2 -eN 8 5.5"_
 Then you can run MiSTI
-./MiSTI2.py ms2g1.psmc ms2g2.psmc sim.jafs 22 -o output.mi -uf
+./MiSTI.py ms2g1.psmc ms2g2.psmc sim.jafs 22 -o output.mi -uf
 
 ## MiSTI and Gnu parallel
 If many models should be tested (e.g. to estimate the split time) we suggest to use gnu parallel. Example with a model with four migration bands (migration rates change at time interval {mc}):  
-> parallel --header : -j 20 ./MiSTI2.py ms2g1.psmc ms2g2.psmc sim.jafs {st} -uf -o res.mi -wd data_sim/migr0_5 -mi 1 0 {mc} {mi1} 0 -mi 2 0 {mc} {mi2} 0 -mi 1 {mc} {st} {mi3} 0 -mi 2 {mc} {st} {mi4} 0 >> res.out ::: st 20 21 22 23 24 25 ::: mc 8 9 10 11 12 ::: mi1 00.0 00.5 02.0 05.0 ::: mi2 05.0 10.0 15.0 20.0 ::: mi3 00.0 00.5 02.0 05.0 ::: mi4 01.0 05.0 10.0 15.0  
+> parallel --header : -j 20 ./MiSTI.py ms2g1.psmc ms2g2.psmc sim.jafs {st} -uf -o res.mi -wd data_sim/migr0_5 -mi 1 0 {mc} {mi1} 0 -mi 2 0 {mc} {mi2} 0 -mi 1 {mc} {st} {mi3} 0 -mi 2 {mc} {st} {mi4} 0 >> res.out ::: st 20 21 22 23 24 25 ::: mc 8 9 10 11 12 ::: mi1 00.0 00.5 02.0 05.0 ::: mi2 05.0 10.0 15.0 20.0 ::: mi3 00.0 00.5 02.0 05.0 ::: mi4 01.0 05.0 10.0 15.0  
 > grep "migration rates = " res.out | sort -t "=" -rn -k5 | less
 
 The second command sorts the scenarios by the best likelihood.
