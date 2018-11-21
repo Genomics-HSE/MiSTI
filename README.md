@@ -76,8 +76,8 @@ _./run_sim.sh simulated_scenario "4 100 -t 15000 -r 1920 30000000 -l -I 2 2 2 -n
 Then you can run MiSTI
 ./MiSTI.py ms2g1.psmc ms2g2.psmc sim.jafs 22 -o output.mi -uf
 
-## MiSTI and Gnu parallel
-If many models should be tested (e.g. to estimate the split time) we suggest to use gnu parallel. Example with a model with four migration bands (migration rates change at time interval {mc}):  
+## MiSTI and GNU Parallel
+If many models should be tested (e.g. to estimate the split time) we suggest to use [GNU Parallel](https://www.gnu.org/software/parallel/). Example with a model with four migration bands (migration rates change at time interval {mc}):  
 > parallel --header : -j 20 ./MiSTI.py ms2g1.psmc ms2g2.psmc sim.jafs {st} -uf -o res.mi -wd data_sim/migr0_5 -mi 1 0 {mc} {mi1} 0 -mi 2 0 {mc} {mi2} 0 -mi 1 {mc} {st} {mi3} 0 -mi 2 {mc} {st} {mi4} 0 >> res.out ::: st 20 21 22 23 24 25 ::: mc 8 9 10 11 12 ::: mi1 00.0 00.5 02.0 05.0 ::: mi2 05.0 10.0 15.0 20.0 ::: mi3 00.0 00.5 02.0 05.0 ::: mi4 01.0 05.0 10.0 15.0  
 > grep "migration rates = " res.out | sort -t "=" -rn -k5 | less
 
