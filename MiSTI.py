@@ -55,8 +55,8 @@ parser.add_argument('-wd', nargs=1, default='',
                     help='working directory (path to data files)')
 parser.add_argument('-tol', nargs=1, type=float, default=1e-4,
                     help='optimisation precision (default is 1e-4)')
-parser.add_argument('-mth', nargs=1, type=float, default=0.02,
-                    help='mixture treshhold (default is 0.02)')
+parser.add_argument('-mth', nargs=1, type=float, default=0.0,
+                    help='mixture treshhold (default is 0.0)')
                     
 parser.add_argument('-mi', nargs=5, action = 'append',
                     help='migration rate, require 5 arguments:\n\t\tsource population index (1 or 2)\n\t\tmigration start time\n\t\tmigration end time\n\t\tmigration rate initial value\n\t\tfixed(0) or optimised(1) parameter.')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]

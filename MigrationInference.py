@@ -19,7 +19,6 @@
 
 
 import sys
-import collections
 import numpy
 from scipy import (linalg,optimize)
 from numpy import (dot,identity,mat)
