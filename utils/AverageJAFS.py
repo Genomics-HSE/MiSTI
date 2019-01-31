@@ -54,7 +54,7 @@ for fn in sys.argv[1:]:
 jaf = [int(v/tf) for v in jaf]
 pop1 = list(set(pop1))
 pop2 = list(set(pop2))
-pop1s = "_".join(pop1)
-pop2s = "_".join(pop2)
+pop1s = "+".join(pop1)
+pop2s = "+".join(pop2)
 
 PrintJAFSFile(jaf, pop1s, pop2s)
