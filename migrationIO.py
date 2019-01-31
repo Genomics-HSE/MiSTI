@@ -411,7 +411,8 @@ def ReadJAFS(fn, silent_mode=False):
                 if len(line) < 3:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
-                print("JAFS format version:", line[2])
+                if not silent_mode:
+                    print("JAFS format version:", line[2])
             elif line[1:5] == "pop1":
                 line = line.split(" ")
                 if len(line) != 2:
