@@ -30,11 +30,13 @@ class MiPlot:#This is a class of static variables
     ax = None
     
 class JAFS:#This is a class of static variables
-    def __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None):
+    def __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None, pop1 = None, pop2 = None):
         self.jafs = jafs
         self.ufLLHConst = ufLLHConst
         self.fLLHConst = fLLHConst
-
+        self.pop1=pop1
+        self.pop2=pop2
+        
 class MigData:
     def __init__(self, **kwargs):
         self.llh = None
@@ -415,6 +417,7 @@ def ReadJAFS(fn, silent_mode=False):
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
+                Jafs.pop1 = line[1]
                 if not silent_mode:
                     print("pop1\t", line[1])
             elif line[1:5] == "pop2":
@@ -422,6 +425,7 @@ def ReadJAFS(fn, silent_mode=False):
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
+                Jafs.pop2 = line[1]
                 if not silent_mode:
                     print("pop2\t", line[1])
             elif line[1:11] == "ufLLHConst":

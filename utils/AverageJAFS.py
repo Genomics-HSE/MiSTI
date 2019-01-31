@@ -29,7 +29,8 @@ if len(sys.argv) < 2:
     print("./MS2JAF.py <ANY NUMBER OF INPUT FILES OR DIRECTORIES>")
     exit(0)
 
-pop1, pop2 = False, False
+pop1, pop2 = [], []
+
 
 jaf = [0 for _ in range(7)]
 tf = 0
@@ -41,9 +42,16 @@ for fn in sys.argv[1:]:
                 jaf = [u + v for u, v in zip(jaf, jafs)]
                 tf += 1
     else:
-        jafs = ReadJAFS(fn, True)[1:]
+        dataJAFS = ReadJAFS(fjafs, True)
+        jafs = dataJAFS.jafs[1:]
         jaf = [u + v for u, v in zip(jaf, jafs)]
         tf += 1
+        pop1.append(dataJAFS.pop1)
+        pop2.append(dataJAFS.pop2)
 jaf = [int(v/tf) for v in jaf]
+pop1 = list(set(pop1))
+pop2 = list(set(pop2))
+pop1s = "_".join(pop1)
+pop2s = "_".join(pop2)
 
-PrintJAFSFile(jaf, pop1, pop2)
+PrintJAFSFile(jaf, pop1s, pop2s)
