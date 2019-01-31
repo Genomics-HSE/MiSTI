@@ -38,9 +38,12 @@ for fn in sys.argv[1:]:
     if os.path.isdir(fn):
         for fn1 in os.listdir(fn):
             if fn1[0] != ".":
-                jafs = ReadJAFS( os.path.join( fn, fn1 ) )[1:]
+                dataJAFS = ReadJAFS(fjafs, True)
+                jafs = dataJAFS.jafs[1:]
                 jaf = [u + v for u, v in zip(jaf, jafs)]
                 tf += 1
+                pop1.append(dataJAFS.pop1)
+                pop2.append(dataJAFS.pop2)
     else:
         dataJAFS = ReadJAFS(fjafs, True)
         jafs = dataJAFS.jafs[1:]
