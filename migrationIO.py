@@ -398,7 +398,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     data.lambda2 = lc2
     return(data)
 
-def ReadJAFS(fn):
+def ReadJAFS(fn, silent_mode=False):
     Jafs = JAFS()
     jafs = []
     with open(fn) as f:
@@ -415,13 +415,15 @@ def ReadJAFS(fn):
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
-                print("pop1\t", line[1])
+                if not silent_mode:
+                    print("pop1\t", line[1])
             elif line[1:5] == "pop2":
                 line = line.split(" ")
                 if len(line) != 2:
                     PrintErr("Corrupted JAF file header.")
                     sys.exit(0)
-                print("pop2\t", line[1])
+                if not silent_mode:
+                    print("pop2\t", line[1])
             elif line[1:11] == "ufLLHConst":
                 line = line.split(" ")
                 if len(line) != 2:

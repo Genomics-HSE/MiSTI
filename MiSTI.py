@@ -31,7 +31,7 @@ import math
 from math import (exp,log)
 import time
 import multiprocessing
-from MigrationInference2 import MigrationInference
+from MigrationInference import MigrationInference
 from CorrectLambda import CorrectLambda
 import migrationIO
 from migrationIO import PrintErr
@@ -91,8 +91,6 @@ if isinstance(clargs.fout, list):
     clargs.fout = clargs.fout[0]
 if isinstance(clargs.wd, list):
     clargs.wd = clargs.wd[0]
-if isinstance(clargs.pr, list):
-    clargs.pr = clargs.pr[0]
 if isinstance(clargs.tol, list):
     clargs.tol = clargs.tol[0]
 if isinstance(clargs.mth, list):
