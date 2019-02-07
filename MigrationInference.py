@@ -194,7 +194,7 @@ class MigrationInference:
         self.integralP = None#Integral of dif eq solution
         self.P0 = None#Initial condition for dif eq
         self.P1 = None#Values of solution at the end of the interval
-        self.JAFS = [0 for i in range(7)]#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
+        self.JAFS = None#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
         
         #Class for EP size correction
         self.cl = CorrectLambda()
@@ -407,6 +407,7 @@ class MigrationInference:
                 self.lc[i][k] = lsmoothed
     
     def JAFSpectrum(self):
+        self.JAFS = [0 for i in range(7)]
         model = TwoPopulations(self.lc[0][0], self.lc[0][1], 1.0, 1.0)
         self.P0 = [0.0 for i in range( model.MSize() )]
         self.P0[2] = 1.0
