@@ -281,7 +281,8 @@ class CorrectLambda:
             self.mu = [self.mu[0]*timeTmp, self.mu[1]*timeTmp]
             self.lh = [self.lh[0]*timeTmp, self.lh[1]*timeTmp]
         upperLimit = numpy.inf#10*self.lh[0]
-        lowerLimit = 0.001*min(self.lh[0], self.lh[1])#0
+        #lowerLimit = 0.001*min(self.lh[0], self.lh[1])#0
+        lowerLimit = -numpy.inf#10*self.lh[0]
         if not cpfit:
             x1 = optimize.least_squares(self.LambdaSystem, [self.lh[0],self.lh[1]], bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         else:

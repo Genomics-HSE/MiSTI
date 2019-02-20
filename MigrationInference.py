@@ -285,7 +285,7 @@ class MigrationInference:
                     print("initial conditions", p0[0], "\t", p0[1])
 #                print("time = ", t, "\tinterval solution\t",sol)
                 self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
-                if sol[0][0] < 0 or sol[0][1] < 0:
+                if sol[0][0] <= 0 or sol[0][1] <= 0:
                     MigrationInference.CORRECTION_FAILED += 1
                     return False
                 p0 = sol[1]

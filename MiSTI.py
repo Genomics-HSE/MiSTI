@@ -182,7 +182,26 @@ print("\nParameter estimates:")
 
 splitT = clargs.st
 
-print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
+migStr = "migration rates "
+migFixed = []
+for el in clargs.mi:
+    if int(el[4]) == 0:
+        migFixed.append(float(clargs.mi[3]))
+if len(migFixed) > 0:
+    migFixedStr = "fixed = [" + ", ".join(migFixed) + "]"
+else:
+    migFixedStr = ""
+
+if len(sol[0]) > 0:
+    migOptStr = "fixed = [" + ", ".join(migFixed) + "]"
+else:
+    migOptStr = "optim = [" + ", ".join(sol[0]) + "]"
+
+if migFixedStr != "" and migOptStr != "":
+    migStr = migFixedStr + "\t" + migOptStr
+
+#print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
+print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates", migStr, "\tllh =", sol[1])
 print("\n")
 
 t2 = time.time()
