@@ -186,27 +186,31 @@ migStr = "migration rates "
 migFixed = []
 for el in clargs.mi:
     if int(el[4]) == 0:
-        migFixed.append(float(clargs.mi[3]))
+        migFixed.append(float(el[3]))
 if len(migFixed) > 0:
-    migFixedStr = "fixed = [" + ", ".join(migFixed) + "]"
+    migFixedStr = "fixed = [" + ", ".join([str(v) for v in migFixed]) + "]"
 else:
     migFixedStr = ""
 
 if len(sol[0]) > 0:
-    migOptStr = "fixed = [" + ", ".join(migFixed) + "]"
+    migOptStr = "optim = [" + ", ".join([str(v) for v in sol[0]]) + "]"
 else:
-    migOptStr = "optim = [" + ", ".join(sol[0]) + "]"
+    migOptStr = ""
 
 if migFixedStr != "" and migOptStr != "":
     migStr = migFixedStr + "\t" + migOptStr
-
+else:
+    migStr = migFixedStr + migOptStr
 #print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
 print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates", migStr, "\tllh =", sol[1])
 print("\n")
 
 t2 = time.time()
 
-migrationIO.OutputMigration2(fout, sol[0], Migration)
+if sol[1] == -10**9:
+    print("Failed to fit such a model.")
+else:
+    migrationIO.OutputMigration2(fout, sol[0], Migration)
 
 t3 = time.time()
 
