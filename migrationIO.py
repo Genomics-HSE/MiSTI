@@ -463,7 +463,7 @@ def ReadJAFS(fn, silent_mode=False):
 def ReadMS(argument_string):
     PrintErr("WARNING: ReadMS() is not safe to use, the function has many assumptions on the ms command line")
     PrintErr("WARNING: assume that population sizes in the ancestral popualtion are equal for pop1 and pop2")
-    argument_string = "-n 2 3.0 -em 0.0 1 2 2.0 -em 0.05 2 1 3.0 -en 0.01 1 0.5 -en 0.02 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0 -eN 2.0 5.0"
+    #argument_string = "-n 2 3.0 -em 0.0 1 2 2.0 -em 0.05 2 1 3.0 -en 0.01 1 0.5 -en 0.02 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0 -eN 2.0 5.0"
     args = argument_string.split(" ")
     pops = [[], []]
     migr = []
@@ -553,7 +553,7 @@ def ReadMS(argument_string):
     inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
     inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
     inputData[2] = mis#migration rates
-    inputData[3] = splitTind - 1
+    inputData[3] = splitTind
     return(inputData)
 
 def PlotInit(id=1):

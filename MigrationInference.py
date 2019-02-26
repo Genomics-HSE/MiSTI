@@ -20,6 +20,7 @@
 
 import sys
 import numpy
+import scipy
 from scipy import (linalg,optimize)
 from numpy import (dot,identity,mat)
 import math
