@@ -69,7 +69,6 @@ else:
     dataJAFS = migrationIO.ReadJAFS(clargs.fjafs)
     jafs_input = True
 
-clargs.ms = "4 1000 -t 8196 -r 1355 3000000 -l -I 2 2 2 -n 2 1.0 -em 0.0 1 2 2.0 -em 0.0 2 1 2.0 -en 0.01 1 0.5 -en 0.01 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0"
 inputData = migrationIO.ReadMS(clargs.ms)
 if False:
     print("INPUT DATA")
@@ -79,8 +78,12 @@ if False:
 
 Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, inputData[2], inputData[3], thrh = [1, 1], unfolded = clargs.uf, trueEPS = True, mixtureTH = 0)
 llh = Migration.JAFSLikelyhood([])
-print(Migration.JAFS)
+print("Expected SFS", Migration.JAFS)
+jafs = dataJAFS.jafs[1:]
+norm = sum(jafs)
+jafs = [v/norm for v in jafs]
 if jafs_input:
+    print("Data     SFS", Migration.JAFS)
     print("data llh under the model is", llh)
     mllh = Migration.MaximumLLHFunction()
     print("maximum of the llh function is", mllh)
