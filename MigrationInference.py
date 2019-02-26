@@ -519,6 +519,21 @@ class MigrationInference:
         self.llh = llh
         return( llh )
     
+    def MaximumLLHFunction(self):
+        llh = MigrationInference.LLH_CONST
+        jafsTotal = sum(self.dataJAFS)
+        jafs = [v/jafsTotal for v in self.dataJAFS]
+        if not self.unfolded:
+            llh += (self.dataJAFS[0]+self.dataJAFS[6])*log(jafs[0]+jafs[6])
+            llh += (self.dataJAFS[1]+self.dataJAFS[5])*log(jafs[1]+jafs[5])
+            llh += (self.dataJAFS[2]+self.dataJAFS[4])*log(jafs[2]+jafs[4])
+            llh += self.dataJAFS[3]*log(jafs[3])
+        else:
+            for i in range(7):
+#            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
+                llh += self.dataJAFS[i]*log(jafs[i])
+        return(llh)
+    
     def ObjectiveFunction(self, mu):
         return( -self.JAFSLikelyhood( mu ) )
     
