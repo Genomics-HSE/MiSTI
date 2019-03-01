@@ -291,7 +291,6 @@ class MigrationInference:
 #            print(self.times[t])
 #            print(p0)
             puRate = self.pu[t][0] + self.pu[t][1]
-            print(puRate)
             if puRate > 0:
                 pop1 = 0 if self.pu[t][0] > 0 else 1
                 pop2 = (pop1 + 1)%2
@@ -300,8 +299,6 @@ class MigrationInference:
                     p0n[pop2] = p0[k][pop1]*puRate**2+p0[k][pop2]+p0[k][2]*puRate
                     p0n[2] = p0[k][pop1]*2*(1-puRate)*puRate+p0[k][2]*(1-puRate)
                     p0[k] = list(p0n)
-            print(p0)
-            sys.exit(0)
             self.cl.SetMu(self.mi[t][0], self.mi[t][1])
             if not self.correct:# or self.mi[t][0] + self.mi[t][1] == 0:
                 self.lc[t][0],self.lc[t][1] = self.lh[t][0],self.lh[t][1]
@@ -461,6 +458,16 @@ class MigrationInference:
             if interval == self.sampleDate:
                 model_tmp = TwoPopulations(1, 1, 0, 0)
                 self.P0 = model_tmp.AncientSampleP0(self.P0)
+            puRate = self.pu[interval][0] + self.pu[interval][1]
+            if interval < self.splitT and puRate > 0:
+                pop1 = 0 if self.pu[t][0] > 0 else 1
+#                pop2 = (pop1 + 1)%2
+                self.P0 = model.PulseMigration(self.P0, migRate, pop1)
+#                for k in [0,1]:
+#                    p0n[pop1] = p0[k][pop1]*(1-puRate)**2
+#                    p0n[pop2] = p0[k][pop1]*puRate**2+p0[k][pop2]+p0[k][2]*puRate
+#                    p0n[2] = p0[k][pop1]*2*(1-puRate)*puRate+p0[k][2]*(1-puRate)
+#                    p0[k] = list(p0n)
             if interval == self.splitT:
                 self.CollapsePops()
             self.M = model.SetMatrix()

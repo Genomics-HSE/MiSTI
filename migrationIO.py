@@ -532,12 +532,12 @@ def ReadMS(argument_string):
             rate = float(args[i+4])
             migr.append([time, rate, direct])
             i += 5
-        elif args[i] == "-es" and False:#-es t i p
+        elif args[i] == "-es":#-es t i p
             time = float(args[i+1])
             pop = int(args[i+2])
-            rate = 1 - float(args[i+4])
+            rate = 1 - float(args[i+3])
             puls.append([time, rate, pop])
-            i += 5
+            i += 4
         elif args[i] == "-ej":
             if int(args[i+2]) <= 2:
                 splitT = float( args[i+1] )
@@ -557,6 +557,8 @@ def ReadMS(argument_string):
             times.append(el[0])
     for el in migr:
         times.append(el[0])
+    for el in puls:
+        times.append(el[0])
     times.append(splitT)
     times = list(set(times))
     times.sort()
@@ -569,6 +571,7 @@ def ReadMS(argument_string):
         if pops[k][0][0] != 0.0:
             pops[k].insert(0, [0.0, 1.0])
     migr.sort(key=lambda el: el[0])
+    puls.sort(key=lambda el: el[0])
     popSizes = [[0,0] for i in range(len(times))]
     for k in [0, 1]:
         ind = 0
@@ -580,19 +583,27 @@ def ReadMS(argument_string):
             else:
                 popSizes[i][k] = curSize
     mis = []
-    pus = []
     ind = 0
     for i in range(splitTind):
         while ind < len(migr) and migr[ind][0] == times[i]:
             m = migr[ind]
             mis.append([m[2], i, splitTind, 2*m[1], 0])
             ind += 1
+    pus = []
+    ind = 0
+    for i in range(splitTind):
+        if ind == len(pus):
+            break
+        if times[i] == puls[ind][0]:
+            p = puls[ind]
+            pus.append([p[2], i, p[1], 0])
+            ind += 1
     inputData = [None for _ in range(5)]
     inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
     inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
     inputData[2] = splitTind
     inputData[3] = mis#migration rates
-    inputData[4] = pus#reserved for pulse migration rates
+    inputData[4] = pus#pulse migration rates
     return(inputData)
 
 def PlotInit(id=1):

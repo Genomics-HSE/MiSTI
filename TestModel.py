@@ -64,10 +64,16 @@ units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
 jafs_input = False
 if clargs.fjafs == "":
-    dataJAFS = migrationIO.JAFS(jafs=[0 for _ in range(8)])
+    inputSFS = [0 for _ in range(8)]
 else:
     dataJAFS = migrationIO.ReadJAFS(clargs.fjafs)
     jafs_input = True
+    snps = 0
+    inputSFS = [0 for _ in range(7)]
+    for sfs in dataJAFS.jafs:
+        snps += sfs[0]
+        inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
+    inputSFS.insert(0, snps)
 
 inputData = migrationIO.ReadMS(clargs.msstring)
 if False:
@@ -76,11 +82,11 @@ if False:
         print(v)
     print("END INPUT DATA")
 
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)
-llh = Migration.JAFSLikelyhood([])
+Migration = MigrationInference(inputData[0], inputData[1], inputSFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)
+llh = Migration.JAFSLikelihood([])
 print("Expected SFS", Migration.JAFS)
 if jafs_input:
-    jafs = dataJAFS.jafs[1:]
+    jafs = inputSFS[1:]
     norm = sum(jafs)
     jafs = [v/norm for v in jafs]
     print("Data     SFS", jafs)

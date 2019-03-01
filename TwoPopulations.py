@@ -26,6 +26,27 @@ from numpy import (dot,identity,mat)
 import math
 from math import (exp,log)
 
+def GenerateTuples(line, pop):
+    ind = 0
+    tuples = [[]]
+    NextStep(line, pop, ind, tuples)
+    return(tuples)
+    
+def NextStep(line, pop, ind, tuples):
+    pop2 = (pop+1)%2
+    if line[ind] == pop2:
+        for i in range(len(tuples)):
+            tuples[i].append(pop2)
+    else:
+        for i in range(len(tuples)):
+            tuples[i].append(0)
+        for i in range(len(tuples)):
+            tuples.append([v for v in tuples[i]])
+            tuples[-1][-1] = 1
+    ind += 1
+    if ind < len(line):
+        NextStep(line, pop, ind, tuples)
+
 class lineage:#d0: number of descendents in population 0; d1: number of descendents in population 1; pop: current population of lineage
     def __init__(self, d0, d1, pop):
         self.d0 = d0
@@ -336,6 +357,24 @@ class TwoPopulations:
                     MM[ind2][ind] += self.la[ state[i].pop ]
                 total += self.la[ state[i].pop ]
         MM[ind][ind] -= total
+    
+    def PulseMigration(P0, migRate, pop1):
+        pop2 = (pop1 + 1)%2
+        P0n = [0 for _ in range(self.Msize)]
+        for ind in range(self.Msize):
+            st = self.MapIndToState(ind)
+            linePops = [l.pop for l in st]
+            tuples = GenerateTuples(linePops, pop1)
+            for t in tuples:
+                nst = [lineage(el.d0, el.d1, p)  for el, p in zip(st, t)]
+                nind = self.MapStateToInd(nst)
+                migPr = 1.0
+                for v, u in zip(t, linePops):
+                    if u == pop1:
+                        r = 1-migRate if u == v else migRate
+                        migPr *= r
+                P0n[nind] += P0[ind]*migPr
+        return(P0n)
     
     def Test(self):
         return
