@@ -20,10 +20,26 @@
 
 import sys
 import os
+import argparse
+import math
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 mig_dir = os.path.join(cur_dir, '..')
 sys.path.append(mig_dir)
-from migrationIO import PrintJAFSFile
+from migrationIO import PrintJAFSFile, PrintErr
+
+
+
+parser = argparse.ArgumentParser(description='This script calculates joint SFS from Heng Li\'s output format of msHOT-lite (-l option).')
+
+parser.add_argument('inputfile',
+                    help='input file (msHOT-lite with -l option)')
+parser.add_argument('-p', nargs=2, type=str,
+                    help='population names (makes it easier to check the consistence of the pipeline.)')
+parser.add_argument('-n', nargs=1, type=int, default=200,
+                    help='File name with units to be used to rescale times and EPS.')
+
+
+clargs = parser.parse_args()
 
 if len(sys.argv) < 2:
     print("./MS2JAF.py <INPUT FILE> [pop1] [pop2]")
@@ -31,42 +47,44 @@ if len(sys.argv) < 2:
 
 pop1, pop2 = False, False
 
-if len(sys.argv) == 4:
-    pop1 = sys.argv[2]
-    pop2 = sys.argv[3]
+if clargs.p is not None:
+    pop1 = clargs.p[0]
+    pop2 = clargs.p[1]
 
+#Can be used for a permutation of haplotypes
 h0 = 0
 h1 = 1
 h2 = 2
 h3 = 3
-if len(sys.argv) == 6:
-    h0 = int(sys.argv[2])
-    h1 = int(sys.argv[3])
-    h2 = int(sys.argv[4])
-    h3 = int(sys.argv[5])
-    if h0 + h1 + h2 + h3 != 6 or min(h0, h1, h2, h3) < 0:
-        print("Haplotype numbers should be a permutation of 0, 1, 2 and 3.")
-        sys.exit(0)
 
 fn = sys.argv[1]
 jaf = [0 for _ in range(7)]
 
 with open(fn) as f:
-    for line in f:        
-        for _ in range(2):
-            line = next(f)
-        chrLen = int( next(f) )
-        lc = 0
-        while 1:
-            line = next(f)
-            lc += 1
-            if lc > int(chrLen):
-                print("Too many segsites, expected at most " + str(chrLen))
-                sys.exit(0)
-            if line == "@end\n":
+    line = next(f, "EOF")
+    if line != "EOF":
+        pars = line.split(" ")
+        numChrom = int(pars[2])
+        chromLen = 0
+        for i in range(len(pars)):
+            if pars[i] == "-r" and i+2 < len(pars):
+                chromLen = int(pars[i+2])
                 break
-            line = line.split("\t")
-            fr = list(line[1][0:4])
+        if chromLen <= 0:
+            PrintErr("Unknown number of chromosomes. The script is designed to work with ms commands containing -r argument.")
+            sys.exit(0)
+    chunkLen = math.floor(numChrom*chromLen/clargs.n)
+    while line != "EOF":
+        while not (line.startswith("@begin") or line == "EOF"):
+            line = next(f, "EOF")
+            if line.startswith("segsites:"):
+                1+1
+        while not (line.startswith("@end") or line == "EOF"):
+            line = next(f, "EOF").rstrip("\n")
+            pars = line.split("\t")
+            if len(pars) != 2:
+                continue
+            fr = list(pars[1][0:4])
             
             s0 = int(fr[h0]) + int(fr[h1])
             s1 = int(fr[h2]) + int(fr[h3])

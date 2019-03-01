@@ -30,7 +30,7 @@ class MiPlot:#This is a class of static variables
     ax = None
     
 class JAFS:#This is a class of static variables
-    def __init__(self, jafs = None, ufLLHConst = None, fLLHConst = None, pop1 = None, pop2 = None):
+    def __init__(self, jafs = [], ufLLHConst = None, fLLHConst = None, pop1 = None, pop2 = None):
         self.jafs = jafs
         self.ufLLHConst = ufLLHConst
         self.fLLHConst = fLLHConst
@@ -122,19 +122,8 @@ class Units:#This is a class of static variables
         except:
             print("Units input file not found, using default values.")
 
-def SetScaling():
-    #mu = 1.1e-8
-    print("\t\t\t\tPLEASE REMOVE ME!\n\t\t\tSINCERELY, SETSCALING()")
-    u = Units()
-    mutRate = 1.25e-8
-    binsize = 100
-    scaling = [mutRate, binsize]
-    return(scaling)
-
 def PrintErr(*args, sep="", endl="\n"):
-    message = ""
-    for word in args:
-        message += str(word) + sep
+    message = sep.join(args)
     message += endl
     sys.stderr.write(message)
 
@@ -239,36 +228,12 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
     return( [Tk, Lk, scaleTime, scaleEPS, d1[3], d1[4], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
 
-def OutputMigration(fout, mu, Migration):
-    llh = Migration.JAFSLikelyhood( mu )
-#    print( vars(Migration) )
-    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
-    outData = "#MiSTI ver 0.3\n"
-    outData += "LK\t" + str(llh) + "\n"#split time
-    outData += "ST\t" + str(Migration.splitT) + "\n"#split time
-    outData += "SD\t" + str(Migration.sampleDate) + "\n"#second sample date
-    outData += "MS\t" + str(Migration.migStart) + "\n"#migration start
-    outData += "ME\t" + str(Migration.migEnd) + "\n"#migration end
-    outData += "MU\t" + str(mu[0]) + "\t" + str(mu[1]) + "\n"#migration
-    outData += "TR\t" + str(Migration.thrh[0]) + "\t" + str(Migration.thrh[1]) + "\n"#migration
-    outData += "SFS\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
-    dataJAFS = [v/sum(Migration.dataJAFS) for v in Migration.dataJAFS]
-    outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
-    for i in range( len(times) ):
-        outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1]) + "\n"
-    
-    if fout == "":
-        print(outData)
-    else:
-        fw = open(fout, 'w')
-        fw.write(outData)
-        fw.close()
 
-def OutputMigration2(fout, mu, Migration):
+def OutputMigration(fout, mu, Migration):
     if len(mu) == 0:
         llh = Migration.llh
     else:
-        llh = Migration.JAFSLikelyhood( mu )
+        llh = Migration.JAFSLikelihood( mu )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
     outData = "#MiSTI2 ver 0.3\n"
     outData += "LK\t" + str(llh) + "\n"#split time
@@ -400,7 +365,83 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     data.lambda2 = lc2
     return(data)
 
+def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
+    print("#MiSTI_JSFS version 1.0")
+    if pop1:
+        pop1 = pop1.strip("\n\r")
+        print("#pop1", pop1, sep="\t")
+    if pop2:
+        pop2 = pop2.strip("\n\r")
+        print("#pop2", pop2, sep="\t")
+    jfn = ["total", "0100", "1100", "0001", "0101", "1101", "0011", "0111"]
+    print("\t".join(jfn))
+    if not isinstance(jaf, list):
+        PrintErr("Unexpected SFS value: should be a list of a list of lists")
+        sys.exit(0)
+    if not isinstance(jaf[0], list):
+        norm = sum(jaf)
+        sfs_str = str(norm) + "\t" + "\t".join([str(v) for v in jaf])
+        print(sfs_str)
+    else:
+        for sfs in jaf:
+            norm = sum(sfs)
+            sfs_str = str(norm) + "\t" + "\t".join(sfs)
+            print(sfs_str)
+
 def ReadJAFS(fn, silent_mode=False):
+    Jafs = JAFS()
+    old_version = False
+    with open(fn) as f:
+        line = next(f, "EOF").rstrip("\n")
+        if line.startswith("#MiSTI_JSFS") or line.startswith("#MiSTI_JAF") or line.startswith("#Migration_JAF"):
+            pars = line.split(" ")
+            if float(pars[2]) < 1:
+                old_version = True
+        else:
+            PrintErr("Corrupted JSFS file header.")
+            sys.exit(0)
+    if old_version:
+        return( ReadJAFS_old(fn, silent_mode) )
+    with open(fn) as f:
+        line = next(f, "EOF").rstrip("\n")
+        if line.startswith("#MiSTI_JSFS"):
+            pars = line.split(" ")
+            if float(pars[2]) < 1:
+                PrintErr("The file version is not supported anymore.")
+                sys.exit(0)
+        else:
+            PrintErr("Corrupted JSFS file header.")
+            sys.exit(0)
+        while line[0] == "#":
+            line = next(f, "EOF").rstrip("\n")
+            if line[1:5] == "pop1":
+                pars = line.split("\t")
+                if len(pars) != 2:
+                    PrintErr("Corrupted JSFS file header.")
+                    sys.exit(0)
+                Jafs.pop1 = pars[1]
+                if not silent_mode:
+                    print("pop1\t", pars[1])
+            elif line[1:5] == "pop2":
+                line = line.split("\t")
+                if len(pars) != 2:
+                    PrintErr("Corrupted JSFS file header.")
+                    sys.exit(0)
+                Jafs.pop2 = pars[1]
+                if not silent_mode:
+                    print("pop2\t", pars[1])
+        if line.startswith("total"):
+            line = next(f, "EOF").rstrip("\n")
+        while line != "EOF":
+            jsfs = line.split("\t")
+            if len(jsfs) != 8:
+                PrintErr("Unexpected line. Expected an entry for JSFS with eight TAB-separated columns.")
+                sys.exit(0)
+            Jafs.jafs.append([int(v) for v in jsfs])
+            line = next(f, "EOF").rstrip("\n")
+    return(Jafs)
+
+def ReadJAFS_old(fn, silent_mode=False):
     Jafs = JAFS()
     jafs = []
     with open(fn) as f:
@@ -429,18 +470,6 @@ def ReadJAFS(fn, silent_mode=False):
                 Jafs.pop2 = line[1]
                 if not silent_mode:
                     print("pop2\t", line[1])
-            elif line[1:11] == "ufLLHConst":
-                line = line.split(" ")
-                if len(line) != 2:
-                    PrintErr("Corrupted JAF file header.")
-                    sys.exit(0)
-                Jafs.ufLLHConst = float(line[1])
-            elif line[1:10] == "fLLHConst":
-                line = line.split(" ")
-                if len(line) != 2:
-                    PrintErr("Corrupted JAF file header.")
-                    sys.exit(0)
-                Jafs.fLLHConst = float(line[1])
             line = next(f).rstrip()
 
         line = line.split("\t")
@@ -457,7 +486,7 @@ def ReadJAFS(fn, silent_mode=False):
     if len(jafs) != 8:
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
-    Jafs.jafs = jafs
+    Jafs.jafs.append(jafs)
     return(Jafs)    
 
 def ReadMS(argument_string):
@@ -467,6 +496,7 @@ def ReadMS(argument_string):
     args = argument_string.split(" ")
     pops = [[], []]
     migr = []
+    puls = []
     splitT = 0
     popMerge = 0
     i = 0
@@ -502,9 +532,16 @@ def ReadMS(argument_string):
             rate = float(args[i+4])
             migr.append([time, rate, direct])
             i += 5
+        elif args[i] == "-es" and False:#-es t i p
+            time = float(args[i+1])
+            pop = int(args[i+2])
+            rate = 1 - float(args[i+4])
+            puls.append([time, rate, pop])
+            i += 5
         elif args[i] == "-ej":
-            splitT = float( args[i+1] )
-            popMerge = int(args[i+2])
+            if int(args[i+2]) <= 2:
+                splitT = float( args[i+1] )
+                popMerge = int(args[i+2])
             i += 4
         else:
             i += 1
@@ -543,17 +580,19 @@ def ReadMS(argument_string):
             else:
                 popSizes[i][k] = curSize
     mis = []
+    pus = []
     ind = 0
     for i in range(splitTind):
         while ind < len(migr) and migr[ind][0] == times[i]:
             m = migr[ind]
             mis.append([m[2], i, splitTind, 2*m[1], 0])
             ind += 1
-    inputData = [None for _ in range(4)]
+    inputData = [None for _ in range(5)]
     inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
     inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
-    inputData[2] = mis#migration rates
-    inputData[3] = splitTind
+    inputData[2] = splitTind
+    inputData[3] = mis#migration rates
+    inputData[4] = pus#reserved for pulse migration rates
     return(inputData)
 
 def PlotInit(id=1):
@@ -603,47 +642,6 @@ def SavePlot(fout, id=1):
     #plt.figure(id)
     MiPlot.ax.legend()
     MiPlot.fig.savefig(fout)
-    
-def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
-    print("#MiSTI_JAFS version 0.2")
-    if pop1:
-        pop1 = pop1.strip("\n\r")
-        print("#pop1", pop1)
-    if pop2:
-        pop2 = pop2.strip("\n\r")
-        print("#pop2", pop2)
-    
-    norm = sum(jaf)
-    
-    ufLLHConst = 0.0
-    for j in range(1, norm+1):
-        ufLLHConst += log(j)
-    for i in range(7):
-        for j in range(1, jaf[i]+1):
-            ufLLHConst -= log(j)
-    
-    fLLHConst = 0.0
-    for j in range(1, norm+1):
-        fLLHConst += log(j)
-    for j in range(1, jaf[0]+jaf[6]+1):
-        fLLHConst -= log(j)
-    for j in range(1, jaf[1]+jaf[5]+1):
-        fLLHConst -= log(j)
-    for j in range(1, jaf[2]+jaf[4]+1):
-        fLLHConst -= log(j)
-    for j in range(1, jaf[3]+1):
-        fLLHConst -= log(j)
-    
-    print("#ufLLHConst", ufLLHConst)
-    print("#fLLHConst", fLLHConst)
-    
-    print("total\t", norm)
-    #jaf = [v/norm for v in jaf]
-    jfn = ["0100", "1100", "0001", "0101", "1101", "0011", "0111"]
-    for v in zip(jaf, jfn):
-        print(v[1], "\t", v[0])
-
-
 
 
 #Example of using ms parameters to run tests for perfectly known data

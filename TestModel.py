@@ -76,7 +76,7 @@ if False:
         print(v)
     print("END INPUT DATA")
 
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, inputData[2], inputData[3], thrh = [1, 1], unfolded = clargs.uf, trueEPS = True, mixtureTH = 0)
+Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)
 llh = Migration.JAFSLikelyhood([])
 print("Expected SFS", Migration.JAFS)
 if jafs_input:

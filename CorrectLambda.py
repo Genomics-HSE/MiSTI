@@ -28,7 +28,7 @@ from math import (exp,log,sqrt)
 
 class CorrectLambda:
     def __init__(self):
-        self.mixtureTH = 0.02
+        self.mixtureTH = 0.0
 #        self.doBroyden1 = True
 #        self.lh = [lh0, lh1]#PSMC inferred lambda
 #        self.mu = [mu0, mu1]

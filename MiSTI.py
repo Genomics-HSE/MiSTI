@@ -60,6 +60,8 @@ parser.add_argument('-mth', nargs=1, type=float, default=0.0,
                     
 parser.add_argument('-mi', nargs=5, action = 'append',
                     help='migration rate, require 5 arguments:\n\t\tsource population index (1 or 2)\n\t\tmigration start time\n\t\tmigration end time\n\t\tmigration rate initial value\n\t\tfixed(0) or optimised(1) parameter.')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
+parser.add_argument('-pu', nargs=4, action = 'append',
+                    help='pulse migration, require 4 arguments:\n\t\tsource population index (1 or 2)\n\t\tpulse migration time\n\t\tpulse migration rate\n\t\tfixed(0) or optimised(1) parameter.')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
 
 parser.add_argument('--sdate', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome)') 
@@ -111,8 +113,10 @@ if isinstance(clargs.cpfit, list):
     clargs.cpfit = clargs.cpfit[0]
 if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
-if clargs.mi == None:
+if clargs.mi is None:
     clargs.mi=[]
+if clargs.pu is None:
+    clargs.pu=[]
 
 if isinstance(clargs.funits, list):
     clargs.funits = clargs.funits[0]
@@ -147,6 +151,14 @@ print("pop1\t", fpsmc1)
 print("pop2\t", fpsmc2)
 print("jafs\t", fjafs)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
+
+snps = 0
+inputSFS = [0 for _ in range(7)]
+for sfs in dataJAFS.jafs:
+    snps += sfs[0]
+    inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
+inputSFS.insert(0, snps)
+
 print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc file are supplied in the same order as populations appear in the joint allele frequency spectrum.")
 
 fout   = clargs.fout
@@ -173,7 +185,7 @@ sol = [[], [], []]
 
 t1 = time.time()
 
-Migration = MigrationInference(inputData[0], inputData[1], dataJAFS, clargs.mi, clargs.st, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
+Migration = MigrationInference(inputData[0], inputData[1], inputSFS, clargs.st, clargs.mi, clargs.pu, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
 sol = Migration.Solve(clargs.tol)
 print(sol)
 
@@ -210,7 +222,7 @@ t2 = time.time()
 if sol[1] == -10**9:
     print("Failed to fit such a model.")
 else:
-    migrationIO.OutputMigration2(fout, sol[0], Migration)
+    migrationIO.OutputMigration(fout, sol[0], Migration)
 
 t3 = time.time()
 
