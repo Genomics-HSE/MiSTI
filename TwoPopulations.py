@@ -358,7 +358,7 @@ class TwoPopulations:
                 total += self.la[ state[i].pop ]
         MM[ind][ind] -= total
     
-    def PulseMigration(P0, migRate, pop1):
+    def PulseMigration(self, P0, migRate, pop1):
         pop2 = (pop1 + 1)%2
         P0n = [0 for _ in range(self.Msize)]
         for ind in range(self.Msize):

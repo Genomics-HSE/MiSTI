@@ -72,7 +72,7 @@ else:
     inputSFS = [0 for _ in range(7)]
     for sfs in dataJAFS.jafs:
         snps += sfs[0]
-        inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
+        inputSFS = [v+u for v, u in zip(inputSFS, sfs[1:])]
     inputSFS.insert(0, snps)
 
 inputData = migrationIO.ReadMS(clargs.msstring)

@@ -460,9 +460,9 @@ class MigrationInference:
                 self.P0 = model_tmp.AncientSampleP0(self.P0)
             puRate = self.pu[interval][0] + self.pu[interval][1]
             if interval < self.splitT and puRate > 0:
-                pop1 = 0 if self.pu[t][0] > 0 else 1
+                pop1 = 0 if self.pu[interval][0] > 0 else 1
 #                pop2 = (pop1 + 1)%2
-                self.P0 = model.PulseMigration(self.P0, migRate, pop1)
+                self.P0 = model.PulseMigration(self.P0, puRate, pop1)
 #                for k in [0,1]:
 #                    p0n[pop1] = p0[k][pop1]*(1-puRate)**2
 #                    p0n[pop2] = p0[k][pop1]*puRate**2+p0[k][pop2]+p0[k][2]*puRate

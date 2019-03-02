@@ -592,7 +592,7 @@ def ReadMS(argument_string):
     pus = []
     ind = 0
     for i in range(splitTind):
-        if ind == len(pus):
+        if ind == len(puls):
             break
         if times[i] == puls[ind][0]:
             p = puls[ind]
