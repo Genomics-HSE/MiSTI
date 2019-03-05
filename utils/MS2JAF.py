@@ -163,11 +163,9 @@ with open(fn) as f:
                 elif s1 == 1:
                     jaf[4] += 1
 #print("chunks_processed", chunks_processed)
-print(jaf)
 #if chunks_processed == clargs.n:
 #    print("IS IT EXPECTED?? CHECK ME!!!")
 #    sys.exit(0)
 if len(jafs) != clargs.n:
     SaveJAF(jaf, jafs, chunkLen - ch_len)
-print(jafs)
 PrintJAFSFile(jafs, pop1, pop2)
