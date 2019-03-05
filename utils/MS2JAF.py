@@ -31,7 +31,6 @@ from migrationIO import PrintJAFSFile, PrintErr
 
 
 def AddPosition(jaf, jafs, chLen, begin, end, remaining_ch_len):
-    print("->", end, begin, remaining_ch_len)
     if end - begin < remaining_ch_len:
         remaining_ch_len -= (end - begin)
     else:
@@ -97,7 +96,6 @@ with open(fn) as f:
             PrintErr("Unknown number of chromosomes. The script is designed to work with ms commands containing -r argument.")
             sys.exit(0)
     chunkLen = math.ceil(numChrom*chromLen/clargs.n)
-    print("chunkLen = ", chunkLen)
     pr_position = 0
     ch_len = chunkLen
 #    chunks_processed = 0
@@ -131,8 +129,6 @@ with open(fn) as f:
             if len(pars) != 2:
                 continue
             position = int(pars[0])
-            print(position)
-            print(pr_position, position, ch_len)
             ch_len = AddPosition(jaf, jafs, chunkLen, pr_position, position, ch_len)
 #            if position - pr_position < ch_len:
 #                ch_len -= (position - pr_position)
