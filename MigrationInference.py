@@ -589,7 +589,6 @@ class MigrationInference:
             mi0 = [val[3] for val in self.optMis]
             pu0 = [val[2] for val in self.optPus]
             init = mi0 + pu0
-            print("Initial conditions are ", init)
             if globalOpt:
                 res = optimize.basinhopping(self.ObjectiveFunction, init, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
             else:
