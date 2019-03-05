@@ -19,22 +19,21 @@ else:
     PrintErr("IMPORTANT NOTICE!!! It is strongly recommended to supply population 1 and population 2 names to ensure that the order of psmc files is not swapped relatively to the joint allele frequency spectrum.")
 
 fn = sys.argv[1]
-jaf = [0 for _ in range(7)]
+jafs = []
 
 with open(fn) as f:
     for line in f:
+        line = line.rstrip("\n")
         freqs = line.split(" ")
-        for i in range(1, 8):
-            jaf[i-1] += float( freqs[i] )
-
-jaf = [round(u) for u in jaf]
-jaf = [
-    jaf[2],
-    jaf[5],
-    jaf[0],
-    jaf[3],
-    jaf[6],
-    jaf[1],
-    jaf[4]
-]
-PrintJAFSFile(jaf, pop1, pop2)
+        sfs = [float(v) for v in freqs[0:8]]
+        jafs.append([
+            sum(sfs),
+            sfs[3],
+            sfs[6],
+            sfs[1],
+            sfs[4],
+            sfs[7],
+            sfs[2],
+            sfs[5]
+        ])
+PrintJAFSFile(jafs, pop1, pop2)

@@ -461,7 +461,7 @@ def ReadJAFS(fn, silent_mode=False):
             if len(jsfs) != 8:
                 PrintErr("Unexpected line. Expected an entry for JSFS with eight TAB-separated columns.")
                 sys.exit(0)
-            Jafs.jafs.append([int(v) for v in jsfs])
+            Jafs.jafs.append([float(v) for v in jsfs])
             line = next(f, "EOF").rstrip("\n")
     return(Jafs)
 

@@ -32,26 +32,26 @@ if len(sys.argv) < 2:
 pop1, pop2 = [], []
 
 
-jaf = [0 for _ in range(7)]
-tf = 0
+jafs = []
 for fn in sys.argv[1:]:
     if os.path.isdir(fn):
         for fn1 in os.listdir(fn):
             if fn1[0] != ".":
                 dataJAFS = ReadJAFS(os.path.join( fn, fn1 ), True)
-                jafs = dataJAFS.jafs[1:]
-                jaf = [u + v for u, v in zip(jaf, jafs)]
-                tf += 1
-                pop1.append(dataJAFS.pop1)
-                pop2.append(dataJAFS.pop2)
+                jaf = dataJAFS.jafs
+                jafs.append(jaf)
+                if dataJAFS.pop1 is not None:
+                    pop1.append(dataJAFS.pop1)
+                if dataJAFS.pop2 is not None:
+                    pop2.append(dataJAFS.pop2)
     else:
-        dataJAFS = ReadJAFS(fjafs, True)
-        jafs = dataJAFS.jafs[1:]
-        jaf = [u + v for u, v in zip(jaf, jafs)]
-        tf += 1
-        pop1.append(dataJAFS.pop1)
-        pop2.append(dataJAFS.pop2)
-jaf = [int(v/tf) for v in jaf]
+        dataJAFS = ReadJAFS(fn, True)
+        jaf = dataJAFS.jafs
+        jafs.append(jaf)
+        if dataJAFS.pop1 is not None:
+            pop1.append(dataJAFS.pop1)
+        if dataJAFS.pop2 is not None:
+            pop2.append(dataJAFS.pop2)
 pop1 = list(set(pop1))
 pop2 = list(set(pop2))
 pop1s = "+".join(pop1)
