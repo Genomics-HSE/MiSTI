@@ -513,16 +513,16 @@ def ReadJAFS_old(fn, silent_mode=False):
     Jafs.jafs.append(jafs)
     return(Jafs)    
 
+
 def ReadMS(argument_string):
     PrintErr("WARNING: ReadMS() is not safe to use, the function has many assumptions on the ms command line")
-    PrintErr("WARNING: assume that population sizes in the ancestral popualtion are equal for pop1 and pop2")
     #argument_string = "-n 2 3.0 -em 0.0 1 2 2.0 -em 0.05 2 1 3.0 -en 0.01 1 0.5 -en 0.02 2 0.05 -en 0.0375 1 0.5 -en 0.0375 2 0.5 -ej 1.25 2 1 -eM 1.25 0.0 -eN 1.25 1.0 -eN 2.0 5.0"
     args = argument_string.split(" ")
-    pops = [[], []]
-    migr = []
-    puls = []
+    pops = [{0.0: 1.0}, {0.0: 1.0}]
+    migr = [{}, {}]
+    puls = {}
     splitT = 0
-    popMerge = 0
+    popMove = None
     i = 0
     while i < len(args):
         if args[i] == "-n":
@@ -532,7 +532,7 @@ def ReadMS(argument_string):
                 print("Population id should be 1 or 2.")
                 print(args[i], args[i+1], args[i+2])
                 sys.exit(0)
-            pops[pop-1].append([0.0, size])
+            pops[pop-1][0.0] = size
             i += 3
         elif args[i] == "-en":
             pop = int(args[i+2])
@@ -542,86 +542,76 @@ def ReadMS(argument_string):
                 print("Population id should be 1 or 2.")
                 print(args[i], args[i+1], args[i+2], args[i+3])
                 sys.exit(0)
-            pops[pop-1].append([time, size])
+            pops[pop-1][time] = size
             i += 4
         elif args[i] == "-eN":
             time = float(args[i+1])
             size = float(args[i+2])
-            pops[0].append([time, size])
-            pops[1].append([time, size])
+            pops[0][time] = size
+            pops[1][time] = size
             i += 3
         elif args[i] == "-em":
             time = float(args[i+1])
             direct = int(args[i+2])
             rate = float(args[i+4])
-            migr.append([time, rate, direct])
+            migr[direct-1][time] = [rate, direct]
             i += 5
         elif args[i] == "-es":#-es t i p
             time = float(args[i+1])
             pop = int(args[i+2])
             rate = 1 - float(args[i+3])
-            puls.append([time, rate, pop])
+            puls[time] = [rate, pop]
             i += 4
         elif args[i] == "-ej":
             if int(args[i+2]) <= 2:
                 splitT = float( args[i+1] )
-                popMerge = int(args[i+2])
+                popMove = int(args[i+2]) - 1
             i += 4
         else:
             i += 1
-    if popMerge == 0:
+    if popMove is None:
         print("Populations should be merged. (-ej [time] 2 1)")
         sys.exit(0)
-    if len(migr) > 2 or (len(migr) == 2 and migr[0][2] == migr[1][2]):
-        print("Maximum two -em arguments are supported, for two arguments they should be in different directions")
-        sys.exit(0)
-    times = []
+    times = set()
     for k in [0, 1]:
-        for el in pops[k]:
-            times.append(el[0])
-    for el in migr:
-        times.append(el[0])
-    for el in puls:
-        times.append(el[0])
-    times.append(splitT)
-    times = list(set(times))
+        for key, el in pops[k].items():
+            times.add(key)
+        for key, el in migr[k].items():
+            times.add(key)
+    for key, el in puls.items():
+        times.add(key)
+    times.add(splitT)
+    times = list(times)
     times.sort()
-    i = 0
-    while times[i] != splitT:
-        i += 1 
-    splitTind = i
-    for k in [0,1]:
-        pops[k].sort(key=lambda el: el[0])
-        if pops[k][0][0] != 0.0:
-            pops[k].insert(0, [0.0, 1.0])
-    migr.sort(key=lambda el: el[0])
-    puls.sort(key=lambda el: el[0])
+    timesD = {times[i]: i for i in range(len(times))}
+    splitTind = timesD[splitT]
+
     popSizes = [[0,0] for i in range(len(times))]
     for k in [0, 1]:
-        ind = 0
-        for i in range(len(times)):
-            if times[i] == pops[k][ind][0]:
-                popSizes[i][k] = pops[k][ind][1]
-                curSize = pops[k][ind][1]
-                ind += 1
-            else:
+        for key, val in pops[k].items():
+            popSizes[timesD[key]][k] = val
+        curSize = 0
+        for i in range(len(popSizes)):
+            if popSizes[i][k] == 0:
                 popSizes[i][k] = curSize
+            else:
+                curSize = popSizes[i][k]
+    for i in range(splitTind, len(popSizes)):
+        popDest = (popMove+1)%2
+        popSizes[i][popMove] = popSizes[i][popDest]
     mis = []
-    ind = 0
-    for i in range(splitTind):
-        while ind < len(migr) and migr[ind][0] == times[i]:
-            m = migr[ind]
-            mis.append([m[2], i, splitTind, 2*m[1], 0])
-            ind += 1
+    for k in [0, 1]:
+        for key, val in migr[k].items():
+            mis.append([val[1], timesD[key], splitTind, 2*val[0], 0])
+    
+    mis.sort(key = lambda el: (el[0], el[1]))
+    for i in range(len(mis)-1):
+        if mis[i][0] == mis[i+1][0]:
+            mis[i][2] = mis[i+1][1]
+
     pus = []
-    ind = 0
-    for i in range(splitTind):
-        if ind == len(puls):
-            break
-        if times[i] == puls[ind][0]:
-            p = puls[ind]
-            pus.append([p[2], i, p[1], 0])
-            ind += 1
+    for key, val in puls.items():
+        pus.append([val[1], timesD[key], val[0], 0])
     inputData = [None for _ in range(5)]
     inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
     inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
