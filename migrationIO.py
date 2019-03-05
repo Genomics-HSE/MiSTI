@@ -345,7 +345,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         if data.mi is None:
             mi0_title = "-"
             mi1_title = "-"
-        else
+        else:
             mi0_title = str(round(data.mi[0],1))
             mi1_title = str(round(data.mi[1],1))
         #title = "llh = " + llh_title + ", migr (1->2) = " + mi1_title + ", migr (2->1) " + mi0_title + "\ninput file " + fmigr
