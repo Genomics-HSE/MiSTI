@@ -586,11 +586,14 @@ class MigrationInference:
     
     def Solve(self, tol=1e-4, globalOpt = False):
         if self.optMisSize + self.optPusSize > 0:
-            mu0 = [val[3] for val in self.optPars]
+            mi0 = [val[3] for val in self.optMis]
+            pu0 = [val[2] for val in self.optPus]
+            init = mi0 + pu0
+            print("Initial conditions are ", init)
             if globalOpt:
-                res = optimize.basinhopping(self.ObjectiveFunction, mu0, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
+                res = optimize.basinhopping(self.ObjectiveFunction, init, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
             else:
-                res = optimize.minimize(self.ObjectiveFunction, mu0, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
+                res = optimize.minimize(self.ObjectiveFunction, init, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
         #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
             return([res.x, -res.fun])
         else:

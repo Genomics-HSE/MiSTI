@@ -343,12 +343,13 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
         else:
             llh_title = str(round(data.llh,1))
         if data.mi is None:
-            mu0_title = "-"
-            mu1_title = "-"
-        else:
-            mu0_title = str(round(data.mi[0],1))
-            mu1_title = str(round(data.mi[1],1))
-        title = "llh = " + llh_title + ", migr (1->2) = " + mi1_title + ", migr (2->1) " + mi0_title + "\ninput file " + fmigr
+            mi0_title = "-"
+            mi1_title = "-"
+        else
+            mi0_title = str(round(data.mi[0],1))
+            mi1_title = str(round(data.mi[1],1))
+        #title = "llh = " + llh_title + ", migr (1->2) = " + mi1_title + ", migr (2->1) " + mi0_title + "\ninput file " + fmigr
+        title = "llh = " + llh_title + "\ninput file " + fmigr
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
