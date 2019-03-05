@@ -28,6 +28,7 @@ import collections
 import argparse
 import numpy
 import math
+import random
 from math import (exp,log)
 import time
 import multiprocessing
@@ -36,6 +37,7 @@ from CorrectLambda import CorrectLambda
 import migrationIO
 from migrationIO import PrintErr
 
+random.seed()
 t0 = time.time()
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
@@ -81,6 +83,8 @@ parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
 parser.add_argument('--cpfit', action='store_true',
                     help='Approximate EPS by fitting probabilities to coalesce within each interval (default is fitting expected coalescence time within each interval)')
+parser.add_argument('--bsSize', '-bs', type=int, default=0,
+                    help='Number of bootstrap repetitions')
 
 
 parser.add_argument('--debug', action='store_true',
@@ -113,6 +117,8 @@ if isinstance(clargs.cpfit, list):
     clargs.cpfit = clargs.cpfit[0]
 if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
+if isinstance(clargs.bsSize, list):
+    clargs.bsSize = clargs.bsSize[0]
 if clargs.mi is None:
     clargs.mi=[]
 if clargs.pu is None:
@@ -153,11 +159,9 @@ print("jafs\t", fjafs)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
 snps = 0
-inputSFS = [0 for _ in range(7)]
+inputSFS = [0 for _ in range(8)]
 for sfs in dataJAFS.jafs:
-    snps += sfs[0]
     inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
-inputSFS.insert(0, snps)
 
 print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc file are supplied in the same order as populations appear in the joint allele frequency spectrum.")
 
@@ -223,6 +227,17 @@ if sol[1] == -10**9:
     print("Failed to fit such a model.")
 else:
     migrationIO.OutputMigration(fout, sol[0], Migration)
+    if clargs.bsSize > 1:
+        bs_llh = []
+        bs_size = clargs.bsSize
+        for i in range(clargs.bsSize):
+            Migration.SetJAFS(migrationIO.BootstrapJAFS(dataJAFS))
+            bs_llh.append( Migration.JAFSLikelihood(sol[0]) )
+        bs_llh.sort()
+        cutoff = math.ceil(0.05*bs_size)
+        print("10% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
+        cutoff = math.ceil(0.025*bs_size)
+        print("5% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
 
 t3 = time.time()
 

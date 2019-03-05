@@ -29,6 +29,25 @@ from migrationIO import PrintJAFSFile, PrintErr
 
 
 
+
+def AddPosition(jaf, jafs, chLen, begin, end, remaining_ch_len):
+    print("->", end, begin, remaining_ch_len)
+    if end - begin < remaining_ch_len:
+        remaining_ch_len -= (end - begin)
+    else:
+        SaveJAF(jaf, jafs, chLen)
+#        chunks_processed += 1
+        tmp_len =  (end - begin) - remaining_ch_len
+        remaining_ch_len = chunkLen
+        remaining_ch_len -= tmp_len
+    return remaining_ch_len
+
+def SaveJAF(jaf, jafs, chLen):
+    jafs.append([v for v in jaf])
+    jafs[-1].insert(0, chLen)
+    for i in range(len(jaf)):
+        jaf[i] = 0
+
 parser = argparse.ArgumentParser(description='This script calculates joint SFS from Heng Li\'s output format of msHOT-lite (-l option).')
 
 parser.add_argument('inputfile',
@@ -36,14 +55,17 @@ parser.add_argument('inputfile',
 parser.add_argument('-p', nargs=2, type=str,
                     help='population names (makes it easier to check the consistence of the pipeline.)')
 parser.add_argument('-n', nargs=1, type=int, default=200,
-                    help='File name with units to be used to rescale times and EPS.')
+                    help='Number of chunks for bootstrap.')
 
 
 clargs = parser.parse_args()
 
-if len(sys.argv) < 2:
-    print("./MS2JAF.py <INPUT FILE> [pop1] [pop2]")
-    exit(0)
+if isinstance(clargs.n, list):
+    clargs.n = clargs.n[0]
+
+#if len(sys.argv) < 2:
+#    print("./MS2JAF.py <INPUT FILE> [pop1] [pop2]")
+#    exit(0)
 
 pop1, pop2 = False, False
 
@@ -59,6 +81,7 @@ h3 = 3
 
 fn = sys.argv[1]
 jaf = [0 for _ in range(7)]
+jafs = []
 
 with open(fn) as f:
     line = next(f, "EOF")
@@ -73,17 +96,54 @@ with open(fn) as f:
         if chromLen <= 0:
             PrintErr("Unknown number of chromosomes. The script is designed to work with ms commands containing -r argument.")
             sys.exit(0)
-    chunkLen = math.floor(numChrom*chromLen/clargs.n)
+    chunkLen = math.ceil(numChrom*chromLen/clargs.n)
+    print("chunkLen = ", chunkLen)
+    pr_position = 0
+    ch_len = chunkLen
+#    chunks_processed = 0
     while line != "EOF":
         while not (line.startswith("@begin") or line == "EOF"):
             line = next(f, "EOF")
             if line.startswith("segsites:"):
-                1+1
+                ch_len = AddPosition(jaf, jafs, chunkLen, 0, chromLen, ch_len)
+#                if chromLen < ch_len:
+#                    ch_len -= chromLen
+#                else:
+#                    SaveJAF(jaf, jafs, chromLen)
+#                    chunks_processed += 1
+#                    tmp_len =  chromLen - ch_len
+#                    ch_len = chunkLen
+#                    ch_len -= tmp_len
         while not (line.startswith("@end") or line == "EOF"):
             line = next(f, "EOF").rstrip("\n")
             pars = line.split("\t")
+            if line.startswith("@end"):
+                ch_len = AddPosition(jaf, jafs, chunkLen, pr_position, chromLen, ch_len)
+#                if position - pr_position < ch_len:
+#                    ch_len -= (position - pr_position)
+#                else:
+#                    SaveJAF(jaf, jafs, chromLen)
+#                    chunks_processed += 1
+#                    tmp_len =  (position - pr_position) - ch_len
+#                    ch_len = chunkLen
+#                    ch_len -= tmp_len
+                pr_position = 0
             if len(pars) != 2:
                 continue
+            position = int(pars[0])
+            print(position)
+            print(pr_position, position, ch_len)
+            ch_len = AddPosition(jaf, jafs, chunkLen, pr_position, position, ch_len)
+#            if position - pr_position < ch_len:
+#                ch_len -= (position - pr_position)
+#            else:
+#                SaveJAF(jaf, jafs, chromLen)
+#                chunks_processed += 1
+#                tmp_len =  (position - pr_position) - ch_len
+#                ch_len = chunkLen
+#                ch_len -= tmp_len
+#                pr_position = position
+            pr_position = position
             fr = list(pars[1][0:4])
             
             s0 = int(fr[h0]) + int(fr[h1])
@@ -106,5 +166,12 @@ with open(fn) as f:
                     jaf[1] += 1
                 elif s1 == 1:
                     jaf[4] += 1
-
-PrintJAFSFile(jaf, pop1, pop2)
+#print("chunks_processed", chunks_processed)
+print(jaf)
+#if chunks_processed == clargs.n:
+#    print("IS IT EXPECTED?? CHECK ME!!!")
+#    sys.exit(0)
+if len(jafs) != clargs.n:
+    SaveJAF(jaf, jafs, chunkLen - ch_len)
+print(jafs)
+PrintJAFSFile(jafs, pop1, pop2)

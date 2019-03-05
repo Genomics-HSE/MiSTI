@@ -24,6 +24,7 @@ from math import log
 from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
 import argparse
+import random
 
 class MiPlot:#This is a class of static variables
     fig = None
@@ -47,7 +48,7 @@ class MigData:
         self.lambda1 = None
         self.lambda2 = None
         self.thrh = None
-        self.mu = None#migration rate
+        self.mi = None#migration rate
         self.sampleDate = None
         if "llh" in kwargs:
             self.llh = kwargs["llh"]
@@ -65,8 +66,8 @@ class MigData:
             self.lambda2 = kwargs["lambda2"]
         if "thrh" in kwargs:
             self.thrh = kwargs["thrh"]
-        if "mu" in kwargs:
-            self.mu = kwargs["mu"]
+        if "mi" in kwargs:
+            self.mi = kwargs["mi"]
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]
 
@@ -245,7 +246,7 @@ def OutputMigration(fout, mu, Migration):
     outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
     for i in range( len(times) ):
         outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1])
-        outData += "\t" + str(Migration.mu[i][0]) + "\t" + str(Migration.mu[i][1])
+        outData += "\t" + str(Migration.mi[i][0]) + "\t" + str(Migration.mi[i][1])
         if i < Migration.splitT:
             for val in Migration.Pr[i]:
                 outData += "\t" + str(val[0]) + "\t" + str(val[1])
@@ -323,7 +324,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
                 elif line[0] == "ME":
                     data.migEnd = int(line[1])
                 elif line[0] == "MU":
-                    data.mu = [float(line[1]), float(line[2])]
+                    data.mi = [float(line[1]), float(line[2])]
                 elif line[0] == "TR":
                     data.thrh = [float(line[1]), float(line[2])]
                 elif line[0] == "SFS":
@@ -341,13 +342,13 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
             llh_title = "-"
         else:
             llh_title = str(round(data.llh,1))
-        if data.mu is None:
+        if data.mi is None:
             mu0_title = "-"
             mu1_title = "-"
         else:
-            mu0_title = str(round(data.mu[0],1))
-            mu1_title = str(round(data.mu[1],1))
-        title = "llh = " + llh_title + ", migr (1->2) = " + mu1_title + ", migr (2->1) " + mu0_title + "\ninput file " + fmigr
+            mu0_title = str(round(data.mi[0],1))
+            mu1_title = str(round(data.mi[1],1))
+        title = "llh = " + llh_title + ", migr (1->2) = " + mi1_title + ", migr (2->1) " + mi0_title + "\ninput file " + fmigr
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
@@ -364,6 +365,20 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     data.lambda1 = lc1
     data.lambda2 = lc2
     return(data)
+
+def BootstrapJAFS(Jafs):
+    genomeLen = 0
+    for el in Jafs.jafs:
+        if len(el) != 8:
+            PrintErr("Cannot use provided SFS for bootstrap.")
+            sys.exit(0)
+        genomeLen += el[0]
+    sfs = [0 for _ in range(8)]
+    while sfs[0] < genomeLen:
+        sfs_id = random.randint(0, len(Jafs.jafs)-1)
+        for i in range(8):
+            sfs[i] += Jafs.jafs[sfs_id][i]
+    return(sfs)
 
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
     print("#MiSTI_JSFS version 1.0")
@@ -384,9 +399,17 @@ def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
         print(sfs_str)
     else:
         for sfs in jaf:
-            norm = sum(sfs)
-            sfs_str = str(norm) + "\t" + "\t".join(sfs)
-            print(sfs_str)
+            if len(sfs) == 7:
+                norm = sum(sfs)
+                sfs_str = str(norm) + "\t" + "\t".join([str(v) for v in sfs])
+                print(sfs_str)
+            elif len(sfs) == 8:
+                sfs_str = "\t".join([str(v) for v in sfs])
+                print(sfs_str)
+            else:
+                print("Unexpected SFS entry.")
+                sys.exit(0)
+            
 
 def ReadJAFS(fn, silent_mode=False):
     Jafs = JAFS()

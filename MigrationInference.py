@@ -197,9 +197,10 @@ class MigrationInference:
         #for sfs in dataJAFS.jafs:
         #    self.snps += sfs[0]
         #    self.dataJAFS = [v+u for v, u in zip(self.dataJAFS, sfs)]
-        self.snps = dataJAFS[0]
-        self.dataJAFS = dataJAFS[1:]
-        
+        if len(dataJAFS) != 8:
+            self.PrintError("SetJAFS", "Unexpected data SFS.")
+        self.snps = sum(dataJAFS[1:])
+        self.dataJAFS = dataJAFS[1:]        
         self.llh_const = 0
         if self.unfolded:
             self.llh_const += scipy.special.gammaln(self.snps+1)
