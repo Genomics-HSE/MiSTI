@@ -158,7 +158,6 @@ print("pop2\t", fpsmc2)
 print("jafs\t", fjafs)
 dataJAFS = migrationIO.ReadJAFS(fjafs)
 
-snps = 0
 inputSFS = [0 for _ in range(8)]
 for sfs in dataJAFS.jafs:
     inputSFS = [v+u for v, u in zip(inputSFS, sfs)]

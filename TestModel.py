@@ -50,6 +50,8 @@ parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
 
 parser.add_argument('-uf', action='store_true',
                     help='Unfolded spectrum')
+parser.add_argument('--bsSize', '-bs', type=int, default=0,
+                    help='Number of bootstrap repetitions')
 
 parser.add_argument('--debug', action='store_true',
                     help='Debug mode, more input enabled')
@@ -57,8 +59,10 @@ parser.add_argument('--debug', action='store_true',
 
 clargs = parser.parse_args()
 
-#if isinstance(clargs.msstring, list):
-#    clargs.msstring = clargs.msstring[0]
+if isinstance(clargs.uf, list):
+    clargs.uf = clargs.uf[0]
+if isinstance(clargs.bsSize, list):
+    clargs.bsSize = clargs.bsSize[0]
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -68,12 +72,9 @@ if clargs.fjafs == "":
 else:
     dataJAFS = migrationIO.ReadJAFS(clargs.fjafs)
     jafs_input = True
-    snps = 0
-    inputSFS = [0 for _ in range(7)]
+    inputSFS = [0 for _ in range(8)]
     for sfs in dataJAFS.jafs:
-        snps += sfs[0]
-        inputSFS = [v+u for v, u in zip(inputSFS, sfs[1:])]
-    inputSFS.insert(0, snps)
+        inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
 
 inputData = migrationIO.ReadMS(clargs.msstring)
 if False:
@@ -93,6 +94,18 @@ if jafs_input:
     print("data llh under the model is", llh)
     mllh = Migration.MaximumLLHFunction()
     print("maximum of the llh function is", mllh)
+
+    if clargs.bsSize > 1:
+        bs_llh = []
+        bs_size = clargs.bsSize
+        for i in range(clargs.bsSize):
+            Migration.SetJAFS(migrationIO.BootstrapJAFS(dataJAFS))
+            bs_llh.append( Migration.JAFSLikelihood(sol[0]) )
+        bs_llh.sort()
+        cutoff = math.ceil(0.05*bs_size)
+        print("10% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
+        cutoff = math.ceil(0.025*bs_size)
+        print("5% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
 
 
 #print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
