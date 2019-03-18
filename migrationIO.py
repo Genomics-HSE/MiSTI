@@ -169,7 +169,7 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th, rh]
     return( data )
 
-def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
+def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
 #    if d1[2] != d2[2]:
@@ -220,6 +220,9 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
         x = [v*scaleTime for v in Tk]
         y1 = [scaleEPS/v for v in Lk1]
         y2 = [scaleEPS/v for v in Lk2]
+        if maxY is not None:
+            y1 = [min(1.0/v,maxY) for v in y1]
+            y2 = [min(1.0/v,maxY) for v in y2]
         AddToPlot(x, y1, "psmc1")
         AddToPlot(x[sampleDateDiscr:], y2[sampleDateDiscr:], "psmc2")
     L1tmp = [Lk1[i]]
@@ -335,8 +338,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
                     lc2.append( 1.0/float(line[3])/scaleEPS )
     if doPlot:
         if maxY is not None:
-            lc1 = [min(1.0/v,10) for v in lc1]
-            lc2 = [min(1.0/v,10) for v in lc2]
+            lc1 = [min(1.0/v,maxY) for v in lc1]
+            lc2 = [min(1.0/v,maxY) for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         if data.llh == None:
