@@ -70,6 +70,7 @@ if isinstance(clargs.funits, list):
     
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
+units.PrintUnits()
 
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )

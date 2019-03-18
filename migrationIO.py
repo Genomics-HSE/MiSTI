@@ -86,10 +86,14 @@ class Units:#This is a class of static variables
             Units.N0 = kwargs["N0"]
         if "inpFile" in kwargs:
             Units.SetUnitsFromFile(kwargs["inpFile"])
-        if Units.firstCall or len(kwargs) > 0:
-            print("Units")
-            print("mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
-            Units.firstCall = False
+#        if Units.firstCall or len(kwargs) > 0:
+            #print("Units")
+            #print("mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
+#            self.PrintUnits()
+#            Units.firstCall = False
+
+    def PrintUnits(self):
+        print("Units: mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
 
     def SetUnitsFromFile(self, fn):
         try:

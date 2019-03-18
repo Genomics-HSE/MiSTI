@@ -138,6 +138,7 @@ clargs.settings = {
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
+units.PrintUnits()
 
 print( " ".join(sys.argv) )
 

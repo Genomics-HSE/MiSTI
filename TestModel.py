@@ -66,6 +66,8 @@ if isinstance(clargs.bsSize, list):
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
+units.PrintUnits()
+
 jafs_input = False
 if clargs.fjafs == "":
     inputSFS = [0 for _ in range(8)]
