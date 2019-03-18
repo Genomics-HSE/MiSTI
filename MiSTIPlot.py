@@ -51,7 +51,9 @@ parser.add_argument('--sdate', nargs=1, type=float, default=0,
                     help='dating of the second sample (for ancient genome, in years - units should be set properly)') 
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
-
+parser.add_argument('--maxY', nargs=1, type=float, default=None,
+                    help='Range for Y axis (upper bound).')
+                    
 clargs = parser.parse_args()
 if isinstance(clargs.wd, list):
     clargs.wd = clargs.wd[0]
@@ -59,6 +61,8 @@ if isinstance(clargs.o, list):
     clargs.o = clargs.o[0]
 if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
+if isinstance(clargs.maxY, list):
+    clargs.maxY = clargs.maxY[0]
 if isinstance(clargs.sdate, list):
     clargs.sdate = clargs.sdate[0]
 if isinstance(clargs.funits, list):
@@ -76,7 +80,7 @@ print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
-data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True)
+data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clagrs.maxY)
 migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 #plt.legend()

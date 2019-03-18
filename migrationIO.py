@@ -258,7 +258,7 @@ def OutputMigration(fout, mu, Migration):
         fw.write(outData)
         fw.close()
 
-def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
+def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None):
     times = []
     lc1 = []
     lc2 = []
@@ -334,8 +334,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
                     lc1.append( 1.0/float(line[2])/scaleEPS )
                     lc2.append( 1.0/float(line[3])/scaleEPS )
     if doPlot:
-        lc1 = [min(1.0/v,10) for v in lc1]
-        lc2 = [min(1.0/v,10) for v in lc2]
+        if maxY is not None:
+            lc1 = [min(1.0/v,10) for v in lc1]
+            lc2 = [min(1.0/v,10) for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         if data.llh == None:
