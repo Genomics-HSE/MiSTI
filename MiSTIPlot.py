@@ -80,7 +80,7 @@ print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
-data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clagrs.maxY)
+data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clargs.maxY)
 migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 #plt.legend()
