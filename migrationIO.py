@@ -344,6 +344,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
         if maxY is not None:
             lc1 = [min(1.0/v,maxY) for v in lc1]
             lc2 = [min(1.0/v,maxY) for v in lc2]
+        else:
+            lc1 = [1.0/v for v in lc1]
+            lc2 = [1.0/v for v in lc2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         if data.llh == None:
