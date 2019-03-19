@@ -518,6 +518,17 @@ class MigrationInference:
         self.integralP = [x - y for x, y in zip(self.P1, self.P0)]
         self.integralP = dot(MI,self.integralP)
         
+    def CoalescentRates(self):
+        for i in range(self.numT):
+            self.lc[i][0], self.lc[i][1] = self.lh[i][0], self.lh[i][1]
+        p0=[[1.0,0.0,0.0],[0.0,1.0,0.0]]
+        for t in range(self.splitT):
+            self.cl
+            self.cl.SetInterval(self.lh[t], self.times[t], p0)
+            self.lh[t], p0 = self.cl.CoalRates(self.lc[t])
+        for t in range(self.numT, self.splitT):
+            self.lh[t][0], self.lh[t][1] = (self.lc[t][0]+self.lc[t][1])/2, (self.lc[t][0]+self.lc[t][1])/2
+        
     def JAFSLikelihood(self, mu):
         MigrationInference.COUNT_LLH += 1
         self.llh = -10**9

@@ -105,7 +105,19 @@ class CorrectLambda:
             coalT[i][1] = pnc
         return coalT
     
-    def LambdaEquation1(self, npop):
+    def CoalRates(self,l):
+        self.l = [l[0],l[1]]
+        self.SetMatrix()
+        self.MatrixExponent()
+        p0 = [None, None]
+        lh = [None, None]
+        for npop in [0, 1]:
+            p0[npop] = dot(self.MET,self.P0[npop])
+            nc = sum(p0)
+            lh[npop] = -log(nc/sum(self.P0[npop]))/self.T
+        return lh, p0
+    
+'''    def LambdaEquation1(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
             self.PrintError("LambdaEquation", "lambda correction for the last interval is not implemented")
@@ -114,7 +126,7 @@ class CorrectLambda:
             nch = (1-exp(-self.lh[npop]*self.T))*sum(self.P0[npop])
         self.ComputeExpectation(npop)
         nc = self.l[0]*self.Pexp[0]+self.l[1]*self.Pexp[1]
-        return nc-nch
+        return nc-nch'''
         
     def LambdaEquation(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
@@ -167,7 +179,7 @@ class CorrectLambda:
     def ODE(self, y, t):
         return( dot(self.M, y) )
     
-    def CoalRates(self, intervals, splitT, discr = 100):#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
+    def CoalRates_old(self, intervals, splitT, discr = 100):#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
         p0 = [1.0, 0.0, 0.0]
         solution = [[],[]]
         for i in range( len(intervals) ):
