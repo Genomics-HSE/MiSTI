@@ -253,8 +253,8 @@ def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
     outData += "SFS\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     dataJAFS = [v/sum(Migration.dataJAFS) for v in Migration.dataJAFS]
     outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
-    outData += "ST\t" + str(scaleTime) + "\n"#scale time
-    outData += "SE\t" + str(scaleEPS) + "\n"#scale eps
+    outData += "SCT\t" + str(scaleTime) + "\n"#scale time
+    outData += "SCE\t" + str(scaleEPS) + "\n"#scale eps
     for i in range( len(times) ):
         outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1])
         outData += "\t" + str(1.0/Migration.lh[i][0]) + "\t" + str(1.0/Migration.lh[i][1])
@@ -304,9 +304,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
                     data.thrh = [float(line[1]), float(line[2])]
                 elif line[0] == "SFS":
                     data.jaf = map(float, line[1:])
-                elif line[0] == "ST":
+                elif line[0] == "SCT":
                     scaleTime = float(line[1])
-                elif line[0] == "SE":
+                elif line[0] == "SCE":
                     scaleEPS = float(line[1])
                 elif line[0] == "RS":
                     times.append( float(line[1])*scaleTime )
@@ -392,6 +392,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
         if len(pr11[0]) > 0:
             AddProb(pr11, pr22, pr12, times)
         splT=times[data.splitT]
+        print(data.splitT, splT)
         if data.migStart != None and data.migEnd != None:
             ms = times[data.migStart]
             me = times[data.migEnd]

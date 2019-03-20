@@ -519,13 +519,26 @@ class MigrationInference:
         self.integralP = dot(MI,self.integralP)
         
     def CoalescentRates(self):
+        self.Pr = []
         for i in range(self.numT):
             self.lc[i][0], self.lc[i][1] = self.lh[i][0], self.lh[i][1]
         p0=[[1.0,0.0,0.0],[0.0,1.0,0.0]]
+        p0n = [None, None, None]
         for t in range(self.splitT):
-            self.cl
+            puRate = self.pu[t][0] + self.pu[t][1]
+            if puRate > 0:
+                pop1 = 0 if self.pu[t][0] > 0 else 1
+                pop2 = (pop1 + 1)%2
+                for k in [0,1]:
+                    p0n[pop1] = p0[k][pop1]*(1-puRate)**2
+                    p0n[pop2] = p0[k][pop1]*puRate**2+p0[k][pop2]+p0[k][2]*puRate
+                    p0n[2] = p0[k][pop1]*2*(1-puRate)*puRate+p0[k][2]*(1-puRate)
+                    p0[k] = list(p0n)
+            if t == 0:
+                self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
             self.cl.SetInterval(self.lh[t], self.times[t], p0)
             self.lh[t], p0 = self.cl.CoalRates(self.lc[t])
+            self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
         for t in range(self.numT, self.splitT):
             self.lh[t][0], self.lh[t][1] = (self.lc[t][0]+self.lc[t][1])/2, (self.lc[t][0]+self.lc[t][1])/2
         
