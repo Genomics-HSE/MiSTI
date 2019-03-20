@@ -47,6 +47,8 @@ class MigData:
         self.times = None
         self.lambda1 = None
         self.lambda2 = None
+        self.lambdah1 = None
+        self.lambdah2 = None
         self.thrh = None
         self.mi = None#migration rate
         self.sampleDate = None
@@ -237,13 +239,13 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     return( [Tk, Lk, scaleTime, scaleEPS, d1[3], d1[4], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
 
 
-def OutputMigration(fout, mu, Migration):
+def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
     if len(mu) == 0:
         llh = Migration.llh
     else:
         llh = Migration.JAFSLikelihood( mu )
     times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
-    outData = "#MiSTI2 ver 0.3\n"
+    outData = "#MiSTI2 ver 0.4\n"
     outData += "LK\t" + str(llh) + "\n"#split time
     outData += "ST\t" + str(Migration.splitT) + "\n"#split time
     outData += "SD\t" + str(Migration.sampleDate) + "\n"#second sample date
@@ -251,8 +253,11 @@ def OutputMigration(fout, mu, Migration):
     outData += "SFS\t" + "\t".join(map(str, Migration.JAFS)) + "\n"#expected SFS
     dataJAFS = [v/sum(Migration.dataJAFS) for v in Migration.dataJAFS]
     outData += "DSF\t" + "\t".join(map(str, dataJAFS)) + "\n"#empirical SFS
+    outData += "ST\t" + str(scaleTime) + "\n"#scale time
+    outData += "SE\t" + str(scaleEPS) + "\n"#scale eps
     for i in range( len(times) ):
         outData += "RS\t" + str(times[i]) + "\t" + str(1.0/Migration.lc[i][0]) + "\t" + str(1.0/Migration.lc[i][1])
+        outData += "\t" + str(1.0/Migration.lh[i][0]) + "\t" + str(1.0/Migration.lh[i][1])
         outData += "\t" + str(Migration.mi[i][0]) + "\t" + str(Migration.mi[i][1])
         if i < Migration.splitT:
             for val in Migration.Pr[i]:
@@ -269,6 +274,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
     times = []
     lc1 = []
     lc2 = []
+    lh1 = []
+    lh2 = []
     mu1 = []
     mu2 = []
     pr11 = [[],[]]
@@ -297,19 +304,28 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
                     data.thrh = [float(line[1]), float(line[2])]
                 elif line[0] == "SFS":
                     data.jaf = map(float, line[1:])
+                elif line[0] == "ST":
+                    scaleTime = float(line[1])
+                elif line[0] == "SE":
+                    scaleEPS = float(line[1])
                 elif line[0] == "RS":
                     times.append( float(line[1])*scaleTime )
                     lc1.append( 1.0/float(line[2])/scaleEPS )
                     lc2.append( 1.0/float(line[3])/scaleEPS )
-                    mu1.append( float(line[4]) )
-                    mu2.append( float(line[5]) )
-                    if len(line) > 6:
-                        pr11[0].append(float(line[6]))
-                        pr11[1].append(float(line[7]))
-                        pr22[0].append(float(line[8]))
-                        pr22[1].append(float(line[9]))
-                        pr12[0].append(float(line[10]))
-                        pr12[1].append(float(line[11]))
+                    ind_shift = 0
+                    if version >= 0.4:
+                        lh1.append( 1.0/float(line[4])/scaleEPS )
+                        lh2.append( 1.0/float(line[5])/scaleEPS )
+                        ind_shift = 2
+                    mu1.append( float(line[4+ind_shift]) )
+                    mu2.append( float(line[5+ind_shift]) )
+                    if len(line) > 6+ind_shift:
+                        pr11[0].append(float(line[6+ind_shift]))
+                        pr11[1].append(float(line[7+ind_shift]))
+                        pr22[0].append(float(line[8+ind_shift]))
+                        pr22[1].append(float(line[9+ind_shift]))
+                        pr12[0].append(float(line[10+ind_shift]))
+                        pr12[1].append(float(line[11+ind_shift]))
                     else:
                         pr11[0].append(0)
                         pr11[1].append(0)
@@ -344,9 +360,15 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
         if maxY is not None:
             lc1 = [min(1.0/v,maxY) for v in lc1]
             lc2 = [min(1.0/v,maxY) for v in lc2]
+            if version >= 0.4:
+                lh1 = [min(1.0/v,maxY) for v in lh1]
+                lh2 = [min(1.0/v,maxY) for v in lh2]
         else:
             lc1 = [1.0/v for v in lc1]
             lc2 = [1.0/v for v in lc2]
+            if version >= 0.4:
+                lh1 = [1.0/v for v in lh1]
+                lh2 = [1.0/v for v in lh2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         if data.llh == None:
@@ -364,6 +386,9 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
         AddTitle(title)
         AddToPlot(times, lc1, "misti1")
         AddToPlot(times[sampleDate:], lc2[sampleDate:], "misti2")
+        if version >= 0.4:
+            AddToPlot(times, lh1, "psmc1")
+            AddToPlot(times[sampleDate:], lh2[sampleDate:], "psmc2")
         if len(pr11[0]) > 0:
             AddProb(pr11, pr22, pr12, times)
         splT=times[data.splitT]
@@ -376,6 +401,8 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
     data.times = times
     data.lambda1 = lc1
     data.lambda2 = lc2
+    data.lambdah1 = lh1
+    data.lambdah2 = lh2
     return(data)
 
 def BootstrapJAFS(Jafs):

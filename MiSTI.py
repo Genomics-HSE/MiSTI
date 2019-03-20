@@ -226,7 +226,7 @@ t2 = time.time()
 if sol[1] == -10**9:
     print("Failed to fit such a model.")
 else:
-    migrationIO.OutputMigration(fout, sol[0], Migration)
+    migrationIO.OutputMigration(fout, sol[0], Migration, inputData[2], inputData[3])
     if clargs.bsSize > 1:
         bs_llh = []
         bs_size = clargs.bsSize
