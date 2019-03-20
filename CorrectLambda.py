@@ -113,11 +113,11 @@ class CorrectLambda:
         lh = [None, None]
         for npop in [0, 1]:
             p0[npop] = dot(self.MET,self.P0[npop])
-            nc = sum(p0)
+            nc = sum(p0[npop])
             lh[npop] = -log(nc/sum(self.P0[npop]))/self.T
         return lh, p0
     
-'''    def LambdaEquation1(self, npop):
+        '''    def LambdaEquation1(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
             self.PrintError("LambdaEquation", "lambda correction for the last interval is not implemented")
@@ -127,7 +127,7 @@ class CorrectLambda:
         self.ComputeExpectation(npop)
         nc = self.l[0]*self.Pexp[0]+self.l[1]*self.Pexp[1]
         return nc-nch'''
-        
+    
     def LambdaEquation(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:

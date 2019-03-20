@@ -32,12 +32,11 @@ plt.ioff()
 
 parser = argparse.ArgumentParser(description='Migration inference from PSMC.')
 
-parser.add_argument('fpsmc1',
-                    help='psmc file 1')
-parser.add_argument('fpsmc2',
-                    help='psmc file 2')
 parser.add_argument('fmigr',
                     help='migr file')
+
+parser.add_argument('--fpsmc', '-fp', nargs=2, type=str, default=None,
+                    help='psmc files')
 
 parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
                     help='File name with units to be used to rescale times and EPS.')
@@ -72,8 +71,9 @@ units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
 units.PrintUnits()
 
-fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
-fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
+if clargs.fpsmc is not None:
+    fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc[0] )
+    fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc[1] )
 fmigr  = os.path.join( clargs.wd, clargs.fmigr  )
 fout   = os.path.join( clargs.wd, clargs.o )
 
@@ -81,7 +81,10 @@ print("Output file: ", fout)
 
 migrationIO.PlotInit()
 
-data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clargs.maxY)
+if clargs.fpsmc is not None:
+    data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clargs.maxY)
+else:
+    data = [None, None, 1, 1]
 migrationIO.ReadMigration(fmigr, True, data[2], data[3], maxY = clargs.maxY)
 #migrationIO.PlotMS(fms)
 #plt.legend()

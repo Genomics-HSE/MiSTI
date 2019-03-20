@@ -53,6 +53,9 @@ parser.add_argument('-uf', action='store_true',
 parser.add_argument('--bsSize', '-bs', type=int, default=0,
                     help='Number of bootstrap repetitions')
 
+parser.add_argument('-o', '--fout', nargs=1, default='',
+                    help='output file, default is stdout')
+
 parser.add_argument('--debug', action='store_true',
                     help='Debug mode, more input enabled')
 
@@ -63,6 +66,10 @@ if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
 if isinstance(clargs.bsSize, list):
     clargs.bsSize = clargs.bsSize[0]
+if isinstance(clargs.fout, list):
+    clargs.fout = clargs.fout[0]
+
+fout = clargs.fout
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -70,7 +77,7 @@ units.PrintUnits()
 
 jafs_input = False
 if clargs.fjafs == "":
-    inputSFS = [0 for _ in range(8)]
+    inputSFS = [1 for _ in range(8)]
 else:
     dataJAFS = migrationIO.ReadJAFS(clargs.fjafs)
     jafs_input = True
@@ -110,12 +117,9 @@ if jafs_input:
         print("5% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
 
 
-intervals = []
-ct = 0
-for i in range(Migration.numT):
-    intervals.append([ct+Migration.times[i], Migration.lh[i][0], Migration.lh[i][1], , Migration.mi[i][0], Migration.mi[i][1]])
 Migration.CoalescentRates()#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
-migrationIO.OutputMigration(fout, sol[0], Migration)
+if fout != "":
+    migrationIO.OutputMigration(fout, [], Migration)
     
 #print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
 
