@@ -486,7 +486,7 @@ def ReadJAFS(fn, silent_mode=False):
                 if not silent_mode:
                     print("pop1\t", pars[1])
             elif line[1:5] == "pop2":
-                line = line.split("\t")
+                pars = line.split("\t")
                 if len(pars) != 2:
                     PrintErr("Corrupted JSFS file header.")
                     sys.exit(0)
