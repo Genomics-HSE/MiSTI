@@ -217,9 +217,9 @@ class MigrationInference:
         self.optMis = []
         self.optPus = []
         for i in range(len(self.mi)):
-            self.mi[i] = [0.0,0.0]
+            self.mi[i] = [None,None]
         for i in range(len(self.pu)):
-            self.pu[i] = [0.0,0.0]
+            self.pu[i] = [None,None]
         for el in mis:
             popInd = int(el[0]) - 1
             if popInd != 0 and popInd != 1:
@@ -233,12 +233,12 @@ class MigrationInference:
                 text = "Migration start (" + str(migStart) + ") should be strictly less than migration end (" + str(migEnd) + ")."
                 self.PrintError("SetModel", text)
             migVal = float(el[3])
-            if migVal == 0.0:
-                text = "Migration rate of 0.0 is the default value. Please avoid using it with -mi as it might create some conflicts."
-                self.PrintError("SetModel", text)
+#            if migVal == 0.0:
+#                text = "Migration rate of 0.0 is the default value. Please avoid using it with -mi as it might create some conflicts."
+#                self.PrintError("SetModel", text)
             migOpt = int(el[4])
             for i in range(migStart, migEnd):
-                if self.mi[i][popInd] != 0:
+                if self.mi[i][popInd] != None:
                     self.PrintError("SetModel", "Migration rate intervals should not overlap.")
                 self.mi[i][popInd] = migVal
             if migOpt == 1:
@@ -252,18 +252,26 @@ class MigrationInference:
                 text = "Pulse migration time (" + str(puTime) + ") should be larger than or equal to sample date (" + str(self.sampleDate) + ")."
                 self.PrintError("SetModel", text)
             puVal = float(el[2])
-            if puVal == 0.0:
-                text = "Pulse migration rate of 0.0 is the default value. Please avoid using it with -mi as it might create some conflicts."
-                self.PrintError("SetModel", text)
+#            if puVal == 0.0:
+#                text = "Pulse migration rate of 0.0 is the default value. Please avoid using it with -mi as it might create some conflicts."
+#                self.PrintError("SetModel", text)
             if puVal < 0 or puVal > 1:
                 text = "Pulse migration rate should be between 0 and 1."
                 self.PrintError("SetModel", text)
             puOpt = int(el[3])
-            if self.pu[puTime][0] != 0.0 or self.pu[puTime][1] != 0.0:
+            if self.pu[puTime][0] != None or self.pu[puTime][1] != None:
                 self.PrintError("SetModel", "Current version allows only single-direction pulse migration at a time.")
             self.pu[puTime][popInd] = puVal
             if puOpt == 1:
                 self.optPus.append([popInd, puTime, puVal])
+        for i in range(len(self.mi)):
+            for k in [0, 1]:
+                if self.mi[i][k] == None:
+                    self.mi[i][k] == 0.0
+        for i in range(len(self.pu)):
+            for k in [0, 1]:
+                if self.pu[i][k] == None:
+                    self.pu[i][k] == 0.0
         self.optMisSize = len(self.optMis)
         self.optPusSize = len(self.optPus)
     
@@ -322,7 +330,7 @@ class MigrationInference:
                     print("initial conditions", p0[0], "\t", p0[1])
 #                print("time = ", t, "\tinterval solution\t",sol)
                 self.lc[t][0],self.lc[t][1] = sol[0][0],sol[0][1]
-                if sol[0][0] <= 0 or sol[0][1] <= 0 or sol[0][0] > 100 or sol[0][1] > 100:
+                if sol[0][0] <= 0 or sol[0][1] <= 0:# or sol[0][0] > 100 or sol[0][1] > 100:
                     MigrationInference.CORRECTION_FAILED += 1
                     return False
                 p0 = sol[1]
