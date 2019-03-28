@@ -238,7 +238,7 @@ class MigrationInference:
 #                self.PrintError("SetModel", text)
             migOpt = int(el[4])
             for i in range(migStart, migEnd):
-                if self.mi[i][popInd] != None:
+                if self.mi[i][popInd] is not None:
                     self.PrintError("SetModel", "Migration rate intervals should not overlap.")
                 self.mi[i][popInd] = migVal
             if migOpt == 1:
@@ -259,18 +259,18 @@ class MigrationInference:
                 text = "Pulse migration rate should be between 0 and 1."
                 self.PrintError("SetModel", text)
             puOpt = int(el[3])
-            if self.pu[puTime][0] != None or self.pu[puTime][1] != None:
+            if self.pu[puTime][0] is not None or self.pu[puTime][1] is not None:
                 self.PrintError("SetModel", "Current version allows only single-direction pulse migration at a time.")
             self.pu[puTime][popInd] = puVal
             if puOpt == 1:
                 self.optPus.append([popInd, puTime, puVal])
         for i in range(len(self.mi)):
             for k in [0, 1]:
-                if self.mi[i][k] == None:
+                if self.mi[i][k] is None:
                     self.mi[i][k] == 0.0
         for i in range(len(self.pu)):
             for k in [0, 1]:
-                if self.pu[i][k] == None:
+                if self.pu[i][k] is None:
                     self.pu[i][k] == 0.0
         self.optMisSize = len(self.optMis)
         self.optPusSize = len(self.optPus)
