@@ -267,11 +267,11 @@ class MigrationInference:
         for i in range(len(self.mi)):
             for k in [0, 1]:
                 if self.mi[i][k] is None:
-                    self.mi[i][k] == 0.0
+                    self.mi[i][k] = 0.0
         for i in range(len(self.pu)):
             for k in [0, 1]:
                 if self.pu[i][k] is None:
-                    self.pu[i][k] == 0.0
+                    self.pu[i][k] = 0.0
         self.optMisSize = len(self.optMis)
         self.optPusSize = len(self.optPus)
     
