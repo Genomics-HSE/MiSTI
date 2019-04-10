@@ -66,7 +66,9 @@ parser.add_argument('-pu', nargs=4, action = 'append',
                     help='pulse migration, require 4 arguments:\n\t\tsource population index (1 or 2)\n\t\tpulse migration time\n\t\tpulse migration rate\n\t\tfixed(0) or optimised(1) parameter.')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
 
 parser.add_argument('--sdate', nargs=1, type=float, default=0,
-                    help='dating of the second sample (for ancient genome)') 
+                    help='dating of the second sample (for ancient genome)')
+parser.add_argument('--hetloss', '-hl', nargs=2, type=float,
+                    help='loss of heterozygosity for the first and the second genomes (default is 0.0)')
 parser.add_argument('--discr', '-d', nargs=1, type=int, default=1,
                     help='discritesation of intervals (default is 1 for no discritisation).')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
@@ -139,6 +141,8 @@ clargs.settings = {
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
 units.PrintUnits()
+if clargs.hetloss is not None:
+    units.SetHetLoss(clargs.hetloss)
 
 print( " ".join(sys.argv) )
 

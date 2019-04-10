@@ -79,6 +79,8 @@ class Units:#This is a class of static variables
     N0 = 10000
     genTime = 1
     firstCall = True
+    hetloss1 = 0.0
+    hetloss2 = 0.0
     def __init__(self, **kwargs):
         if "mutRate" in kwargs:
             Units.muRate = kwargs["mutRate"]
@@ -86,6 +88,12 @@ class Units:#This is a class of static variables
             Units.binsize = kwargs["binsize"]
         if "N0" in kwargs:
             Units.N0 = kwargs["N0"]
+        if "genTime" in kwargs:
+            Units.genTime = kwargs["genTime"]
+        if "hetloss1" in kwargs:
+            Units.hetloss1 = kwargs["hetloss1"]
+        if "hetloss2" in kwargs:
+            Units.hetloss2 = kwargs["hetloss2"]
         if "inpFile" in kwargs:
             Units.SetUnitsFromFile(kwargs["inpFile"])
 #        if Units.firstCall or len(kwargs) > 0:
@@ -93,6 +101,20 @@ class Units:#This is a class of static variables
             #print("mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
 #            self.PrintUnits()
 #            Units.firstCall = False
+
+    def SetHetLoss(self, hl):
+        if hl[0] is not None:
+            if hl[0] >= 0.0 and hl[0] < 1.0:
+                Units.hetloss1 = hl[0]
+            else:
+                PrintErr("Hetloss should be between 0 and 1.")
+                sys.exit(0)
+        if hl[1] is not None:
+            if hl[1] >= 0.0 and hl[1] < 1.0:
+                Units.hetloss2 = hl[1]
+            else:
+                PrintErr("Hetloss should be between 0 and 1.")
+                sys.exit(0)
 
     def PrintUnits(self):
         print("Units: mutation rate =", Units.mutRate, "\tbinsize =", Units.binsize, "\tN0 =", Units.N0, "\tgeneration time =", Units.genTime)
@@ -182,13 +204,20 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
 #        print("Different RDs for input files 1 and 2.")
 #        sys.exit(0)
     u = Units()
-    scaleTime = d1[3]/(2.0*u.binsize*u.mutRate)*u.genTime
-    scaleEPS = d1[3]/(2.0*u.binsize*u.mutRate)/2.0/u.N0
     
-    d2[0] = [v*d2[3]/d1[3] for v in d2[0]]#rescale   time       by th1/th2
-    d2[1] = [v*d2[3]/d1[3] for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
+    d1[3] = d1[3]/(1.0-u.hetloss1)
+    d2[3] = d2[3]/(1.0-u.hetloss2)
+    theta = 4.0*u.binsize*u.mutRate*u.N0
+    scaleTime = u.N0
+    scaleEPS = 1
+
+    d1[0] = [v*d1[3]/theta for v in d2[0]]#rescale   time       by th1/th2
+    d1[1] = [v*d1[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
     
-    sdResc = sampleDate/scaleTime
+    d2[0] = [v*d2[3]/theta for v in d2[0]]#rescale   time       by th1/th2
+    d2[1] = [v*d2[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
+    
+    sdResc = sampleDate/u.N0/u.genTime
     if sdResc > 0:
         d2[0] = [v + sdResc for v in d2[0]]
         d2[0].insert(0, 0.0)
