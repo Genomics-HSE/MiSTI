@@ -55,7 +55,8 @@ There cannot be two pulse migrations in the opposite directions at the same time
 * __-o results.mi__ will generate output file which can be used with plotting script.
 * __-wd PATH__ can be used to set the working directory. Then psmc and sfs files will be read from that directory, the output file will be placed to this directory too.
 * __-uf__ the flag to treat SFS as unfolded (genomes should be polarised by ancestral state prior to SFS calculation)
-* __--sdate__ the dating of the ancient genome (ancient genome is always the second genome) in generations/years according to the time units used for rescaling (see _Setting time units_ section below.)
+* __--sdate__ the dating of the ancient genome (ancient genome is always the second genome) in years.
+* __--hetloss__, __-hl__ the loss of heterozygosity for the two genomes (default is 0 - no loss of heterozygosity).
 * __-rd NUM__ read round _NUM_ from PSMC files. By default the last round is read.
 
 ### Advanced and experimental command line parameters
