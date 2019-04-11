@@ -208,7 +208,7 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     d1[3] = d1[3]/(1.0-u.hetloss1)
     d2[3] = d2[3]/(1.0-u.hetloss2)
     theta = 4.0*u.binsize*u.mutRate*u.N0
-    scaleTime = u.N0
+    scaleTime = 2*genTime*u.N0
     scaleEPS = 1
 
     d1[0] = [v*d1[3]/theta for v in d1[0]]#rescale   time       by th1/th2
