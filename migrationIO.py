@@ -211,8 +211,8 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     scaleTime = u.N0
     scaleEPS = 1
 
-    d1[0] = [v*d1[3]/theta for v in d2[0]]#rescale   time       by th1/th2
-    d1[1] = [v*d1[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
+    d1[0] = [v*d1[3]/theta for v in d1[0]]#rescale   time       by th1/th2
+    d1[1] = [v*d1[3]/theta for v in d1[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
     
     d2[0] = [v*d2[3]/theta for v in d2[0]]#rescale   time       by th1/th2
     d2[1] = [v*d2[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
@@ -265,7 +265,7 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     Ttmp = [Tk[0]]
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scaleTime, scaleEPS, d1[3], d1[4], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
+    return( [Tk, Lk, scaleTime, scaleEPS, theta, d1[4]*theta/d1[3], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
 
 
 def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
