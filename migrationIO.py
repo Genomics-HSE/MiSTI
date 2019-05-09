@@ -217,7 +217,7 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
     d2[0] = [v*d2[3]/theta for v in d2[0]]#rescale   time       by th1/th2
     d2[1] = [v*d2[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
     
-    sdResc = sampleDate/u.N0/u.genTime
+    sdResc = sampleDate/2/u.N0/u.genTime
     if sdResc > 0:
         d2[0] = [v + sdResc for v in d2[0]]
         d2[0].insert(0, 0.0)
