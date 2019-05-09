@@ -47,6 +47,8 @@ parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
                     help='File name with units to be used to rescale times and EPS.')
+parser.add_argument('--hetloss', '-hl', nargs=2, type=float,
+                    help='loss of heterozygosity for the first and the second genomes (default is 0.0)')
 
 clargs = parser.parse_args()
 if isinstance(clargs.wd, list):
@@ -60,6 +62,9 @@ if isinstance(clargs.funits, list):
     
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
+units.PrintUnits()
+if clargs.hetloss is not None:
+    units.SetHetLoss(clargs.hetloss)
 
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
