@@ -52,6 +52,15 @@ parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 parser.add_argument('--maxY', nargs=1, type=float, default=None,
                     help='Range for Y axis (upper bound).')
+parser.add_argument('--minY', nargs=1, type=float, default=None,
+                    help='Range for Y axis (upper bound).')
+parser.add_argument('--maxX', nargs=1, type=float, default=None,
+                    help='Range for Y axis (upper bound).')
+parser.add_argument('--minX', nargs=1, type=float, default=None,
+                    help='Range for Y axis (upper bound).')
+
+parser.add_argument('--hideProbs', '-hp', action='store_true',
+                    help='Hide probability pannels from the plot.')
                     
 clargs = parser.parse_args()
 if isinstance(clargs.wd, list):
@@ -62,10 +71,21 @@ if isinstance(clargs.rd, list):
     clargs.rd = clargs.rd[0]
 if isinstance(clargs.maxY, list):
     clargs.maxY = clargs.maxY[0]
+if isinstance(clargs.minY, list):
+    clargs.minY = clargs.minY[0]
+if isinstance(clargs.maxX, list):
+    clargs.maxX = clargs.maxX[0]
+if isinstance(clargs.minX, list):
+    clargs.minX = clargs.minX[0]
+if isinstance(clargs.maxY, list):
+    clargs.maxY = clargs.maxY[0]
 if isinstance(clargs.sdate, list):
     clargs.sdate = clargs.sdate[0]
-if isinstance(clargs.funits, list):
-    clargs.funits = clargs.funits[0]
+if isinstance(clargs.hideProbs, list):
+    clargs.hideProbs = clargs.hideProbs[0]
+    
+if isinstance(clargs.trueEPS, list):
+    clargs.trueEPS = clargs.trueEPS[0]
     
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -79,13 +99,19 @@ fout   = os.path.join( clargs.wd, clargs.o )
 
 print("Output file: ", fout)
 
-migrationIO.PlotInit()
+migrationIO.PlotInit(hideProbs = clargs.hideProbs)
 
 if clargs.fpsmc is not None:
     data = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, True, maxY = clargs.maxY)
 else:
     data = [None, None, 1, 1]
-migrationIO.ReadMigration(fmigr, True, data[2], data[3], maxY = clargs.maxY)
+plotLimits = {
+    "maxY": clargs.maxY,
+    "minY": largs.minY,
+    "maxX": clargs.maxX,
+    "minX": clargs.minX
+}
+migrationIO.ReadMigration(fmigr, True, data[2], data[3])
 #migrationIO.PlotMS(fms)
 #plt.legend()
-migrationIO.SavePlot(fout)
+migrationIO.SavePlot(fout, plotLimits)

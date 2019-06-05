@@ -197,7 +197,7 @@ def ReadPSMCFile(fn, RD = -1):
     data = [Tk, Lk, RD, th, rh]
     return( data )
 
-def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
+def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
     d1 = ReadPSMCFile(fn1, RD)
     d2 = ReadPSMCFile(fn2, RD)
 #    if d1[2] != d2[2]:
@@ -255,9 +255,6 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False, maxY = None):
         x = [v*scaleTime for v in Tk]
         y1 = [scaleEPS/v for v in Lk1]
         y2 = [scaleEPS/v for v in Lk2]
-        if maxY is not None:
-            y1 = [min(1.0/v,maxY) for v in y1]
-            y2 = [min(1.0/v,maxY) for v in y2]
         AddToPlot(x, y1, "psmc1")
         AddToPlot(x[sampleDateDiscr:], y2[sampleDateDiscr:], "psmc2")
     L1tmp = [Lk1[i]]
@@ -299,7 +296,7 @@ def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
         fw.write(outData)
         fw.close()
 
-def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None):
+def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     times = []
     lc1 = []
     lc2 = []
@@ -386,18 +383,11 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1, maxY = None)
                     lc1.append( 1.0/float(line[2])/scaleEPS )
                     lc2.append( 1.0/float(line[3])/scaleEPS )
     if doPlot:
-        if maxY is not None:
-            lc1 = [min(1.0/v,maxY) for v in lc1]
-            lc2 = [min(1.0/v,maxY) for v in lc2]
-            if version >= 0.4:
-                lh1 = [min(1.0/v,maxY) for v in lh1]
-                lh2 = [min(1.0/v,maxY) for v in lh2]
-        else:
-            lc1 = [1.0/v for v in lc1]
-            lc2 = [1.0/v for v in lc2]
-            if version >= 0.4:
-                lh1 = [1.0/v for v in lh1]
-                lh2 = [1.0/v for v in lh2]
+        lc1 = [1.0/v for v in lc1]
+        lc2 = [1.0/v for v in lc2]
+        if version >= 0.4:
+            lh1 = [1.0/v for v in lh1]
+            lh2 = [1.0/v for v in lh2]
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc1])
 #        plt.step([v*scaleTime for v in times], [1.0/max(v,0.1)*scaleEPS for v in lc2])
         if data.llh == None:
@@ -688,14 +678,18 @@ def ReadMS(argument_string):
     inputData[4] = pus#pulse migration rates
     return(inputData)
 
-def PlotInit(id=1):
+def PlotInit(id=1, hideProbs = False):
 #    plt.figure(id)
-    MiPlot.fig, (MiPlot.ax, MiPlot.pr11, MiPlot.pr22, MiPlot.pr12, MiPlot.nc) = plt.subplots(5, 1, gridspec_kw=dict(hspace=0.5, height_ratios=[3, 1, 1, 1, 1]))
-    MiPlot.ax.semilogx()
-    MiPlot.pr11.semilogx()
-    MiPlot.pr22.semilogx()
-    MiPlot.pr12.semilogx()
-    MiPlot.nc.semilogx()
+    if not hideProbs:
+        MiPlot.fig, (MiPlot.ax, MiPlot.pr11, MiPlot.pr22, MiPlot.pr12, MiPlot.nc) = plt.subplots(5, 1, gridspec_kw=dict(hspace=0.5, height_ratios=[3, 1, 1, 1, 1]))
+        MiPlot.ax.semilogx()
+        MiPlot.pr11.semilogx()
+        MiPlot.pr22.semilogx()
+        MiPlot.pr12.semilogx()
+        MiPlot.nc.semilogx()
+    else:
+        MiPlot.ax = plt.figure()
+        MiPlot.ax.semilogx()
     
 def AddTitle(title, id=1):
     MiPlot.ax.set_title(title)
@@ -707,32 +701,44 @@ def AddToPlot(times, lambdas, lbl = "", id=1):
 def AddProb(pr11, pr22, pr12, times):
 #    MiPlot.pr11 = plt.subplot(212)#, sharex = True)
     #, MiPlot.pr22, MiPlot.pr12, MiPlot.nc)
-    nc = [None, None]
-    nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
-    nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
-    for i in [0,1]:
-        pr11[i] = [u/(v if v > 0 else 1) for u, v in zip(pr11[i], nc[i])]
-        pr22[i] = [u/(v if v > 0 else 1) for u, v in zip(pr22[i], nc[i])]
-        pr12[i] = [u/(v if v > 0 else 1) for u, v in zip(pr12[i], nc[i])]
-    
-    MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
-    MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
-    MiPlot.pr11.legend(loc="upper right", prop=dict(size=6))
-    
-    MiPlot.pr22.step(times+[2*times[-1]], [pr22[0][0]]+pr22[0], alpha=0.7, label="1")
-    MiPlot.pr22.step(times+[2*times[-1]], [pr22[1][0]]+pr22[1], alpha=0.7, label="2")
-    MiPlot.pr22.legend(loc="upper right", prop=dict(size=6))
+    try:
+        nc = [None, None]
+        nc[0] = [pr11[0][i]+pr22[0][i]+pr12[0][i] for i in range(len(pr11[0]))]
+        nc[1] = [pr11[1][i]+pr22[1][i]+pr12[1][i] for i in range(len(pr11[1]))]
+        for i in [0,1]:
+            pr11[i] = [u/(v if v > 0 else 1) for u, v in zip(pr11[i], nc[i])]
+            pr22[i] = [u/(v if v > 0 else 1) for u, v in zip(pr22[i], nc[i])]
+            pr12[i] = [u/(v if v > 0 else 1) for u, v in zip(pr12[i], nc[i])]
 
-    MiPlot.pr12.step(times+[2*times[-1]], [pr12[0][0]]+pr12[0], alpha=0.7, label="1")
-    MiPlot.pr12.step(times+[2*times[-1]], [pr12[1][0]]+pr12[1], alpha=0.7, label="2")
-    MiPlot.pr12.legend(loc="upper right", prop=dict(size=6))
+        MiPlot.pr11.step(times+[2*times[-1]], [pr11[0][0]]+pr11[0], alpha=0.7, label="1")
+        MiPlot.pr11.step(times+[2*times[-1]], [pr11[1][0]]+pr11[1], alpha=0.7, label="2")
+        MiPlot.pr11.legend(loc="upper right", prop=dict(size=6))
 
-    MiPlot.nc.step(times+[2*times[-1]], [nc[0][0]]+nc[0], alpha=0.7, label="1")
-    MiPlot.nc.step(times+[2*times[-1]], [nc[1][0]]+nc[1], alpha=0.7, label="2")
-    MiPlot.nc.legend(loc="upper right", prop=dict(size=6))
+        MiPlot.pr22.step(times+[2*times[-1]], [pr22[0][0]]+pr22[0], alpha=0.7, label="1")
+        MiPlot.pr22.step(times+[2*times[-1]], [pr22[1][0]]+pr22[1], alpha=0.7, label="2")
+        MiPlot.pr22.legend(loc="upper right", prop=dict(size=6))
 
-def SavePlot(fout, id=1):
+        MiPlot.pr12.step(times+[2*times[-1]], [pr12[0][0]]+pr12[0], alpha=0.7, label="1")
+        MiPlot.pr12.step(times+[2*times[-1]], [pr12[1][0]]+pr12[1], alpha=0.7, label="2")
+        MiPlot.pr12.legend(loc="upper right", prop=dict(size=6))
+
+        MiPlot.nc.step(times+[2*times[-1]], [nc[0][0]]+nc[0], alpha=0.7, label="1")
+        MiPlot.nc.step(times+[2*times[-1]], [nc[1][0]]+nc[1], alpha=0.7, label="2")
+        MiPlot.nc.legend(loc="upper right", prop=dict(size=6))
+    except NameError:
+        pass
+
+def SavePlot(fout, limits):
     #plt.figure(id)
+    for key, val in limits.items():
+        if key == "maxY":
+            MiPlot.ax.set_ylim(top=val)
+        if key == "minY":
+            MiPlot.ax.set_ylim(bottom=val)
+        if key == "maxX":
+            MiPlot.ax.set_xlim(right=val)
+        if key == "minX":
+            MiPlot.ax.set_xlim(left=val)
     MiPlot.ax.legend()
     MiPlot.fig.savefig(fout)
 
