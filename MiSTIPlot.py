@@ -84,8 +84,6 @@ if isinstance(clargs.sdate, list):
 if isinstance(clargs.hideProbs, list):
     clargs.hideProbs = clargs.hideProbs[0]
     
-if isinstance(clargs.trueEPS, list):
-    clargs.trueEPS = clargs.trueEPS[0]
     
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -107,7 +105,7 @@ else:
     data = [None, None, 1, 1]
 plotLimits = {
     "maxY": clargs.maxY,
-    "minY": largs.minY,
+    "minY": clargs.minY,
     "maxX": clargs.maxX,
     "minX": clargs.minX
 }
