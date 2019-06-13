@@ -83,7 +83,8 @@ if isinstance(clargs.sdate, list):
     clargs.sdate = clargs.sdate[0]
 if isinstance(clargs.hideProbs, list):
     clargs.hideProbs = clargs.hideProbs[0]
-    
+if isinstance(clargs.funits, list):
+    clargs.funits = clargs.funits[0]    
     
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
