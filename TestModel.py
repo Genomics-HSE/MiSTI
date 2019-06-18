@@ -119,7 +119,7 @@ if jafs_input:
 
 Migration.CoalescentRates()#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
 if fout != "":
-    migrationIO.OutputMigration(fout, [], Migration)
+    migrationIO.OutputMigration(fout, [], Migration, , 2*units.N0)
     
 #print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
 
