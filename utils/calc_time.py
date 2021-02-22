@@ -40,15 +40,18 @@ parser.add_argument('fpsmc2',
 
 parser.add_argument('-wd', nargs=1, default='',
                     help='working directory (path to data files)')
-                    
+
 parser.add_argument('--sdate', nargs=1, type=float, default=0,
-                    help='dating of the second sample (for ancient genome, in years - units should be set properly)') 
+                    help='dating of the second sample (for ancient genome, in years - units should be set properly)')
 parser.add_argument('-rd', nargs=1, type=int, default=-1,
                     help='Round (RD) in PSMC file (default -1 for the last round, in this case the number of rounds should be exactly the same in both files)')
 parser.add_argument('--funits', nargs=1, type=str, default="setunits.txt",
                     help='File name with units to be used to rescale times and EPS.')
 parser.add_argument('--hetloss', '-hl', nargs=2, type=float,
                     help='loss of heterozygosity for the first and the second genomes (default is 0.0)')
+
+parser.add_argument('--psmcMode', '-pm', type=int, default=0,
+                    help='PSMC mode')
 
 clargs = parser.parse_args()
 if isinstance(clargs.wd, list):
@@ -59,7 +62,9 @@ if isinstance(clargs.sdate, list):
     clargs.sdate = clargs.sdate[0]
 if isinstance(clargs.funits, list):
     clargs.funits = clargs.funits[0]
-    
+if isinstance(clargs.psmcMode, list):
+    clargs.psmcMode = clargs.psmcMode[0]
+
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
 units.PrintUnits()
@@ -69,6 +74,10 @@ if clargs.hetloss is not None:
 fpsmc1 = os.path.join( clargs.wd, clargs.fpsmc1 )
 fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd, False)
+
+if clargs.psmcMode == 0:
+    inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
+else:
+    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
 for splitT in range(len(inputData[0])):
     print(splitT, "\t", int(sum(inputData[0][0:int(splitT)])*inputData[2]))
