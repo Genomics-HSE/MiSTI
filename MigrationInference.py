@@ -36,8 +36,8 @@ class MigrationInference:
     COUNT_LLH = 0
     CORRECTION_CALLED = 0
     CORRECTION_FAILED = 0
-    
-    
+
+
     def __init__(self, times, lambdas, dataJAFS, splitT, mi = [], pu =[], **kwargs):#thrh for theta and rho
         self.debug = False
         self.enableOutput = False
@@ -54,7 +54,7 @@ class MigrationInference:
         if "cpfit" in kwargs:
             if kwargs["cpfit"]:
                 self.cpfit = True
-        
+
         self.correct = True
         if "trueEPS" in kwargs:
             if kwargs["trueEPS"]:
@@ -63,24 +63,27 @@ class MigrationInference:
         if "smooth" in kwargs:
             if kwargs["smooth"]:
                 self.smooth = True
+        if "Tpsmc" in kwargs:
+            self.LLHpsmc = True
+            self.Tpsmc = kwargs["Tpsmc"]
 
         self.unfolded = False
         if "unfolded" in kwargs:
             if kwargs["unfolded"]:
                 self.unfolded = True
-        
+
         self.thrh = [1.0, 1.0]#theta and rho from PSMC1
         if "thrh" in kwargs:
             if len(kwargs["thrh"]) == 2:
                 self.thrh = kwargs["thrh"]
-        
+
         self.sampleDate = 0#Dating of the second sample, by default it is 0.0 - present time
         if "sampleDate" in kwargs:
             self.sampleDate = kwargs["sampleDate"]#time in generation units
-        
+
         if splitT < self.sampleDate:
             self.PrintError("__init__", "cannot initialise class with split time being more recent than sample date.")
-        
+
         #Model parameters
         splitFraction = splitT%1
         splitT = int(splitT)
@@ -93,7 +96,7 @@ class MigrationInference:
             times.insert(splitT + 1, t2)
             lambdas.insert(splitT + 1, lambdas[splitT])
             splitT += 1
-        
+
         #PSMC parameters
         self.lh = list(lambdas)#pairs of PSMC lambda_0 and lambda_1
         self.times = times
@@ -101,7 +104,10 @@ class MigrationInference:
         if len(self.times) != self.numT - 1:
             print("Unexpected number of time intervals")
             sys.exit(0)
-        '''discr_step = 0.0001 
+        if self.LLHpsmc:
+            pass
+
+        '''discr_step = 0.0001
         self.discr = 200
         timeMap = [0]
         if discr_step > 0:
@@ -158,11 +164,11 @@ class MigrationInference:
         self.mi = list(self.lh)#initialize migration with the same size as lambdas
         self.pu = list(self.lh)#initialize pulse migration with the same size as lambdas
         self.SetModel(mi, pu)
-        
+
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
         self.SetJAFS(dataJAFS)
-        
+
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
         self.M = None#Differential equation matrix
@@ -170,13 +176,13 @@ class MigrationInference:
         self.P0 = None#Initial condition for dif eq
         self.P1 = None#Values of solution at the end of the interval
         self.JAFS = None#Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
-        
+
         #Class for EP size correction
         self.cl = CorrectLambda()
         if "mixtureTH" in kwargs:
             self.cl.SetMixtureTH(kwargs["mixtureTH"])
 #        self.cl.SetMu(mu[0], mu[1])
-        
+
         #Plotting options - TODO
         self.doPlot = False
         if "doPlot" in kwargs:
@@ -190,7 +196,7 @@ class MigrationInference:
                     self.scaleT = float(kwargs[scaleT])
         if self.debug:
             print("MigrationInference class initialized. Class size", self.numT)
-    
+
     def SetJAFS(self, dataJAFS):
         #self.snps = 0
         #self.dataJAFS = [0 for _ in range(7)]
@@ -200,7 +206,7 @@ class MigrationInference:
         if len(dataJAFS) != 8:
             self.PrintError("SetJAFS", "Unexpected data SFS.")
         self.snps = sum(dataJAFS[1:])
-        self.dataJAFS = dataJAFS[1:]        
+        self.dataJAFS = dataJAFS[1:]
         self.llh_const = 0
         if self.unfolded:
             self.llh_const += scipy.special.gammaln(self.snps+1)
@@ -212,7 +218,7 @@ class MigrationInference:
             self.llh_const -= scipy.special.gammaln(self.dataJAFS[1]+self.dataJAFS[5]+1)
             self.llh_const -= scipy.special.gammaln(self.dataJAFS[2]+self.dataJAFS[4]+1)
             self.llh_const -= scipy.special.gammaln(self.dataJAFS[3]+1)
-    
+
     def SetModel(self, mis, pus):
         self.optMis = []
         self.optPus = []
@@ -274,7 +280,7 @@ class MigrationInference:
                     self.pu[i][k] = 0.0
         self.optMisSize = len(self.optMis)
         self.optPusSize = len(self.optPus)
-    
+
     def MapParameters(self, params):
         if len(params) != self.optMisSize + self.optPusSize:
             self.PrintError("MapParameters", "Incorrect number of parameters.")
@@ -283,12 +289,12 @@ class MigrationInference:
                 self.mi[j][self.optMis[i][0]] = params[i]
         for i in range(self.optPusSize):
             self.pu[self.optPus[i][1]][self.optPus[i][0]] = params[self.optMisSize+i]
-    
+
     def PrintError(self, func, text):
         func = func + "():"
         print("MigrationInference class error in function", func, text)
         sys.exit(0)
-      
+
     def CorrectLambdas(self):
         MigrationInference.CORRECTION_CALLED += 1
         p0 = [[1,0,0],[0,1,0]]
@@ -363,14 +369,14 @@ class MigrationInference:
         self.lc[t][1] = lam
         self.Smooth()
         return True
-    
+
     def Smooth(self):
         if not self.smooth:
             return
 #        self.SmoothSplitTime(2, 2)
         self.SmoothConst(0)
         self.SmoothConst(1)
-    
+
     def SmoothConst(self, indiv):
         k = 0
         lam = self.lh[0][indiv]
@@ -420,7 +426,7 @@ class MigrationInference:
         for k in [0, 1]:
             for i in range(self.splitT - left, self.splitT + right):
                 self.lc[i][k] = lsmoothed
-    
+
     def SmoothSplitTime(self, left, right = None):
         if not self.smooth:
             return
@@ -450,7 +456,7 @@ class MigrationInference:
         for k in [0, 1]:
             for i in range(self.splitT - left, self.splitT + right):
                 self.lc[i][k] = lsmoothed
-    
+
     def JAFSpectrum(self):
         self.JAFS = [0 for i in range(7)]
         model = TwoPopulations(self.lc[0][0], self.lc[0][1], 1.0, 1.0)
@@ -491,7 +497,7 @@ class MigrationInference:
                     for j in range(2, len(jaf)):
                         jaf[j] = 0
                 self.JAFS = [x + y*self.integralP[i] for x,y in zip(self.JAFS, jaf)]
-    
+
     def PrintMatrix(self):
         matSize = self.M.shape[0]
         for i in range(matSize):
@@ -501,7 +507,7 @@ class MigrationInference:
              #       el = '.'
                 print( el, end = "\t" )
             print("")
-    
+
     def CollapsePops(self):
         Pc = [0 for i in range(8)]
         Pc[0] = sum(self.P0[0:9])
@@ -513,7 +519,7 @@ class MigrationInference:
         Pc[6] = sum(self.P0[37:41])
         Pc[7] = sum(self.P0[41:44])
         self.P0 = Pc
-    
+
     def SolveDifEq(self, interval):
         sizeM = self.M.shape[0]
         if interval < self.numT - 1:
@@ -525,7 +531,7 @@ class MigrationInference:
         MI = linalg.inv(self.M)
         self.integralP = [x - y for x, y in zip(self.P1, self.P0)]
         self.integralP = dot(MI,self.integralP)
-        
+
     def CoalescentRates(self):
         self.Pr = []
         for i in range(self.numT):
@@ -549,18 +555,20 @@ class MigrationInference:
             self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
         for t in range(self.numT, self.splitT):
             self.lh[t][0], self.lh[t][1] = (self.lc[t][0]+self.lc[t][1])/2, (self.lc[t][0]+self.lc[t][1])/2
-        
+
     def JAFSLikelihood(self, mu):
         MigrationInference.COUNT_LLH += 1
         self.llh = -10**9
         for v in mu:
             if v < 0:
-                return self.llh#float('-inf')
+                print("Hit negative value of migration rate")
+                return -numpy.inf#self.llh#float('-inf')
 #        self.mi[0],self.mi[1]=mu[0],mu[1]
         self.MapParameters(mu)
         res = self.CorrectLambdas()
         if not res:
-            return self.llh#float('-inf') # -10**(10)
+            print("Lambda correction failed")
+            return -numpy.inf#self.llh#float('-inf') # -10**(10)
         if self.enableOutput:
             print("JAFSLikelihood():   initial values of lambdas are ", self.lh)
             print("JAFSLikelihood(): corrected values of lambdas are ", self.lc)
@@ -571,7 +579,7 @@ class MigrationInference:
             print("----------",self.JAFS[0],self.JAFS[1],sep="\t\t")
             print(self.JAFS[2],self.JAFS[3],self.JAFS[4],sep="\t\t")
             print(self.JAFS[5],self.JAFS[6],"----------",sep="\t\t")
-            
+
             print("----------",self.dataJAFS[0]/sum(self.dataJAFS),self.dataJAFS[1]/sum(self.dataJAFS),sep="\t\t")
             print(self.dataJAFS[2]/sum(self.dataJAFS),self.dataJAFS[3]/sum(self.dataJAFS),self.dataJAFS[4]/sum(self.dataJAFS),sep="\t\t")
             print(self.dataJAFS[5]/sum(self.dataJAFS),self.dataJAFS[6]/sum(self.dataJAFS),"----------",sep="\t\t")
@@ -597,7 +605,87 @@ class MigrationInference:
 #            print(i, "\t", self.lc[i][0], "\t", self.lc[i][1])
         self.llh = llh
         return( llh )
-    
+
+    '''def CalculateStationary(self, lam_psmc, tau):
+        alpha = [1.0]
+        n = len(tau)#CHECK!!!
+        for k in range(1, n+1):
+            alpha.append( alpha[k-1] * exp(-tau[k-1] * lam_psmc[k-1]) )
+        alpha.append(0.0);
+        alpha = [0.0]
+        for k in range(1, n+1):
+            beta.append( beta[k-1] + lambda[k-1] * (1.0 / alpha[k] - 1.0 / alpha[k-1]) )
+
+
+
+        for (k = 0, sum_t = 0.0; k <= n; ++k) {
+		      FLOAT *aa, avg_t, ak1, lak, pik, cpik;
+		      ak1 = alpha[k] - alpha[k+1]; lak = lambda[k]; // just for convenient
+		      #calculate $\pi_k$, $\sigma_k$ and Lak
+		      cpik = ak1 * (sum_t + lak) - alpha[k+1] * tau[k];
+		      pik = cpik / pd->C_pi;
+		      pd->sigma[k] = (ak1 / (pd->C_pi * rho) + pik / 2.0) / pd->C_sigma;
+		      #calculate avg_t, the average time point where mutation happens
+		      avg_t = - log(1.0 - pik / (pd->C_sigma*pd->sigma[k])) / rho;
+		      if (isnan(avg_t) || avg_t < sum_t || avg_t > sum_t + tau[k]) // in case something bad happens
+		            avg_t = sum_t + (lak - tau[k] * alpha[k+1] / (alpha[k] - alpha[k+1]));
+		      #calculate q_{kl}
+		tmp = ak1 / cpik;
+		for (l = 0; l < k; ++l) q[l] = tmp * q_aux[l]; // q_{kl}, l<k
+		q[l++] = (ak1 * ak1 * (beta[k] - lak/alpha[k]) + 2*lak*ak1 - 2*alpha[k+1]*tau[k]) / cpik; // q_{kk}
+		if (k < n) {
+			tmp = q_aux[k] / cpik;
+			for (; l <= n; ++l) q[l] = (alpha[l] - alpha[l+1]) * tmp; // q_{kl}, l>k
+		}
+		#calculate p_{kl} and e_k(b)
+		tmp = pik / (pd->C_sigma * pd->sigma[k]);
+		for (aa = hp->a[k], l = 0; l <= n; ++l) aa[l] = tmp * q[l];
+		aa[k] = tmp * q[k] + (1.0 - tmp);
+		hp->a0[k] = pd->sigma[k];
+		hp->e[0][k] = exp(-theta * (avg_t + dt));
+		hp->e[1][k] = 1.0 - hp->e[0][k];
+		#update sum_lt
+		sum_t += tau[k];
+	}'''
+
+
+
+
+
+
+    def PSMC_pseudoCounts(self):
+        self.psCtr = [[],[]]
+        self.psCem = [[],[]]
+
+
+    def PSMC_matrix(self):
+        pass
+
+    def ReturnPSMC(self, lams, Tpsmc):
+        for i in range(len(Tpsmc - 1)):
+            l, t = 0.0, 0.0
+            for k in range(Tpsmc[i], Tpsmc[i+1]):
+                l += self.times[k]*lams[k]
+                t += self.times[k]
+            lam_psmc.append(l/t)
+            tau.append(t)
+        return([lam_psmc, tau])
+
+    def LLH_PSMC(self, popId):
+        Tpsmc = self.Tpsmc[popId]
+        llh = 0.0
+        lam_psmc = []
+        tau = []
+        for i in range(len(Tpsmc - 1)):
+            l, t = 0.0, 0.0
+            for k in range(Tpsmc[i], Tpsmc[i+1]):
+                l += self.times[k]*self.lc[k][popId]
+                t += self.times[k]
+            lam_psmc.append(l/t)
+            tau.append(t)
+        print(lam_psmc)
+        return(llh)
+
     def MaximumLLHFunction(self):
         llh = self.llh_const
         jafsTotal = sum(self.dataJAFS)
@@ -611,11 +699,15 @@ class MigrationInference:
             for i in range(7):
 #            print("self.dataJAFS[i]", self.dataJAFS[i], "\t\tlog(self.JAFS[i])", log(self.JAFS[i]), "\t\tself.JAFS[i]", self.JAFS[i])
                 llh += self.dataJAFS[i]*log(jafs[i])
+        if self.LLHpsmc:
+            llh += self.LLH_PSMC(0) + self.LLH_PSMC(1)
         return(llh)
-    
+
     def ObjectiveFunction(self, mu):
-        return( -self.JAFSLikelihood( mu ) )
-    
+        res = -self.JAFSLikelihood( mu )
+        print(mu, res)
+        return( res )
+
     def Solve(self, tol=1e-4, globalOpt = False):
         if self.optMisSize + self.optPusSize > 0:
             mi0 = [val[3] for val in self.optMis]
@@ -623,13 +715,16 @@ class MigrationInference:
             init = mi0 + pu0
             if globalOpt:
                 res = optimize.basinhopping(self.ObjectiveFunction, init, T=0.5, minimizer_kwargs=dict(method='Nelder-Mead'))
+            elif True:
+                res = optimize.minimize(self.ObjectiveFunction, init, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 1000, 'disp': True })
             else:
-                res = optimize.minimize(self.ObjectiveFunction, init, method='Nelder-Mead', options={'xatol': tol, 'fatol': tol, 'maxiter': 100, 'disp': True })
+                bounds = optimize.Bounds ([ 0 for _ in range(len(init)) ], [ numpy.inf for _ in range(len(init)) ] )
+                res = optimize.minimize(self.ObjectiveFunction, init, method='trust-constr', options={'maxiter': 1000, 'disp': True }, bounds = bounds)
         #res = optimize.minimize(self.ObjectiveFunction, mu0, method='BFGS', options={'gtol': tol })
             return([res.x, -res.fun])
         else:
             return([[], self.JAFSLikelihood([])])
-        
+
     def Report():
 #        print("Split time ", self.splitT)
         print("Total number of likelihood function calls is", MigrationInference.COUNT_LLH)

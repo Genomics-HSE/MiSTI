@@ -59,7 +59,7 @@ parser.add_argument('-tol', nargs=1, type=float, default=1e-4,
                     help='optimisation precision (default is 1e-4)')
 parser.add_argument('-mth', nargs=1, type=float, default=0.0,
                     help='mixture treshhold (default is 0.0)')
-                    
+
 parser.add_argument('-mi', nargs=5, action = 'append',
                     help='migration rate, require 5 arguments:\n\t\tsource population index (1 or 2)\n\t\tmigration start time\n\t\tmigration end time\n\t\tmigration rate initial value\n\t\tfixed(0) or optimised(1) parameter.')#-mi [npop:1/2] [migStart] [migEnd] [init val] [var:0/1]
 parser.add_argument('-pu', nargs=4, action = 'append',
@@ -88,6 +88,8 @@ parser.add_argument('--cpfit', action='store_true',
 parser.add_argument('--bsSize', '-bs', type=int, default=0,
                     help='Number of bootstrap repetitions')
 
+parser.add_argument('--psmcMode', '-pm', type=int, default=0,
+                    help='PSMC mode')
 
 parser.add_argument('--debug', action='store_true',
                     help='Debug mode, more input enabled')
@@ -121,6 +123,8 @@ if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
 if isinstance(clargs.bsSize, list):
     clargs.bsSize = clargs.bsSize[0]
+if isinstance(clargs.psmcMode, list):
+    clargs.psmcMode = clargs.psmcMode[0]
 if clargs.mi is None:
     clargs.mi=[]
 if clargs.pu is None:
@@ -176,12 +180,16 @@ if fout != "":
 if clargs.debug:
     print(clargs)
 
-inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
+if clargs.psmcMode == 0:
+    inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
+else:
+    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
+
 if clargs.debug:
     print("INPUT DATA")
     for v in inputData:
         print(v)
-        
+
     print("END INPUT DATA")
 
 migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
@@ -193,7 +201,7 @@ sol = [[], [], []]
 
 t1 = time.time()
 
-Migration = MigrationInference(inputData[0], inputData[1], inputSFS, clargs.st, clargs.mi, clargs.pu, thrh = [inputData[4], inputData[5]], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
+Migration = MigrationInference(inputData[0], inputData[1], inputSFS, clargs.st, clargs.mi, clargs.pu, thrh = [inputData[4], inputData[5]], Tpsmc = inputData[7], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
 sol = Migration.Solve(clargs.tol)
 print(sol)
 

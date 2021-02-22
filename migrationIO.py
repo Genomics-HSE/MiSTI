@@ -19,17 +19,22 @@
 
 
 import sys
-import matplotlib.pyplot as plt
+plt_available = True
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt_available = False
 from math import log
 from CorrectLambda import CorrectLambda
 from MigrationInference import MigrationInference
+from psmc import PSMC
 import argparse
 import random
 
 class MiPlot:#This is a class of static variables
     fig = None
     ax = None
-    
+
 class JAFS:#This is a class of static variables
     def __init__(self, jafs = [], ufLLHConst = None, fLLHConst = None, pop1 = None, pop2 = None):
         self.jafs = jafs
@@ -37,7 +42,7 @@ class JAFS:#This is a class of static variables
         self.fLLHConst = fLLHConst
         self.pop1=pop1
         self.pop2=pop2
-        
+
 class MigData:
     def __init__(self, **kwargs):
         self.llh = None
@@ -162,7 +167,7 @@ def ReadPSMCFile(fn, RD = -1):
     Lk = []
     th = 0
     rh = 0
-    
+
     with open(fn) as f:
         for line in f:
             line = line.split()
@@ -174,7 +179,7 @@ def ReadPSMCFile(fn, RD = -1):
         if RD == -1 or RD > maxRD:
             RD = maxRD
 
-    with open(fn) as f:  
+    with open(fn) as f:
         for line in f:
             line = line.split()
             if line[0] != "RD" or int( line[1] ) != RD:
@@ -204,7 +209,7 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
 #        print("Different RDs for input files 1 and 2.")
 #        sys.exit(0)
     u = Units()
-    
+
     d1[3] = d1[3]/(1.0-u.hetloss1)
     d2[3] = d2[3]/(1.0-u.hetloss2)
     theta = 4.0*u.binsize*u.mutRate*u.N0
@@ -213,16 +218,16 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
 
     d1[0] = [v*d1[3]/theta for v in d1[0]]#rescale   time       by th1/th2
     d1[1] = [v*d1[3]/theta for v in d1[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
-    
+
     d2[0] = [v*d2[3]/theta for v in d2[0]]#rescale   time       by th1/th2
     d2[1] = [v*d2[3]/theta for v in d2[1]]#rescale   epsize     by th2/th1 (compare with previous line!)
-    
+
     sdResc = sampleDate/2/u.N0/u.genTime
     if sdResc > 0:
         d2[0] = [v + sdResc for v in d2[0]]
         d2[0].insert(0, 0.0)
         d2[1].insert(0, 1.0)
-    
+
     Tk = []
     Lk1 = []
     Lk2 = []
@@ -234,24 +239,30 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
         print(sdResc)
         PrintErr("Unexpected error in ReadPSMC(). Get in touch with the author.")
         sys.exit(0)
-    
+    Tpsmc = [[0], [0]]
     j = 0
     for i in range( len(d1[0]) - 1 ):
         while Tk[j] < d1[0][i + 1]:
             Lk1.append( 1.0/d1[1][i] )
             j += 1
+        Tpsmc[0].append(j)
     while len(Lk1) < len(Tk):
         Lk1.append(1.0/d1[1][-1])
-        
+
     j = 0
     for i in range( len(d2[0]) - 1 ):
         while Tk[j] < d2[0][i + 1]:
             Lk2.append( 1.0/d2[1][i] )
             j += 1
+        Tpsmc[1].append(j)
     while len(Lk2) < len(Tk):
         Lk2.append(1.0/d2[1][-1])
-    
-    if doPlot:
+
+    Tpsmc[0].append(len(Tk))
+    Tpsmc[1].append(len(Tk))
+
+
+    if doPlot and plt_available:
         x = [v*scaleTime for v in Tk]
         y1 = [scaleEPS/v for v in Lk1]
         y2 = [scaleEPS/v for v in Lk2]
@@ -262,7 +273,46 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
     Ttmp = [Tk[0]]
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scaleTime, scaleEPS, theta, d1[4]*theta/d1[3], sampleDateDiscr] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units
+    return( [Tk, Lk, scaleTime, scaleEPS, theta, d1[4]*theta/d1[3], sampleDateDiscr, Tpsmc] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units, Tpsmc - time intervals for psmc1 and psmc2
+
+def ReadPSMC1(fn1, fn2, RD = -1, doPlot = False):
+    psmc = [PSMC(fn1, RD), PSMC(fn2, RD)]
+
+    u = Units()
+    hetloss = [u.hetloss1, u.hetloss2]
+    if u.hetloss1 != 0.0 or u.hetloss2 != 0.0:
+        print("Hetloss id not implemented in this version.")
+    theta = 4.0*u.binsize*u.mutRate*u.N0
+    scaleTime = 2*u.genTime*u.N0
+
+    psmcCollapsed = [None, None]
+    for s in range(2):
+        #psmc[s].ChangeTheta( psmc[s].theta/(1.0-hetloss[s]) )
+        psmc[s].ChangeTheta( theta )
+        psmcCollapsed[s] = psmc[s].CollapsePattern()
+
+    if len(psmcCollapsed[0]) != len(psmcCollapsed[1]):
+        sys.exit(1)
+    Tk = []
+    for t1, t2 in zip(psmcCollapsed[0], psmcCollapsed[1]):
+        Tk.append( (t1+t2)/2.0 )
+
+    Lk = [ psmc[0].ReestimateCoalescentRates(Tk), psmc[1].ReestimateCoalescentRates(Tk) ]
+
+    if False and plt_available:
+        x = [v*scaleTime for v in Tk]
+        y1 = [v for v in Lk[0] ]
+        y2 = [v for v in Lk[1] ]
+        AddToPlot([v*scaleTime for v in psmc[0].times], psmc[0].eps, "psmc1")
+        AddToPlot([v*scaleTime for v in psmc[1].times], psmc[1].eps, "psmc2")
+        AddToPlot([v*scaleTime for v in Tk], Lk[0], "psmc1_c")
+        AddToPlot([v*scaleTime for v in Tk], Lk[1], "psmc2_c")
+    Lk1 = [ [u, v] for u, v in zip(Lk[0], Lk[1]) ]
+    Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
+    return( [Tk, Lk1, scaleTime, 1.0, theta, None, 0, None] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units, Tpsmc - time intervals for psmc1 and psmc2
+
+
+
 
 
 def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
@@ -270,7 +320,7 @@ def OutputMigration(fout, mu, Migration, scaleTime = 1, scaleEPS = 1):
         llh = Migration.llh
     else:
         llh = Migration.JAFSLikelihood( mu )
-    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]   
+    times = [sum(Migration.times[0:i]) for i in range(len(Migration.times)+1)]
     outData = "#MiSTI2 ver 0.4\n"
     outData += "LK\t" + str(llh) + "\n"#split time
     outData += "ST\t" + str(Migration.splitT) + "\n"#split time
@@ -468,7 +518,7 @@ def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
             else:
                 print("Unexpected SFS entry.")
                 sys.exit(0)
-            
+
 
 def ReadJAFS(fn, silent_mode=False):
     Jafs = JAFS()
@@ -569,7 +619,7 @@ def ReadJAFS_old(fn, silent_mode=False):
         print("Unexpected number of lines in the JAFS file.")
         sys.exit(0)
     Jafs.jafs.append(jafs)
-    return(Jafs)    
+    return(Jafs)
 
 
 def ReadMS(argument_string):
@@ -661,7 +711,7 @@ def ReadMS(argument_string):
     for k in [0, 1]:
         for key, val in migr[k].items():
             mis.append([val[1], timesD[key], splitTind, 2*val[0], 0])
-    
+
     mis.sort(key = lambda el: (el[0], el[1]))
     for i in range(len(mis)-1):
         if mis[i][0] == mis[i+1][0]:
@@ -692,7 +742,7 @@ def PlotInit(id=1, hideProbs = False):
         #MiPlot.ax = MiPlot.fig.axes
         MiPlot.fig, (MiPlot.ax) = plt.subplots(1, 1)
         MiPlot.ax.semilogx()
-    
+
 def AddTitle(title, id=1):
     MiPlot.ax.set_title(title)
 

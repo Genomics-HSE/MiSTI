@@ -35,58 +35,62 @@ class CorrectLambda:
 #        self.P0 = [[1,0,0],[0,1,0]]
 #        self.T = T
     COUNT = 0
-    
+
     def PrintError(self, func, text):
         func = func + "():"
         print("MigrationInference class error in function", func, text)
         sys.exit(0)
-    
+
     def SetMixtureTH(self, th):
         self.mixtureTH = th
-    
+
     def SetMu(self, mu0, mu1):
         self.mu = [mu0, mu1]
-        
+
     def SetInterval(self, lh, T, P0):#T=-1 means T=infinity
         self.lh = [lh[0], lh[1]]
         self.T = T
         self.P0 = P0
-    
+
     def SetMatrix(self):
         self.M = [[-2*self.mu[0]-self.l[0], 0, self.mu[1]],[0, -2*self.mu[1]-self.l[1], self.mu[0]],[2*self.mu[0], 2*self.mu[1], -self.mu[0] - self.mu[1]]]
-        
+
     def MatrixExponent(self):
         if self.T == -1:
             self.MET =[[0,0,0],[0,0,0],[0,0,0]]
         else:
             self.MET = linalg.expm( dot(self.M,self.T) )#exponent of M times T
-        
+
     def ComputeExpectation(self, npop):
         self.Pexp = dot(linalg.inv(self.M), dot(self.MET-identity(3),self.P0[npop]))
-    
+
     def ExpectedCoalTimeOnePop(self, lam):
-        return 1.0/lam-self.T/(exp(lam*self.T)-1)
-        
+        if lam > 100:
+            r = 0
+        else:
+            r = self.T/(exp(lam*self.T)-1)
+        return 1.0/lam-r
+
     def ExpectedCoalTimeOnePopTmp(self, lam):
         pnc = exp(-lam*self.T)
         Tc = 1.0/lam-self.T/(1.0/pnc-1.0)
         return [Tc, pnc]
-    
+
     def ExpectedCoalTimeOnePopNonConditional(self, lam):
         return (1-exp(-lam*self.T)*(1+lam*self.T))/lam
-    
+
     def EPSFromExpectedCoalTime(self, Te, x0 = 1, prec = 1e-10):
         upperLimit = numpy.inf#10*self.lh[0]
         lowerLimit = 0.01*min(self.lh[0], self.lh[1])#0
         x1 = optimize.least_squares(lambda lam: self.ExpectedCoalTimeOnePop(lam) - Te, x0, bounds = (lowerLimit, upperLimit), gtol = prec, xtol = prec)
         return x1.x
-        
+
     def FitSinglePop(self):
         pnc = [sum(self.P0[0]),sum(self.P0[1])]
         pnc = [pnc[0]/sum(pnc), pnc[1]/sum(pnc)]
         Te = pnc[0]*self.ExpectedCoalTimeOnePop(self.lh[0]) + pnc[1]*self.ExpectedCoalTimeOnePop(self.lh[1])
         return self.EPSFromExpectedCoalTime(Te, pnc[0]*self.lh[0] + pnc[1]*self.lh[1])
-    
+
     def ExpectedCoalTimeTwoPop(self):
         Pnormed = [None, None]
         coalT = [[None, None], [None, None]]
@@ -104,7 +108,7 @@ class CorrectLambda:
             coalT[i][0] = (self.l[0]*vec[0] + self.l[1]*vec[1])/(1-pnc)
             coalT[i][1] = pnc
         return coalT
-    
+
     def CoalRates(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
@@ -116,7 +120,7 @@ class CorrectLambda:
             nc = sum(p0[npop])
             lh[npop] = -log(nc/sum(self.P0[npop]))/self.T
         return lh, p0
-    
+
         '''    def LambdaEquation1(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
@@ -127,7 +131,7 @@ class CorrectLambda:
         self.ComputeExpectation(npop)
         nc = self.l[0]*self.Pexp[0]+self.l[1]*self.Pexp[1]
         return nc-nch'''
-    
+
     def LambdaEquation(self, npop):
         assert npop == 0 or npop == 1, "Population number should be 0 or 1."
         if self.T == -1:
@@ -138,12 +142,12 @@ class CorrectLambda:
         p0 = dot(self.MET,self.P0[npop])
         nc = sum(p0)
         return nc-nch
-    
+
     def VariantRatio(self, Tc, pnc):
         singletons = pnc*2*self.T+(1.0-pnc)*2*Tc
         doubletons = (1.0-pnc)*(self.T-Tc)
         return singletons/doubletons
-    
+
     def LambdaSystem(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
@@ -151,7 +155,7 @@ class CorrectLambda:
         coalT = self.ExpectedCoalTimeTwoPop()
         coalT1 = [self.ExpectedCoalTimeOnePopTmp(self.lh[0]), self.ExpectedCoalTimeOnePopTmp(self.lh[1])]
         return( coalT[0][0]-coalT1[0][0], coalT[1][0]-coalT1[1][0])
-        
+
     def LambdaSystemRatio(self,l):#fit singletons to doubletons ratio
         self.l = [l[0],l[1]]
         self.SetMatrix()
@@ -161,7 +165,7 @@ class CorrectLambda:
         varRatio1pop = [self.VariantRatio(coalT1[0][0], coalT1[0][1]), self.VariantRatio(coalT1[1][0], coalT1[1][1])]
         varRatio2pop = [self.VariantRatio(coalT[0][0], coalT[0][1]), self.VariantRatio(coalT[1][0], coalT[1][1])]
         return( varRatio1pop[0]-varRatio2pop[0], varRatio1pop[1]-varRatio2pop[1])
- 
+
     def LambdaSystem1(self,l):
         self.l = [l[0],l[1]]
         self.SetMatrix()
@@ -175,10 +179,10 @@ class CorrectLambda:
         self.SetMatrix()
         print(self.M)
         self.ODE([1, 0, 0],0)
-    
+
     def ODE(self, y, t):
         return( dot(self.M, y) )
-    
+
     def CoalRates_old(self, intervals, splitT, discr = 100):#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
         p0 = [1.0, 0.0, 0.0]
         solution = [[],[]]
@@ -229,7 +233,7 @@ class CorrectLambda:
         p0 = [self.P0[0][0]*exp(-lc[0]*self.T), self.P0[0][1]*exp(-lc[1]*self.T), self.P0[0][2]]
         p1 = [self.P0[1][0]*exp(-lc[0]*self.T), self.P0[1][1]*exp(-lc[1]*self.T), self.P0[1][2]]
         return [lc,[p0,p1]]
-    
+
     def LambdaSystemNoMigration(self,l):
         coalT = [None, None]
         for i in [0,1]:
@@ -245,7 +249,7 @@ class CorrectLambda:
         print(self.pr0[1])
         sys.exit(0)'''
         return( coalT[0]- self.ExpectedCoalTimeOnePop(self.lh[0]), coalT[1]- self.ExpectedCoalTimeOnePop(self.lh[1]) )
-    
+
     def SolveNoMigration(self):
         self.pr0 = [None, None]
         for i in [0,1]:
@@ -311,10 +315,10 @@ class CorrectLambda:
         p0 = dot(self.MET,self.P0[0])
         p1 = dot(self.MET,self.P0[1])
         return [self.l,[p0,p1]]
-        
+
 #if __name__ == "__main__":
-    
-    
+
+
 '''
 cl = CorrectLambda()
 inter1 = [0, 1, 1, 1, 1]
