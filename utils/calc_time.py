@@ -52,6 +52,8 @@ parser.add_argument('--hetloss', '-hl', nargs=2, type=float,
 
 parser.add_argument('--psmcMode', '-pm', type=int, default=0,
                     help='PSMC mode')
+parser.add_argument('--splitTime', '-st', type=int, default=-1,
+                    help='split time in generations')
 
 clargs = parser.parse_args()
 if isinstance(clargs.wd, list):
@@ -64,6 +66,8 @@ if isinstance(clargs.funits, list):
     clargs.funits = clargs.funits[0]
 if isinstance(clargs.psmcMode, list):
     clargs.psmcMode = clargs.psmcMode[0]
+if isinstance(clargs.splitTime, list):
+    clargs.splitTime = clargs.splitTime[0]
 
 units = migrationIO.Units()
 units.SetUnitsFromFile(clargs.funits)
@@ -78,6 +82,6 @@ fpsmc2 = os.path.join( clargs.wd, clargs.fpsmc2 )
 if clargs.psmcMode == 0:
     inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
 else:
-    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
-for splitT in range(len(inputData[0])):
-    print(splitT, "\t", int(sum(inputData[0][0:int(splitT)])*inputData[2]))
+    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.rd, divergenceTime = clargs.splitTime)
+for splitT in range(len(inputData.times)):
+    print(splitT, "\t", int(sum(inputData.times[0:int(splitT)])*inputData.scaleTime))

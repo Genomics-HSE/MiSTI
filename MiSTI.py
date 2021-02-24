@@ -183,7 +183,9 @@ if clargs.debug:
 if clargs.psmcMode == 0:
     inputData = migrationIO.ReadPSMC(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
 else:
-    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.sdate, clargs.rd)
+    inputData = migrationIO.ReadPSMC1(fpsmc1, fpsmc2, clargs.rd, divergenceTime = clargs.st)
+if inputData.divergenceTime == -1:
+    inputData.divergenceTime = clargs.st
 
 if clargs.debug:
     print("INPUT DATA")
@@ -192,23 +194,21 @@ if clargs.debug:
 
     print("END INPUT DATA")
 
-migrUnit = inputData[3]/2#Convert to ms migration rates (1/2 factor!)
+migrUnit = inputData.scaleEPS/2#Convert to ms migration rates (1/2 factor!)
 
-times = inputData[0]
+times = inputData.times
 
 
 sol = [[], [], []]
 
 t1 = time.time()
 
-Migration = MigrationInference(inputData[0], inputData[1], inputSFS, clargs.st, clargs.mi, clargs.pu, thrh = [inputData[4], inputData[5]], Tpsmc = inputData[7], enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData[6], mixtureTH = clargs.mth, cpfit = clargs.cpfit)
+Migration = MigrationInference(inputData.times, inputData.lambdas, inputSFS, inputData.divergenceTime, clargs.mi, clargs.pu, thrh = [inputData.theta, inputData.rho], Tpsmc = inputData.Tpsmc, enableOutput = False, smooth = not clargs.nosmooth, unfolded = clargs.uf, trueEPS = clargs.trueEPS, sampleDate = inputData.sampleDateDiscr, mixtureTH = clargs.mth, cpfit = clargs.cpfit)
 sol = Migration.Solve(clargs.tol)
 print(sol)
 
 
 print("\nParameter estimates:")
-
-splitT = clargs.st
 
 migStr = "migration rates "
 migFixed = []
@@ -229,8 +229,8 @@ if migFixedStr != "" and migOptStr != "":
     migStr = migFixedStr + "\t" + migOptStr
 else:
     migStr = migFixedStr + migOptStr
-#print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
-print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates", migStr, "\tllh =", sol[1])
+#print("splitT =", inputData.divergenceTime, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
+print("splitT =", inputData.divergenceTime, "\ttime =", (sum(inputData.times[0:int(inputData.divergenceTime)])+inputData.times[int(inputData.divergenceTime)]*(inputData.divergenceTime%1))*inputData.scaleTime, "\tmigration rates", migStr, "\tllh =", sol[1])
 print("\n")
 
 t2 = time.time()
@@ -238,7 +238,7 @@ t2 = time.time()
 if sol[1] == -10**9:
     print("Failed to fit such a model.")
 else:
-    migrationIO.OutputMigration(fout, sol[0], Migration, inputData[2], inputData[3])
+    migrationIO.OutputMigration(fout, sol[0], Migration, inputData.scaleTime, inputData.scaleEPS)
     if clargs.bsSize > 1:
         bs_llh = []
         bs_size = clargs.bsSize

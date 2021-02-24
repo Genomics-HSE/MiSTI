@@ -43,6 +43,18 @@ class JAFS:#This is a class of static variables
         self.pop1=pop1
         self.pop2=pop2
 
+class InputData:
+    def __init__(self, times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs):
+        self.times = times
+        self.lambdas = lambdas
+        self.divergenceTime = divTime
+        self.scaleTime = scaleTime
+        self.theta = theta
+        self.scaleEPS = scaleEPS
+        self.rho = rho
+        self.sampleDateDiscr = sampleDateDiscr
+        self.Tpsmc = Tpsmc
+
 class MigData:
     def __init__(self, **kwargs):
         self.llh = None
@@ -273,9 +285,9 @@ def ReadPSMC(fn1, fn2, sampleDate = 0.0, RD = -1, doPlot = False):
     Ttmp = [Tk[0]]
     Lk = [[u, v] for u, v in zip(Lk1, Lk2)]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk, scaleTime, scaleEPS, theta, d1[4]*theta/d1[3], sampleDateDiscr, Tpsmc] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units, Tpsmc - time intervals for psmc1 and psmc2
+    return( InputData(Tk, Lk, scaleTime, theta, scaleEPS = scaleEPS, rho = d1[4]*theta/d1[3], sampleDateDiscr = sampleDateDiscr, Tpsmc = Tpsmc) )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units, Tpsmc - time intervals for psmc1 and psmc2
 
-def ReadPSMC1(fn1, fn2, RD = -1, doPlot = False):
+def ReadPSMC1(fn1, fn2, RD = -1, doPlot = False, divergenceTime = -1):
     psmc = [PSMC(fn1, RD), PSMC(fn2, RD)]
 
     u = Units()
@@ -293,9 +305,18 @@ def ReadPSMC1(fn1, fn2, RD = -1, doPlot = False):
 
     if len(psmcCollapsed[0]) != len(psmcCollapsed[1]):
         sys.exit(1)
-    Tk = []
+    if divergenceTime == -1:
+        Tk = []
+    else:
+        Tk = [ divergenceTime/scaleTime ]
     for t1, t2 in zip(psmcCollapsed[0], psmcCollapsed[1]):
         Tk.append( (t1+t2)/2.0 )
+    Tk = list( set(Tk) )
+    Tk.sort()
+    if divergenceTime == -1:
+        divergenceTime_id = -1
+    else:
+        divergenceTime_id = Tk.index( divergenceTime/scaleTime )
 
     Lk = [ psmc[0].ReestimateCoalescentRates(Tk), psmc[1].ReestimateCoalescentRates(Tk) ]
 
@@ -309,7 +330,7 @@ def ReadPSMC1(fn1, fn2, RD = -1, doPlot = False):
         AddToPlot([v*scaleTime for v in Tk], Lk[1], "psmc2_c")
     Lk1 = [ [u, v] for u, v in zip(Lk[0], Lk[1]) ]
     Tk = [ u - v for u, v in zip(Tk[1:], Tk[:-1])]
-    return( [Tk, Lk1, scaleTime, 1.0, theta, None, 0, None] )#time, coalescent rates, 2*N_0 (assuming default bin size = 100), effective population size/10000 rescale factor, theta and rho (from PSMC), sample date in discrite units, Tpsmc - time intervals for psmc1 and psmc2
+    return( InputData(Tk, Lk1, scaleTime, theta, divTime = divergenceTime_id) )
 
 
 
