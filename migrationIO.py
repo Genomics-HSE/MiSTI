@@ -498,16 +498,21 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
 
 def BootstrapJAFS(Jafs):
     genomeLen = 0
+    SegSiteNum = 0
     for el in Jafs.jafs:
         if len(el) != 8:
             PrintErr("Cannot use provided SFS for bootstrap.")
             sys.exit(0)
         genomeLen += el[0]
+        SegSiteNum += sum(el[1:])
     sfs = [0 for _ in range(8)]
     while sfs[0] < genomeLen:
         sfs_id = random.randint(0, len(Jafs.jafs)-1)
         for i in range(8):
             sfs[i] += Jafs.jafs[sfs_id][i]
+    SegSiteNum_bs = sum(sfs[1:])
+    for i in range(8):
+        sfs[i] *= (SegSiteNum/SegSiteNum_bs)
     return(sfs)
 
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
