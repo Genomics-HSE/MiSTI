@@ -63,6 +63,7 @@ class MigrationInference:
         if "smooth" in kwargs:
             if kwargs["smooth"]:
                 self.smooth = True
+        self.LLHpsmc = False
         if "Tpsmc" in kwargs:
             self.LLHpsmc = True
             self.Tpsmc = kwargs["Tpsmc"]

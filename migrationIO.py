@@ -44,7 +44,7 @@ class JAFS:#This is a class of static variables
         self.pop2=pop2
 
 class InputData:
-    def __init__(self, times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs):
+    def __init__(self, times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, mi = None, pu = None, **kwargs):
         self.times = times
         self.lambdas = lambdas
         self.divergenceTime = divTime
@@ -54,6 +54,8 @@ class InputData:
         self.rho = rho
         self.sampleDateDiscr = sampleDateDiscr
         self.Tpsmc = Tpsmc
+        self.mi = mi
+        self.pu = pu
 
 class MigData:
     def __init__(self, **kwargs):
@@ -746,12 +748,14 @@ def ReadMS(argument_string):
     pus = []
     for key, val in puls.items():
         pus.append([val[1], timesD[key], val[0], 0])
-    inputData = [None for _ in range(5)]
-    inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
-    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
-    inputData[2] = splitTind
-    inputData[3] = mis#migration rates
-    inputData[4] = pus#pulse migration rates
+    #inputData = [None for _ in range(5)]
+    Tk = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
+    Lk = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
+    #inputData[2] = splitTind
+    #inputData[3] = mis#migration rates
+    #inputData[4] = pus#pulse migration rates
+    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = splitT, mi = mis, pu = pus)
+    #__init__(times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs)
     return(inputData)
 
 def PlotInit(id=1, hideProbs = False):

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+    #!/usr/bin/env python3
 
 #    Copyright (c) 2018 Vladimir Shchur (vlshchur@gmail.com)
 #
@@ -92,7 +92,8 @@ if False:
         print(v)
     print("END INPUT DATA")
 
-Migration = MigrationInference(inputData[0], inputData[1], inputSFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)
+#Migration = MigrationInference(inputData[0], inputData[1], inputSFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)
+Migration = MigrationInference(inputData.times, inputData.lambdas, inputSFS, inputData.divergenceTime, inputData.mi, inputData.pu, unfolded = clargs.uf, trueEPS = True)
 llh = Migration.JAFSLikelihood([])
 print("Expected SFS", Migration.JAFS)
 if jafs_input:
@@ -120,7 +121,7 @@ if jafs_input:
 Migration.CoalescentRates()#interval = [time, lambda1, lambda2, mu1, mu2], discr = number of intervals in the discretization
 if fout != "":
     migrationIO.OutputMigration(fout, [], Migration, 2*units.N0)
-    
+
 #print("splitT =", splitT, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
 
 
