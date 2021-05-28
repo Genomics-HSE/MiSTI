@@ -88,8 +88,7 @@ else:
 inputData = migrationIO.ReadMS(clargs.msstring)
 if False:
     print("INPUT DATA")
-    for v in inputData:
-        print(v)
+    inputData.print()
     print("END INPUT DATA")
 
 #Migration = MigrationInference(inputData[0], inputData[1], inputSFS, inputData[2], inputData[3], inputData[4], unfolded = clargs.uf, trueEPS = True)

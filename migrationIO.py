@@ -57,6 +57,11 @@ class InputData:
         self.mi = mi
         self.pu = pu
 
+    def print(self):
+        print("times           ", self.times)
+        print("lambdas         ", self.lambdas)
+        print("divergenceTime  ", self.divergenceTime)
+
 class MigData:
     def __init__(self, **kwargs):
         self.llh = None
@@ -754,7 +759,7 @@ def ReadMS(argument_string):
     #inputData[2] = splitTind
     #inputData[3] = mis#migration rates
     #inputData[4] = pus#pulse migration rates
-    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = 2*splitT, mi = mis, pu = pus)
+    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = splitTind, mi = mis, pu = pus)
     #__init__(times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs)
     return(inputData)
 
