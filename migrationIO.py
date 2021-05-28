@@ -719,7 +719,6 @@ def ReadMS(argument_string):
     times.add(splitT)
     times = list(times)
     times.sort()
-    times = [2*t for t in times]
     timesD = {times[i]: i for i in range(len(times))}
     splitTind = timesD[splitT]
 
@@ -750,12 +749,12 @@ def ReadMS(argument_string):
     for key, val in puls.items():
         pus.append([val[1], timesD[key], val[0], 0])
     #inputData = [None for _ in range(5)]
-    Tk = [(u-v) for u, v in zip(times[1:], times[:-1])]
+    Tk = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
     Lk = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
     #inputData[2] = splitTind
     #inputData[3] = mis#migration rates
     #inputData[4] = pus#pulse migration rates
-    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = splitT, mi = mis, pu = pus)
+    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = 2*splitT, mi = mis, pu = pus)
     #__init__(times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs)
     return(inputData)
 
