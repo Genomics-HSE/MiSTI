@@ -44,7 +44,7 @@ class JAFS:#This is a class of static variables
         self.pop2=pop2
 
 class InputData:
-    def __init__(self, times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs):
+    def __init__(self, times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, mi = None, pu = None, **kwargs):
         self.times = times
         self.lambdas = lambdas
         self.divergenceTime = divTime
@@ -54,6 +54,13 @@ class InputData:
         self.rho = rho
         self.sampleDateDiscr = sampleDateDiscr
         self.Tpsmc = Tpsmc
+        self.mi = mi
+        self.pu = pu
+
+    def print(self):
+        print("times           ", self.times)
+        print("lambdas         ", self.lambdas)
+        print("divergenceTime  ", self.divergenceTime)
 
 class MigData:
     def __init__(self, **kwargs):
@@ -498,16 +505,21 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
 
 def BootstrapJAFS(Jafs):
     genomeLen = 0
+    SegSiteNum = 0
     for el in Jafs.jafs:
         if len(el) != 8:
             PrintErr("Cannot use provided SFS for bootstrap.")
             sys.exit(0)
         genomeLen += el[0]
+        SegSiteNum += sum(el[1:])
     sfs = [0 for _ in range(8)]
     while sfs[0] < genomeLen:
         sfs_id = random.randint(0, len(Jafs.jafs)-1)
         for i in range(8):
             sfs[i] += Jafs.jafs[sfs_id][i]
+    SegSiteNum_bs = sum(sfs[1:])
+    for i in range(8):
+        sfs[i] *= (SegSiteNum/SegSiteNum_bs)
     return(sfs)
 
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
@@ -741,12 +753,14 @@ def ReadMS(argument_string):
     pus = []
     for key, val in puls.items():
         pus.append([val[1], timesD[key], val[0], 0])
-    inputData = [None for _ in range(5)]
-    inputData[0] = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
-    inputData[1] = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
-    inputData[2] = splitTind
-    inputData[3] = mis#migration rates
-    inputData[4] = pus#pulse migration rates
+    #inputData = [None for _ in range(5)]
+    Tk = [2*(u-v) for u, v in zip(times[1:], times[:-1])]
+    Lk = [[1.0/u[0], 1.0/u[1]] for u in popSizes]
+    #inputData[2] = splitTind
+    #inputData[3] = mis#migration rates
+    #inputData[4] = pus#pulse migration rates
+    inputData = InputData(Tk, Lk, 1.0, 1.0, divTime = splitTind, mi = mis, pu = pus)
+    #__init__(times, lambdas, scaleTime, theta, divTime = -1, scaleEPS = 1.0, rho = None, sampleDateDiscr = 0, Tpsmc = None, **kwargs)
     return(inputData)
 
 def PlotInit(id=1, hideProbs = False):
