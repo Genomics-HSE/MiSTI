@@ -35,7 +35,10 @@ if isinstance(clargs.y, list):
 if isinstance(clargs.mu, list):
     clargs.mu = clargs.mu[0]
 
-spectrum = ReadJAFS(clargs.jafs).jafs
+spectrum_split = ReadJAFS(clargs.jafs).jafs
+spectrum = [0 for _ in range(8)]
+for sfs in spectrum_split:
+    spectrum = [v+u for v, u in zip(spectrum, sfs)]
 spectrum = spectrum[1:]
 #Converting to paper notations
 M = float(clargs.haplen)
