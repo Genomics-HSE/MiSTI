@@ -243,7 +243,7 @@ else:
         bs_llh = []
         bs_size = clargs.bsSize
         for i in range(clargs.bsSize):
-            Migration.SetJAFS(migrationIO.BootstrapJAFS(dataJAFS))
+            Migration.SetJAFS(migrationIO.BootstrapJAFS(dataJAFS), normalize=True)
             bs_llh.append( Migration.JAFSLikelihood(sol[0]) )
         bs_llh.sort()
         cutoff = math.ceil(0.05*bs_size)

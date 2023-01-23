@@ -169,6 +169,7 @@ class MigrationInference:
         #Data parameters
         #Joint allele frequency spectrum: 0100,1100,0001,0101,1101,0011,0111
         self.SetJAFS(dataJAFS)
+        self.JAFSsize = self.snps
 
         #Class variables
         self.lc = [[1,1] for i in range(self.numT)]#Corrected lambdas
@@ -198,7 +199,7 @@ class MigrationInference:
         if self.debug:
             print("MigrationInference class initialized. Class size", self.numT)
 
-    def SetJAFS(self, dataJAFS):
+    def SetJAFS(self, dataJAFS, normalize=False):
         #self.snps = 0
         #self.dataJAFS = [0 for _ in range(7)]
         #for sfs in dataJAFS.jafs:
@@ -208,6 +209,10 @@ class MigrationInference:
             self.PrintError("SetJAFS", "Unexpected data SFS.")
         self.snps = sum(dataJAFS[1:])
         self.dataJAFS = dataJAFS[1:]
+        if normalize:
+            for i in range(1,len(self.dataJAFS)):
+                self.dataJAFS[i] = self.dataJAFS[i]/self.snps*self.JAFSsize
+            self.snps = self.JAFSsize
         self.llh_const = 0
         if self.unfolded:
             self.llh_const += scipy.special.gammaln(self.snps+1)
