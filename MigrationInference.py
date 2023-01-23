@@ -213,6 +213,7 @@ class MigrationInference:
             for i in range(1,len(self.dataJAFS)):
                 self.dataJAFS[i] = self.dataJAFS[i]/self.snps*self.JAFSsize
             self.snps = self.JAFSsize
+            print("True SFS size = ", self.JAFSsize, " bootstrap SFS size:", sum(self.dataJAFS))
         self.llh_const = 0
         if self.unfolded:
             self.llh_const += scipy.special.gammaln(self.snps+1)
