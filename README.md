@@ -33,7 +33,7 @@ __NB: psmc files should be supplied in the same order as genomes appear in the s
 
 ### Migration bands
 To add migration bands, __-mi__ option is used. It should be followed by 5 parameters (considered backward in time):  
-   * migration source population (1 or 2): lineages from this population might migrate to the other population. If considered _forward_ in time, this is a recieving population.
+   * migration source population (1 or 2): lineages from this population might migrate to the other population. If considered _forward_ in time, this is a receiving population.
    * migration start time (time interval index)
    * migration end time (time interval index)
      migration end time is _larger_ than migration start time
