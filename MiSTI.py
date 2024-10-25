@@ -85,8 +85,11 @@ parser.add_argument('--trueEPS', action='store_true',
                     help='Consider input as true effective population size (instead of mixed coalescence rates)')
 parser.add_argument('--cpfit', action='store_true',
                     help='Approximate EPS by fitting probabilities to coalesce within each interval (default is fitting expected coalescence time within each interval)')
-parser.add_argument('--bsSize', '-bs', type=int, default=0,
-                    help='Number of bootstrap repetitions')
+#parser.add_argument('--bsSize', '-bs', type=int, default=0,
+#                    help='Number of bootstrap repetitions')
+parser.add_argument('--bsMode', '-bs', nargs=1, type=int, default=0,
+                    help='Generate single bootstrap sample')
+
 
 parser.add_argument('--psmcMode', '-pm', type=int, default=0,
                     help='PSMC mode')
@@ -121,8 +124,8 @@ if isinstance(clargs.cpfit, list):
     clargs.cpfit = clargs.cpfit[0]
 if isinstance(clargs.uf, list):
     clargs.uf = clargs.uf[0]
-if isinstance(clargs.bsSize, list):
-    clargs.bsSize = clargs.bsSize[0]
+if isinstance(clargs.bsMode, list):
+    clargs.bsMode = clargs.bsMode[0]
 if isinstance(clargs.psmcMode, list):
     clargs.psmcMode = clargs.psmcMode[0]
 if clargs.mi is None:
@@ -165,13 +168,17 @@ print("Reading from files:")
 print("pop1\t", fpsmc1)
 print("pop2\t", fpsmc2)
 print("jafs\t", fjafs)
+
 dataJAFS = migrationIO.ReadJAFS(fjafs)
+if clargs.bsMode == 0:
+    inputSFS = [0 for _ in range(8)]
+    for sfs in dataJAFS.jafs:
+        inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
+else:
+    inputSFS = dataJAFS.jafs[clargs.bsMode]
 
-inputSFS = [0 for _ in range(8)]
-for sfs in dataJAFS.jafs:
-    inputSFS = [v+u for v, u in zip(inputSFS, sfs)]
 
-print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc file are supplied in the same order as populations appear in the joint allele frequency spectrum.")
+print("IMPORTANT NOTICE!!! Every time you are running MiSTI, make sure that psmc files are supplied in the same order as populations appear in the joint allele frequency spectrum.")
 
 fout   = clargs.fout
 if fout != "":
@@ -230,7 +237,7 @@ if migFixedStr != "" and migOptStr != "":
 else:
     migStr = migFixedStr + migOptStr
 #print("splitT =", inputData.divergenceTime, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
-print("splitT =", inputData.divergenceTime, "\ttime =", (sum(inputData.times[0:int(inputData.divergenceTime)])+inputData.times[int(inputData.divergenceTime)]*(inputData.divergenceTime%1))*inputData.scaleTime, "\tmigration rates", migStr, "\tllh =", sol[1])
+print("bs_id =", clargs.bsMode, "\tsplitT =", inputData.divergenceTime, "\ttime =", (sum(inputData.times[0:int(inputData.divergenceTime)])+inputData.times[int(inputData.divergenceTime)]*(inputData.divergenceTime%1))*inputData.scaleTime, "\tmigration rates", migStr, "\tllh =", sol[1])
 print("\n")
 
 t2 = time.time()
@@ -238,18 +245,8 @@ t2 = time.time()
 if sol[1] == -10**9:
     print("Failed to fit such a model.")
 else:
-    migrationIO.OutputMigration(fout, sol[0], Migration, inputData.scaleTime, inputData.scaleEPS)
-    if clargs.bsSize > 1:
-        bs_llh = []
-        bs_size = clargs.bsSize
-        for i in range(clargs.bsSize):
-            Migration.SetJAFS(migrationIO.BootstrapJAFS(dataJAFS), normalize=True)
-            bs_llh.append( Migration.JAFSLikelihood(sol[0]) )
-        bs_llh.sort()
-        cutoff = math.ceil(0.05*bs_size)
-        print("10% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
-        cutoff = math.ceil(0.025*bs_size)
-        print("5% confidence interval", bs_llh[cutoff], bs_llh[-cutoff])
+    if clargs.bsMode == 0:
+        migrationIO.OutputMigration(fout, sol[0], Migration, inputData.scaleTime, inputData.scaleEPS)
 
 t3 = time.time()
 
@@ -260,4 +257,4 @@ if clargs.debug:
 
 print("Runtime:   optimisation", t2-t1)
 print("           total       ", t3-t0)
-sys.exit(1)
+sys.exit(0)
