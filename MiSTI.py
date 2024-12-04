@@ -87,7 +87,7 @@ parser.add_argument('--cpfit', action='store_true',
                     help='Approximate EPS by fitting probabilities to coalesce within each interval (default is fitting expected coalescence time within each interval)')
 #parser.add_argument('--bsSize', '-bs', type=int, default=0,
 #                    help='Number of bootstrap repetitions')
-parser.add_argument('--bsMode', '-bs', nargs=1, type=int, default=0,
+parser.add_argument('--bsMode', '-bs', nargs=1, type=int, default=-1,
                     help='Generate single bootstrap sample')
 
 
@@ -170,7 +170,7 @@ print("pop2\t", fpsmc2)
 print("jafs\t", fjafs)
 
 dataJAFS = migrationIO.ReadJAFS(fjafs)
-if clargs.bsMode == 0:
+if clargs.bsMode == -1:
     inputSFS = [0 for _ in range(8)]
     for sfs in dataJAFS.jafs:
         inputSFS = [v+u for v, u in zip(inputSFS, sfs)]

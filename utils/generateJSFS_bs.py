@@ -36,7 +36,12 @@ pop1, pop2 = [], []
 
 dataJAFS = ReadJAFS(sys.argv[2], True)
 
-jafs = []
+trueSFS = [0 for _ in range(8)]
+for sfs in dataJAFS.jafs:
+    trueSFS = [v+u for v, u in zip(inputSFS, sfs)]
+
+jafs = [trueSFS]
+
 for i in range(bs_size):
     jafs.append( BootstrapJAFS(dataJAFS) )
 
