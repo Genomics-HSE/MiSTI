@@ -38,7 +38,7 @@ dataJAFS = ReadJAFS(sys.argv[2], True)
 
 trueSFS = [0 for _ in range(8)]
 for sfs in dataJAFS.jafs:
-    trueSFS = [v+u for v, u in zip(inputSFS, sfs)]
+    trueSFS = [v+u for v, u in zip(trueSFS, sfs)]
 
 jafs = [trueSFS]
 
