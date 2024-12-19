@@ -43,6 +43,6 @@ for sfs in dataJAFS.jafs:
 jafs = [trueSFS]
 
 for i in range(bs_size):
-    jafs.append( BootstrapJAFS(dataJAFS) )
+    jafs.append( BootstrapJAFS(dataJAFS, False) )
 
 PrintJAFSFile(jafs, dataJAFS.pop1, dataJAFS.pop2)

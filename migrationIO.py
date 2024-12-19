@@ -503,7 +503,7 @@ def ReadMigration(fmigr, doPlot=False, scaleTime = 1, scaleEPS = 1):
     data.lambdah2 = lh2
     return(data)
 
-def BootstrapJAFS(Jafs):
+def BootstrapJAFS(Jafs, normalize=False):
     genomeLen = 0
     SegSiteNum = 0
     for el in Jafs.jafs:
@@ -517,9 +517,10 @@ def BootstrapJAFS(Jafs):
         sfs_id = random.randint(0, len(Jafs.jafs)-1)
         for i in range(8):
             sfs[i] += Jafs.jafs[sfs_id][i]
-    SegSiteNum_bs = sum(sfs[1:])
-    for i in range(8):
-        sfs[i] *= (SegSiteNum/SegSiteNum_bs)
+    if normalize:
+        SegSiteNum_bs = sum(sfs[1:])
+        for i in range(8):
+            sfs[i] *= (SegSiteNum/SegSiteNum_bs)
     return(sfs)
 
 def PrintJAFSFile(jaf, pop1 = False, pop2 = False):
