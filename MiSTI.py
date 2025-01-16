@@ -29,7 +29,7 @@ import argparse
 import numpy
 import math
 import random
-from math import (exp,log)
+from math import (exp,log, ceil)
 import time
 import multiprocessing
 from MigrationInference import MigrationInference
@@ -237,7 +237,7 @@ if migFixedStr != "" and migOptStr != "":
 else:
     migStr = migFixedStr + migOptStr
 #print("splitT =", inputData.divergenceTime, "\ttime =", (sum(inputData[0][0:int(splitT)])+inputData[0][int(splitT)]*(splitT%1))*inputData[2], "\tmigration rates =", [v/migrUnit for v in sol[0]], "\tllh =", sol[1])
-print("bs_id =", clargs.bsMode, "\tsplitT =", inputData.divergenceTime, "\ttime =", (sum(inputData.times[0:int(inputData.divergenceTime)])+inputData.times[int(inputData.divergenceTime)]*(inputData.divergenceTime%1))*inputData.scaleTime, "\tmigration rates", migStr, "\tllh =", sol[1])
+print("bs_id =", clargs.bsMode, "\tsplitT =", inputData.divergenceTime, "\ttime =", sum(inputData.times[0:ceil(inputData.divergenceTime)])*inputData.scaleTime, "\tmigration rates", migStr, "\tllh =", sol[1])
 print("\n")
 
 t2 = time.time()
