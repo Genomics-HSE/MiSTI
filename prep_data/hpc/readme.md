@@ -10,4 +10,4 @@ sbatch -A proj_1669 --wrap="./angsd.sh SAMPLE nthr" -c nthr #nthr=4 is optimal
 
 Make 2dSFS:
 
-sbatch -A proj_1669 --wrap"./window.2d.sfs SAMPLE1 SAMPLE2 nthr" -c
+sbatch -A proj_1669 --wrap"./window.2d.sfs SAMPLE1 SAMPLE2 nthr" -c nthr
