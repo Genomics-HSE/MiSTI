@@ -31,7 +31,7 @@ strict_mask_sites=/home/av.ilina/datasets/masks/grch38/autosome.sites.strict.mas
 mkdir -p ${SAMPLE}/${SAMPLE}.sfs
 
 
-angsd -P $nthr -i ${CRAM} -out ${SAMPLE}.sfs/${SAMPLE}.all -sites ${strict_mask_sites} \
+angsd -P $nthr -i ${CRAM} -out ./${SAMPLE}/${SAMPLE}.sfs/${SAMPLE}.all -sites ${strict_mask_sites} \
  -C 50 \
  -minMapQ 20 -minQ 30 \
  -setMinDepth $mindep -setMaxDepth $maxdep \
