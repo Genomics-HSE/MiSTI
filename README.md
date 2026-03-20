@@ -17,7 +17,10 @@ For simulated data use the scripts `utils/MS2JSFS.py` (_msHOT-lite_ with __-l__ 
 
 ## About the time scale
 The time scale used in MiSTI command line is based on the PSMC time discretisation. Usually the time discretisation for different genomes does not coinside, so MiSTI merges the time points from two psmc files. Hence, on each time interval the coalescence rates for both genomes are constant. All the times in MiSTI command line (except for the sample date in case of ancient genome) are the indices of the corresponding time intervals. Use `utils/calc_time.py` to convert indices to generations/years. Example:  
-`./utils/calc_time.py genome1.psmc genome2.psmc`
+```bash
+./utils/calc_time.py genome1.psmc genome2.psmc`
+```
+
 >0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0  
 >1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;235  
 >2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;335  
