@@ -87,7 +87,10 @@ In coalescence models, which are used by PSMC and MiSTI, all the parametes inclu
 
 ## Running simulations
 To run the simulations the shell script _run_sim.sh_ is provided. You need to install msHOT_lite simulator (Heng Li [github](https://github.com/lh3/foreign/tree/master/msHOT-lite)). On the lines 10 and 11 set the paths to msHOT-lite and PSMC on your machine. [GNU Parallel](https://www.gnu.org/software/parallel/) is also used in the script (line 40) to run PSMC on two genomes in parallel. The following command will run the ms simulation, generate PSMC and sfs files and put them into the folder _simulated_scenario_  
-_./run_sim.sh simulated_scenario "4 100 -t 15000 -r 1920 30000000 -l -I 2 2 2 -n 1 10 -n 2 4.5 -eN 0.025 0.2 -ej 0.045 2 1 -eN 0.175 3 -eN 0.625 1.8 -eN 3 3.2 -eN 8 5.5"_
+```bash
+./run_sim.sh simulated_scenario "4 100 -t 15000 -r 1920 30000000 -l -I 2 2 2 -n 1 10 -n 2 4.5 -eN 0.025 0.2 -ej 0.045 2 1 -eN 0.175 3 -eN 0.625 1.8 -eN 3 3.2 -eN 8 5.5"
+```
+
 Then you can run MiSTI
 ```bash
 ./MiSTI.py ms2g1.psmc ms2g2.psmc sim.jafs 22 -o output.mi -uf
