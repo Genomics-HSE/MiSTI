@@ -70,13 +70,6 @@ There cannot be two pulse migrations in the opposite directions at the same time
 | `-rd NUM` | read PSMC round NUM; by default, the last round is used |
 
 ### Advanced and experimental command line parameters
-* __-mth NUM__ NUM is between 0 and 1. The mixture treshold.
-* __-tol NUM__ precision parameter of numerical optimisation.
-* __--cpfit__ MiSTI approximated effective population sizes on each time interval either by fitting probabilities to coalesce or by fitting expected coalescence times (default).
-* __--trueEPS__ treat input coalescence rates as the true effective population sizes (usually used for simulated data when true EPS are known.)
-* __--nosmooth__
-* __--bsSize__, __-bs__ bootstrap joint SFS to estimate variance of the composite log-likelihood function for the optimised values of parameters.
-
 
 | Option | Meaning |
 |---|---|
