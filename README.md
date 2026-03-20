@@ -59,12 +59,6 @@ Pulse migration is very similar to migration bands. Use __-pu__ argument followe
 There cannot be two pulse migrations in the opposite directions at the same time (but if you do think it would be useful, please request it).
 
 ### Other command line parameters
-* __-o results.mi__ will generate output file which can be used with plotting script.
-* __-wd PATH__ can be used to set the working directory. Then psmc and sfs files will be read from that directory, the output file will be placed to this directory too.
-* __-uf__ the flag to treat SFS as unfolded (genomes should be polarised by ancestral state prior to SFS calculation)
-* __--sdate__ the dating of the ancient genome (ancient genome is always the second genome) in years.
-* __--hetloss__, __-hl__ the loss of heterozygosity for the two genomes (default is 0 - no loss of heterozygosity).
-* __-rd NUM__ read round _NUM_ from PSMC files. By default the last round is read.
 
 | Option | Meaning |
 |---|---|
@@ -83,6 +77,15 @@ There cannot be two pulse migrations in the opposite directions at the same time
 * __--nosmooth__
 * __--bsSize__, __-bs__ bootstrap joint SFS to estimate variance of the composite log-likelihood function for the optimised values of parameters.
 
+
+| Option | Meaning |
+|---|---|
+| `-mth NUM` | mixture threshold, NUM between 0 and 1 |
+| `-tol NUM` | precision parameter for numerical optimisation |
+| `--cpfit` | approximate effective population sizes per interval by fitting coalescence probabilities or by fitting expected coalescence times (default) |
+| `--trueEPS` | treat input coalescence rates as true effective population sizes (typically for simulated data when true EPS are known) |
+| `--nosmooth` | disable smoothing |
+| `--bsSize`, `-bs` | bootstrap the joint SFS to estimate the variance of the composite log-likelihood for optimised parameter values |
 ## Plotting results
 Use script _MiSTIPlot.py_ to plot results. The minimal commandline is  
 ```bash
