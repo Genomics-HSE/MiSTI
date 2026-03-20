@@ -31,7 +31,10 @@ For example, setting split time to 3 in the command line means that it is 492 ge
 ## MiSTI command line
 
 The minimal command line is  
-`./MiSTI.py genome1.psmc genome2.psmc mi.sfs split_time`  
+'''bash
+./MiSTI.py genome1.psmc genome2.psmc mi.sfs split_time
+```
+
 where `genome1.psmc` and `genome2.psmc` are files with psmc output for two genomes and `mi.sfs` is the joint site frequency spectrum for these files in the special format used by MiSTI (see section _Data preparation - item 2_ above). _split_time_ is the split time index (see section _On the time scale_ above).  
 __NB: psmc files should be supplied in the same order as genomes appear in the sfs!__
 
