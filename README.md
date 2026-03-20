@@ -31,7 +31,7 @@ For example, setting split time to 3 in the command line means that it is 492 ge
 ## MiSTI command line
 
 The minimal command line is  
-'''bash
+```bash
 ./MiSTI.py genome1.psmc genome2.psmc mi.sfs split_time
 ```
 
