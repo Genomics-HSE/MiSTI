@@ -66,6 +66,15 @@ There cannot be two pulse migrations in the opposite directions at the same time
 * __--hetloss__, __-hl__ the loss of heterozygosity for the two genomes (default is 0 - no loss of heterozygosity).
 * __-rd NUM__ read round _NUM_ from PSMC files. By default the last round is read.
 
+| Option | Meaning |
+|---|---|
+| `-o results.mi` | write an output file that can be used by the plotting script |
+| `-wd PATH` | set the working directory; PSMC and SFS are read from this directory and output is written there |
+| `-uf` | treat the SFS as unfolded; genomes must be polarised by ancestral state prior to SFS computation |
+| `--sdate` | sampling date of the ancient genome in years (the ancient genome is always the second genome) |
+| `--hetloss`, `-hl` | loss of heterozygosity for the two genomes (default 0, i.e., no loss) |
+| `-rd NUM` | read PSMC round NUM; by default, the last round is used |
+
 ### Advanced and experimental command line parameters
 * __-mth NUM__ NUM is between 0 and 1. The mixture treshold.
 * __-tol NUM__ precision parameter of numerical optimisation.
