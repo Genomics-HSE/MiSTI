@@ -350,8 +350,10 @@ class MigrationInference:
             self.Pr.append([[p0[0][0],p0[1][0]],[p0[0][1],p0[1][1]],[p0[0][2],p0[1][2]]])
 #            nc[0] += -self.times[t]*self.lh[t][0]
 #            nc[1] += -self.times[t]*self.lh[t][1]
-            nc[0] = sum(p0[0])
-            nc[1] = sum(p0[1])
+            #nc[0] = sum(p0[0])
+            #nc[1] = sum(p0[1])
+            nc[0] = log( sum(p0[0]) )
+            nc[1] = log( sum(p0[1]) )
         for t in range(self.splitT,self.numT - 1):
 #            self.lc[t][0],self.lc[t][1] = (self.lh[t][0]+self.lh[t][1])/2,(self.lh[t][0]+self.lh[t][1])/2
             if self.times[t] == 0:
